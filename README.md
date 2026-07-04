@@ -11,8 +11,8 @@ UMC 10기 투켓에서 설계한 선물 펀딩 서비스입니다.
       </a>
     </td>
     <td width="300px" align="center">
-      <a href="https://github.com/">
-        <img height="150px" width="150px" src="https://avatars.githubusercontent.com/" />
+      <a href="https://github.com/snow-jun-0">
+        <img height="150px" width="150px" src="https://avatars.githubusercontent.com/snow-jun-0" />
       </a>
     </td>
     <td width="300px" align="center">
