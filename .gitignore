@@ -22,8 +22,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.vercel
-
-# Tooling state (Claude Code / OMC)
-.claude/
-.omc/
