@@ -1,10 +1,13 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import TextField from '../../components/common/TextField'
 import Button from '../../components/common/Button'
 import MenuRow from '../../components/common/MenuRow'
 import BottomNav from '../../components/common/BottomNav'
+import ConfirmModal from '../../components/common/ConfirmModal'
 import ProfileAvatar from '../signup/ProfileAvatar'
+import { useAuth } from '../../hooks/useAuth'
 import { MOCK_USER } from './mockUser'
 
 const NICKNAME_MAX_LENGTH = 6
@@ -13,11 +16,20 @@ const NICKNAME_MAX_LENGTH = 6
 export default function ProfileEditPage() {
   const [name, setName] = useState(MOCK_USER.name)
   const [nickname, setNickname] = useState('')
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false)
+  const { logout } = useAuth()
+  const navigate = useNavigate()
 
   const handleSave = () => {
     // TODO: 회원 정보 수정 API 연동
     setName(nickname)
     setNickname('')
+  }
+
+  const handleLogout = () => {
+    // TODO: 로그아웃 API 연동
+    logout()
+    navigate('/my', { state: { toast: '로그아웃이 완료 되었습니다' } })
   }
 
   return (
@@ -45,10 +57,19 @@ export default function ProfileEditPage() {
       <div className="mt-7 h-3 w-full shrink-0 bg-background" />
 
       <div className="mt-7 flex flex-col gap-3 px-[18px]">
-        {/* TODO: 로그아웃/계정 삭제 API 연동 */}
-        <MenuRow label="로그아웃" chevron={false} />
+        <MenuRow label="로그아웃" chevron={false} onClick={() => setLogoutModalOpen(true)} />
+        {/* TODO: 계정 삭제 플로우 구현 */}
         <MenuRow label="계정 삭제" chevron={false} />
       </div>
+
+      <ConfirmModal
+        open={logoutModalOpen}
+        title="로그아웃 하시겠습니까?"
+        description="언제든 다시 로그인 할 수 있어요"
+        confirmText="로그아웃"
+        onCancel={() => setLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+      />
 
       <BottomNav active="my" />
     </div>
