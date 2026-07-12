@@ -2,7 +2,7 @@
 name: "🛠️ 태스크 (Task)"
 about: 기능 개발 외 작업 (문서 작성, 리팩토링, 설정 변경 등)
 title: "chore: "
-labels: "chore, status: todo, priority: medium"
+labels: "🧹chore, status: todo, priority: mid"
 assignees: ""
 ---
 
