@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import TextField from '../../components/common/TextField'
 import Button from '../../components/common/Button'
@@ -11,10 +12,12 @@ const NICKNAME_MAX_LENGTH = 6
 export default function ProfileSetupPage() {
   const [nickname, setNickname] = useState('')
   const [termsOpen, setTermsOpen] = useState(false)
+  const navigate = useNavigate()
 
   const handleConfirm = () => {
+    // TODO: 가입 API 연동
     setTermsOpen(false)
-    // TODO: 가입 API 연동 및 홈 페이지 구현 후 navigate('/home')으로 연결
+    navigate('/home')
   }
 
   return (

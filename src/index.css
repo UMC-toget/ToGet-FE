@@ -19,6 +19,7 @@
   --color-gray-200: #d5d2d5;
   --color-gray-300: #c1bcc0;
   --color-gray-400: #aca6ab;
+  --color-gray-500: #7f7779;
   --color-gray-600: #797378;
   --color-gray-700: #5b565a;
   --color-gray-900: #1e1d1e;
@@ -52,6 +53,10 @@
   --text-caption1-r: 12px;
   --text-caption1-r--font-weight: 400;
   --text-caption1-r--line-height: 1;
+
+  --text-caption1-m: 12px;
+  --text-caption1-m--font-weight: 500;
+  --text-caption1-m--line-height: 1;
 
   --text-caption2-r: 10px;
   --text-caption2-r--font-weight: 400;
