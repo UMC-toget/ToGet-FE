@@ -4,6 +4,7 @@ import ProductCard from './ProductCard'
 import PriceFilterSheet from './PriceFilterSheet'
 import { GIFT_CATEGORIES, MOCK_PRODUCTS, PRICE_FILTERS } from './products'
 import type { PriceFilter } from './products'
+import { formatDateDots } from '../../utils/formatDate'
 
 type Category = (typeof GIFT_CATEGORIES)[number]
 
@@ -37,8 +38,8 @@ export default function GiftBrowseSection() {
         </div>
       </div>
       <div className="flex items-center justify-between">
-        {/* TODO: 상품 API 연동 시 기준일 실제 데이터로 교체 */}
-        <p className="text-caption1-r text-gray-500">2026.06.29 기준</p>
+        {/* TODO: 상품 API 연동 시 응답의 기준일(baseDate) 값으로 교체 */}
+        <p className="text-caption1-r text-gray-500">{formatDateDots(new Date())} 기준</p>
         <button type="button" onClick={() => setFilterOpen(true)} className="flex items-center gap-1">
           <span className="text-caption1-m text-black">{priceFilter.label}</span>
           <CaretDownIcon className="size-6 text-black" />
