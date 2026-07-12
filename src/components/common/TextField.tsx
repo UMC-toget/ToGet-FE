@@ -33,7 +33,7 @@ export default function TextField({ label, value, maxLength, onChange, className
           {label}
         </label>
       )}
-      <div className="flex h-12 w-full items-center gap-2 rounded-lg bg-background px-4">
+      <div className="flex h-12 w-full items-center gap-2 rounded-lg border border-transparent bg-background px-4 focus-within:border-gray-200 focus-within:bg-white">
         <input
           id={inputId}
           value={value}
