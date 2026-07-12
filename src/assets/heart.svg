@@ -1,0 +1,18 @@
+<svg viewBox="0 0 46.7302 46.7302" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="mdi:heart" clip-path="url(#clip0_0_26)">
+<path id="Vector" d="M23.3643 41.5683L20.541 38.9981C10.5135 29.9052 3.89338 23.8887 3.89338 16.5482C3.89338 10.5317 8.60535 5.83918 14.6024 5.83918C17.9903 5.83918 21.242 7.41633 23.3643 9.88913C25.4866 7.41633 28.7383 5.83918 32.1262 5.83918C38.1233 5.83918 42.8352 10.5317 42.8352 16.5482C42.8352 23.8887 36.2151 29.9052 26.1876 38.9981L23.3643 41.5683Z" fill="var(--fill-0, #FE71A5)"/>
+<g id="Ellipse 8829">
+<ellipse cx="33.7476" cy="249.224" rx="21.9586" ry="13.681" transform="rotate(-23.4486 33.7476 249.224)" fill="var(--fill-0, #D9D9D9)"/>
+<ellipse cx="33.7476" cy="249.224" rx="21.9586" ry="13.681" transform="rotate(-23.4486 33.7476 249.224)" fill="url(#paint0_linear_0_26)"/>
+</g>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_26" x1="33.7476" y1="247.096" x2="33.7476" y2="272.364" gradientUnits="userSpaceOnUse">
+<stop/>
+<stop offset="1" stop-color="#FBFCEE"/>
+</linearGradient>
+<clipPath id="clip0_0_26">
+<rect width="46.7302" height="46.7302" fill="white"/>
+</clipPath>
+</defs>
+</svg>
