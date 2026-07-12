@@ -2,7 +2,7 @@
 name: "✨ 기능 (Feature)"
 about: 새로운 기능 구현 또는 기존 기능 개선
 title: "feat: "
-labels: "✨feat, status: todo, priority: medium"
+labels: "✨feat, status: todo, priority: mid"
 assignees: ""
 ---
 
