@@ -1,1 +1,68 @@
 @import "tailwindcss";
+
+/* 피그마 디자인 변수 기반 디자인 토큰
+   https://www.figma.com/design/RUHJugPsPKg5TRpbYn7VdG */
+@theme {
+  /* 폰트 */
+  --font-sans: "Noto Sans KR", sans-serif;
+
+  /* 색상 - 핑크 (브랜드 컬러) */
+  --color-pink-*: initial;
+  --color-pink-100: #ffe3ed;
+  --color-pink-200: #ffc6db;
+  --color-pink-400: #fe8db7;
+  --color-pink-500: #fe71a5;
+
+  /* 색상 - 그레이 */
+  --color-gray-*: initial;
+  --color-gray-100: #eae9ea;
+  --color-gray-200: #d5d2d5;
+  --color-gray-300: #c1bcc0;
+  --color-gray-400: #aca6ab;
+  --color-gray-500: #7f7779;
+  --color-gray-600: #797378;
+  --color-gray-700: #5b565a;
+  --color-gray-900: #1e1d1e;
+
+  /* 색상 - 기본 */
+  --color-black: #191919;
+  --color-background: #f5f4f5;
+
+  /* 타이포그래피 (피그마 텍스트 스타일명 기준)
+     사용 예: <p class="text-h3-sb">제목</p> */
+  --text-h1-sb: 24px;
+  --text-h1-sb--font-weight: 600;
+  --text-h1-sb--line-height: 1;
+
+  --text-h3-sb: 18px;
+  --text-h3-sb--font-weight: 600;
+  --text-h3-sb--line-height: 1;
+
+  --text-b1-m: 16px;
+  --text-b1-m--font-weight: 500;
+  --text-b1-m--line-height: 1;
+
+  --text-b1-r: 16px;
+  --text-b1-r--font-weight: 400;
+  --text-b1-r--line-height: 1;
+
+  --text-b2-m: 14px;
+  --text-b2-m--font-weight: 500;
+  --text-b2-m--line-height: 1;
+
+  --text-b2-r: 14px;
+  --text-b2-r--font-weight: 400;
+  --text-b2-r--line-height: 1;
+
+  --text-caption1-r: 12px;
+  --text-caption1-r--font-weight: 400;
+  --text-caption1-r--line-height: 1;
+
+  --text-caption1-m: 12px;
+  --text-caption1-m--font-weight: 500;
+  --text-caption1-m--line-height: 1;
+
+  --text-caption2-r: 10px;
+  --text-caption2-r--font-weight: 400;
+  --text-caption2-r--line-height: 1;
+}

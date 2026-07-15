@@ -2,7 +2,7 @@
 name: "🐛 버그 (Bug)"
 about: 버그 발견 및 수정 요청
 title: "fix: "
-labels: "fix, status: todo, priority: medium"
+labels: "🐛fix, status:todo, priority:mid"
 assignees: ""
 ---
 
