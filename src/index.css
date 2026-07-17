@@ -22,11 +22,14 @@
   --color-gray-500: #7f7779;
   --color-gray-600: #797378;
   --color-gray-700: #5b565a;
+  --color-gray-800: #3c393c;
   --color-gray-900: #1e1d1e;
 
   /* 색상 - 기본 */
   --color-black: #191919;
   --color-background: #f5f4f5;
+  /* E02 인사말 카드/아바타 배경 (피그마 값, 정식 명칭은 디자이너 확인 필요) */
+  --color-background-2: #f7f5f8;
 
   /* 타이포그래피 (피그마 텍스트 스타일명 기준)
      사용 예: <p class="text-h3-sb">제목</p> */
