@@ -145,7 +145,7 @@ export default function Step4Account({ onNext }: Props) {
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-4">
-        <p className="text-xs text-gray-400 -mt-2">
+        <p className="text-xs text-gray-400">
           선물 준비에 사용할 계좌를 {isEdit ? '수정해' : '등록해'} 주세요<br />
           친구들이 선물에 함께할 때 이 계좌 정보를 확인할 수 있어요
         </p>
@@ -198,7 +198,7 @@ export default function Step4Account({ onNext }: Props) {
       {/* 은행 검색 시트: 포함검색 + 초성검색("ㅅㅎ") + 영문 유사어 검색("shin") 지원 */}
       {showBankSheet && (
         <div className="fixed inset-0 bg-black/40 flex items-end z-50">
-          <div className="bg-white w-full max-w-sm mx-auto rounded-t-2xl p-4 max-h-[70vh] flex flex-col">
+          <div className="bg-white w-full max-w-sm mx-auto rounded-t-2xl p-4 h-[70vh] flex flex-col">
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-3" />
             <p className="text-sm font-semibold text-gray-700 mb-2">은행명</p>
             <div className="relative mb-3">
