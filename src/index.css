@@ -72,6 +72,10 @@
   --text-caption2-r: 10px;
   --text-caption2-r--font-weight: 400;
   --text-caption2-r--line-height: 1;
+
+  --text-caption2-m: 10px;
+  --text-caption2-m--font-weight: 500;
+  --text-caption2-m--line-height: 1;
 }
 
 /* 글자수 제한 초과 등 입력 거부 피드백용 좌우 흔들림. 좌↔우 왕복 정확히 2회.
