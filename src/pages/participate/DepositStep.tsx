@@ -23,6 +23,7 @@ export default function DepositStep({ hostName, letter, letterColor, amount }: D
   const [copied, setCopied] = useState(false)
 
   const copyAccountNumber = async () => {
+    let ok = true
     try {
       await navigator.clipboard.writeText(MOCK_ACCOUNT.accountNumber)
     } catch {
@@ -31,10 +32,10 @@ export default function DepositStep({ hostName, letter, letterColor, amount }: D
       textarea.value = MOCK_ACCOUNT.accountNumber
       document.body.appendChild(textarea)
       textarea.select()
-      document.execCommand('copy')
+      ok = document.execCommand('copy')
       document.body.removeChild(textarea)
     }
-    setCopied(true)
+    setCopied(ok)
   }
 
   return (
