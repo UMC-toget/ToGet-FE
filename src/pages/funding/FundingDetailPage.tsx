@@ -37,7 +37,6 @@ export default function FundingDetailPage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-[140px]">
       <Header title={`${funding.hostName}님의 선물 페이지`} />
 
-      {/* 개설자 전용 세그먼트 탭 (피그마 '이용 방법 탭' 컴포넌트 기준) */}
       {funding.isOwner && (
         <div className="mx-[18px] mt-3 flex gap-1 rounded-lg bg-gray-100 p-1">
           <button type="button" className="flex-1 rounded-[4px] bg-white py-2 text-b2-m text-black">
@@ -50,7 +49,7 @@ export default function FundingDetailPage() {
         </div>
       )}
 
-      {/* 대표 이미지 영역 — D 섹션 템플릿 이미지로 교체 예정인 placeholder라 피그마 placeholder 색을 그대로 사용 (토큰 X) */}
+      {/* D 섹션 템플릿 이미지로 교체 예정인 placeholder라 색상 토큰 대신 임시 색 사용 */}
       <section className={`relative flex h-[190px] w-full items-center justify-center bg-gradient-to-t from-[#984463]/50 to-[#666666]/20 ${funding.isOwner ? 'mt-3' : ''}`}>
         <p className="text-caption1-r text-[#888888]">대표 이미지 삽입 영역</p>
         <div className="absolute inset-x-[18px] top-6 flex items-start justify-between">
@@ -88,7 +87,6 @@ export default function FundingDetailPage() {
         <MessageSection funding={funding} onOpenMessage={setOpenedMessage} />
       </div>
 
-      {/* 하단 고정 영역 (흰색 페이드 그라디언트) — 참여자: 마음 전하기 / 개설자: 마감·수정 버튼 */}
       <div className="pointer-events-none fixed bottom-0 left-1/2 w-full max-w-[402px] -translate-x-1/2 bg-gradient-to-b from-white/0 to-white/80 px-[18px] pb-[34px] pt-10">
         {funding.isOwner ? (
           <div className="pointer-events-auto flex gap-3">

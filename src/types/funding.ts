@@ -29,7 +29,7 @@ export interface FundingMessage {
   content: string | null
   /** 비공개 편지 — 다른 참여자에게 이름 '비공개' + 열람 불가, 개설자는 항상 봄 */
   isPrivate: boolean
-  /** 익명 편지 — 개설자에게도 이름 숨김 (피그마 개설자ver 주석 근거) */
+  /** 익명 편지 — 개설자에게도 이름 숨김 */
   isAnonymous: boolean
 }
 
@@ -54,7 +54,7 @@ export interface FundingDetail {
   currentAmount: number | null
   /** showProgress=false && !isOwner면 null (BE 응답 기준) */
   progressPercent: number | null
-  /** 게이지바 표시용 (진행률 공개 시에만 렌더링, 피그마 #1714:69054 기준) */
+  /** 게이지바 표시용 % (진행률 공개 시에만 렌더링) */
   gaugePercent: number
   /** showParticipantCount=false && !isOwner면 null (BE 응답 기준) */
   participantCount: number | null

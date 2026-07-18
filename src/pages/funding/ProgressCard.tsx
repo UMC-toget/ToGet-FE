@@ -8,12 +8,8 @@ interface ProgressCardProps {
 }
 
 /**
- * E02 진행 카드 (피그마 '펀딩창' 컴포넌트 기준)
- * 모인 금액/진행률/게이지/참여자 수/마감일 + 위시리스트 아코디언.
- * D04 공개 범위 토글에 따라 조건부 렌더링 (피그마 '펀딩창' 컴포넌트셋 #1714:69054 기준):
- * - showAmount OFF: 모인 금액 자리에 '비공개' 표시 (라벨은 유지)
- * - showProgress OFF: % 숨김 + 핑크 게이지 제거 (회색 트랙만 남음)
- * - showParticipantCount OFF: 'N명 참여 중' 숨김
+ * E02 진행 카드 (피그마 #1714:69054)
+ * D04 공개 범위 토글에 따라 조건부 렌더링 — 토글별 동작은 FundingVisibility 주석 참조
  */
 export default function ProgressCard({ funding }: ProgressCardProps) {
   const [wishOpen, setWishOpen] = useState(false)
@@ -37,7 +33,6 @@ export default function ProgressCard({ funding }: ProgressCardProps) {
             </p>
             {showProgress && <span className="text-b2-m leading-normal text-black">{funding.progressPercent}%</span>}
           </div>
-          {/* 진행률 비공개 시 핑크 게이지 없이 회색 트랙만 표시 */}
           <div className="h-[5px] w-full rounded-full bg-gray-100">
             {showProgress && (
               <div

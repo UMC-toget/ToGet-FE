@@ -8,11 +8,7 @@ interface MessageSectionProps {
   onOpenMessage: (message: FundingMessage) => void
 }
 
-/**
- * E02 축하 메시지 섹션 (피그마 '축하 메세지창' 컴포넌트셋 #1200:8788 기준)
- * D04 토글에 따라: 이름 공개 OFF → 봉투 이름 라벨 제거,
- * 내용 공개 OFF → 섹션/봉투는 유지하되 탭 불가 + 안내 문구 제거.
- */
+/** E02 축하 메세지 섹션 (피그마 #1200:8788) — 이름/내용 공개 정책은 messageUtils 참조 */
 export default function MessageSection({ funding, onOpenMessage }: MessageSectionProps) {
   const navigate = useNavigate()
   const { id } = useParams()

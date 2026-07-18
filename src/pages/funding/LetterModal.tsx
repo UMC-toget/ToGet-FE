@@ -10,10 +10,7 @@ interface LetterModalProps {
   onClose: () => void
 }
 
-/**
- * 축하 메시지 편지 팝업 (피그마 '편지지 열림' 컴포넌트 기준)
- * 핑크 편지지에 밑줄 라인이 깔린 형태. 딤 클릭 또는 X 버튼으로 닫힘.
- */
+/** 축하 메세지 편지 팝업 */
 export default function LetterModal({ open, hostName, content, senderLabel, onClose }: LetterModalProps) {
   if (!open) return null
 
@@ -28,7 +25,7 @@ export default function LetterModal({ open, hostName, content, senderLabel, onCl
       <div className="relative flex w-[366px] max-w-[calc(100%-36px)] flex-col items-center gap-4">
         <div className="w-full rounded-xl border border-pink-500 bg-pink-100 px-4 py-3">
           <p className="flex h-6 items-center text-b1-m text-black">{hostName}에게</p>
-          {/* 밑줄 라인: 28px 간격으로 반복되는 핑크 라인 배경 */}
+          {/* 28px 간격 편지지 밑줄 */}
           <div className="mt-[13px] bg-[repeating-linear-gradient(to_bottom,transparent,transparent_27px,rgba(254,113,165,0.5)_27px,rgba(254,113,165,0.5)_28px)] pb-[28px]">
             <p className="whitespace-pre-line text-b2-r leading-[28px] text-gray-800">{content}</p>
             {senderLabel != null && (
