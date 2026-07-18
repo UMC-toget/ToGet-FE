@@ -54,7 +54,7 @@ export function getMockFunding(isOwner: boolean, hidden: Set<string>, isOverAchi
     anniversaryDate: addDays(7),
     deadline: addDays(12),
     greeting:
-      '안녕하세요, 희주입니다 :)\n올해 생일에 받고 싶은 선물이 있어\n이렇게 페이지를 열어봤어요.\n축하 메시지만 남겨주셔도 정말 큰 마음이 될 것 같아요.',
+      '안녕하세요, 희주입니다 :)\n올해 생일에 받고 싶은 선물이 있어\n이렇게 페이지를 열어봤어요.\n축하 메세지만 남겨주셔도 정말 큰 마음이 될 것 같아요.',
     targetAmount: 392000,
     // BE 계약: 비공개 항목은 개설자가 아니면 null로 내려옴
     currentAmount: visibility.showAmount || isOwner ? mockAmount : null,

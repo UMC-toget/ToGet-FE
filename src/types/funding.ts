@@ -8,7 +8,7 @@ export interface FundingVisibility {
   showParticipantCount: boolean
   /** 참여한 친구 이름 공개 — OFF 시 봉투 이름 라벨 자체를 제거 (익명 표시 아님) */
   showParticipantNames: boolean
-  /** 축하 메시지(편지 내용) 공개 — OFF 시 봉투/섹션은 유지되고 내용만 열람 불가 (개설자는 항상 열람) */
+  /** 축하 메세지(편지 내용) 공개 — OFF 시 봉투/섹션은 유지되고 내용만 열람 불가 (개설자는 항상 열람) */
   showMessages: boolean
 }
 
@@ -23,7 +23,7 @@ export interface WishlistItem {
 
 export interface FundingMessage {
   id: string
-  /** 익명 메시지면 null */
+  /** 익명 메세지면 null */
   senderName: string | null
   /** 편지 내용 — 내용 공개 OFF && 참여자 시점이면 null (BE 응답 기준) */
   content: string | null

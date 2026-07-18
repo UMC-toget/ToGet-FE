@@ -8,7 +8,7 @@ interface EnvelopeButtonProps {
   onOpen: () => void
 }
 
-/** 축하 메시지 봉투 (탭하면 편지 팝업) */
+/** 축하 메세지 봉투 (탭하면 편지 팝업) */
 export default function EnvelopeButton({ label, canOpen, onOpen }: EnvelopeButtonProps) {
   return (
     <button
