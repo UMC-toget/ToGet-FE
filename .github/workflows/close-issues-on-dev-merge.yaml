@@ -1,0 +1,70 @@
+name: Close Issues on Dev Merge
+
+# 기본 브랜치는 main이라 PR 본문의 closes 키워드가 dev 머지 시에는 자동으로 동작하지 않습니다.
+# 이 워크플로우가 그 역할을 대신해서, dev로 머지된 PR 본문/제목에서 참조된 이슈를 닫아줍니다.
+on:
+  pull_request:
+    types: [closed]
+    branches: [dev]
+
+permissions:
+  issues: write
+
+jobs:
+  close-issues:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Close referenced issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request
+            const text = `${pr.title}\n${pr.body ?? ''}`
+            const re = /\b(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+#(\d+)/gi
+            const issueNumbers = new Set()
+            let match
+            while ((match = re.exec(text)) !== null) {
+              issueNumbers.add(Number(match[2]))
+            }
+
+            for (const issueNumber of issueNumbers) {
+              try {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  state: 'closed',
+                })
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  body: `PR #${pr.number}가 \`dev\`에 머지되어 자동으로 닫혔습니다.`,
+                })
+
+                const { data: issue } = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                })
+                const labelNames = issue.labels.map((l) => (typeof l === 'string' ? l : l.name))
+                if (labelNames.includes('status:review')) {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    name: 'status:review',
+                  }).catch(() => {})
+                }
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  labels: ['status:done'],
+                }).catch(() => {})
+              } catch (error) {
+                core.warning(`이슈 #${issueNumber} 처리 실패: ${error.message}`)
+              }
+            }
