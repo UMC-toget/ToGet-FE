@@ -33,6 +33,7 @@ jobs:
         with:
           message: |
             ✅ PREVIEW ${{ steps.deploy.outputs.preview_url }}
+          comment_tag: preview-url
 
 permissions:
   contents: read
