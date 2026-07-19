@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import avatarCat from '../../assets/avatar-cat.svg'
+import DefaultAvatar from '../../components/common/DefaultAvatar'
 import plusIcon from '../../assets/icon-plus.svg'
 
 interface ProfileAvatarProps {
@@ -32,9 +32,7 @@ export default function ProfileAvatar({ onSelect }: ProfileAvatarProps) {
       {previewUrl ? (
         <img src={previewUrl} alt="프로필 사진 미리보기" className="size-full rounded-full object-cover" />
       ) : (
-        <span className="flex size-full items-center justify-center overflow-hidden rounded-full bg-gradient-to-t from-[#1e1d1e] from-[76.6%] to-[#3c393c]">
-          <img src={avatarCat} alt="" className="w-[63px]" />
-        </span>
+        <DefaultAvatar className="size-[90px]" />
       )}
       <span className="absolute bottom-0 right-0 flex size-5 items-center justify-center rounded-full border-2 border-white bg-pink-500">
         <img src={plusIcon} alt="" className="w-2.5" />

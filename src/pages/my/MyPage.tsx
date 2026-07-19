@@ -3,9 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import BottomNav from '../../components/common/BottomNav'
 import MenuRow from '../../components/common/MenuRow'
 import Toast from '../../components/common/Toast'
+import DefaultAvatar from '../../components/common/DefaultAvatar'
 import SearchIcon from '../../components/icons/SearchIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
-import avatarCat from '../../assets/avatar-cat.svg'
 import { useAuth } from '../../hooks/useAuth'
 import { MOCK_USER } from './mockUser'
 
@@ -55,9 +55,7 @@ export default function MyPage() {
         className="flex w-full items-center justify-between px-[18px] py-6"
       >
         <div className="flex items-center gap-3">
-          <span className="flex size-[52px] items-center justify-center overflow-hidden rounded-full bg-gradient-to-t from-[#1e1d1e] from-[76.6%] to-[#3c393c]">
-            <img src={avatarCat} alt="" className="w-9" />
-          </span>
+          <DefaultAvatar className="size-[52px]" />
           <span className="flex flex-col items-start gap-1 text-left">
             <span className="text-b1-m text-black">{isLoggedIn ? MOCK_USER.name : '로그인 및 회원가입'}</span>
             <span className="text-caption1-r text-gray-600">
