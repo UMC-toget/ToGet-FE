@@ -74,7 +74,7 @@ export default function TextField({
       )}
       <div
         ref={boxRef}
-        className="flex h-12 w-full items-center gap-2 rounded-lg border border-transparent bg-background px-4 focus-within:border-gray-200 focus-within:bg-white"
+        className="flex h-12 w-full items-center gap-2 rounded-lg border border-transparent bg-background px-4 focus-within:border-gray-700"
         style={{ '--shake-amp': INPUT_SHAKE_AMPLITUDE } as React.CSSProperties}
       >
         <input
