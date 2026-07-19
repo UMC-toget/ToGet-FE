@@ -67,13 +67,10 @@
   --text-caption2-r--line-height: 1;
 }
 
-/* 스플래시 로고가 왼쪽에서 오른쪽으로 그려지듯 나타나는 효과.
-   디자이너 제공 영상(손글씨 로고 애니메이션)을 클리핑 리빌로 재현했습니다. */
-@keyframes splash-draw {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
+/* 스플래시 로고 획이 실제 손글씨처럼 처음부터 그려지는 효과.
+   pathLength=1로 정규화된 stroke path의 dashoffset을 1→0으로 애니메이션합니다. */
+@keyframes splash-stroke-draw {
   to {
-    clip-path: inset(0 0 0 0);
+    stroke-dashoffset: 0;
   }
 }
