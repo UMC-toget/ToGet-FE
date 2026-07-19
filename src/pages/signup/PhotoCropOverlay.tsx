@@ -196,11 +196,20 @@ export default function PhotoCropOverlay({ file, onCancel, onConfirm, onError }:
             />
           )}
 
-          {/* 원형 크롭 가이드: 큰 box-shadow로 원 바깥 영역을 어둡게 처리합니다 */}
+          {/* 원형 크롭 가이드: 원 바깥 영역만 radial-gradient 마스크로 골라내 어둡게+블러 처리합니다 */}
           <div
-            className="pointer-events-none absolute inset-0 rounded-full"
-            style={{ boxShadow: '0 0 0 9999px rgba(0,0,0,0.6)' }}
+            className="pointer-events-none absolute inset-0"
+            style={{
+              backgroundColor: 'rgba(0,0,0,0.3)',
+              backdropFilter: 'blur(3px)',
+              WebkitBackdropFilter: 'blur(3px)',
+              maskImage: 'radial-gradient(circle at center, transparent 49.7%, black 50.3%)',
+              WebkitMaskImage: 'radial-gradient(circle at center, transparent 49.7%, black 50.3%)',
+            }}
           />
+
+          {/* 원형 가이드 테두리 */}
+          <div className="pointer-events-none absolute inset-0 rounded-full border border-[#ffe3ed]" />
 
           {/* 3x3 격자선 */}
           <div className="pointer-events-none absolute inset-0">
