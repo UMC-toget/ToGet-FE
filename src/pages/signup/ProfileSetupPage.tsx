@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import TextField from '../../components/common/TextField'
@@ -6,8 +6,11 @@ import Button from '../../components/common/Button'
 import ProfileAvatar from './ProfileAvatar'
 import TermsBottomSheet from './TermsBottomSheet'
 import { useAuth } from '../../hooks/useAuth'
+import { replayShake } from '../../utils/shake'
 
 const NICKNAME_MAX_LENGTH = 6
+// 화면 전체 흔들림은 입력창 자체보다 훨씬 은은하게 느껴지도록 진폭을 크게 줄입니다.
+const PAGE_SHAKE_AMPLITUDE = '0.4px'
 
 /** 회원가입 마지막 단계: 프로필(닉네임/사진) 설정 페이지 */
 export default function ProfileSetupPage() {
@@ -15,6 +18,7 @@ export default function ProfileSetupPage() {
   const [termsOpen, setTermsOpen] = useState(false)
   const navigate = useNavigate()
   const { login } = useAuth()
+  const pageRef = useRef<HTMLDivElement>(null)
 
   const handleConfirm = () => {
     // TODO: 가입 API 연동
@@ -24,7 +28,11 @@ export default function ProfileSetupPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
+    <div
+      ref={pageRef}
+      className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white"
+      style={{ '--shake-amp': PAGE_SHAKE_AMPLITUDE } as React.CSSProperties}
+    >
       <Header title="프로필" />
 
       <div className="flex flex-col gap-1 px-[18px] pt-6">
@@ -44,6 +52,7 @@ export default function ProfileSetupPage() {
           maxLength={NICKNAME_MAX_LENGTH}
           placeholder="닉네임을 입력해 주세요"
           onChange={(e) => setNickname(e.target.value)}
+          onOverflow={() => replayShake(pageRef.current)}
         />
         <Button disabled={nickname.length === 0} onClick={() => setTermsOpen(true)}>
           가입

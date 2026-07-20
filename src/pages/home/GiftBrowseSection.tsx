@@ -47,8 +47,10 @@ export default function GiftBrowseSection() {
       </div>
       {filteredProducts.length > 0 ? (
         <div className="grid grid-cols-2 gap-x-4 gap-y-4">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {/* TODO: 순위 API 연동 시 index+1이 아니라 서버가 내려주는 순위를 사용해야 함.
+              '요즘 인기' 카테고리는 사용자별 위시 등록 통계를 내림차순 집계한 순위입니다. */}
+          {filteredProducts.map((product, index) => (
+            <ProductCard key={product.id} product={product} rank={index + 1} />
           ))}
         </div>
       ) : (

@@ -5,8 +5,13 @@ import bannerCat from '../../assets/banner-cat.svg'
 // TODO: 가입 API 연동 후 실제 사용자 닉네임으로 교체
 const MOCK_NICKNAME = '희주'
 
+interface HomeBannerProps {
+  /** 선물 페이지 만들기 버튼 클릭 시 호출 */
+  onCreateClick: () => void
+}
+
 /** 홈 상단 배너: 인사말 + 선물 페이지 만들기 버튼 + 캐릭터 그래픽 */
-export default function HomeBanner() {
+export default function HomeBanner({ onCreateClick }: HomeBannerProps) {
   return (
     <section className="relative h-[184px] w-full">
       <div className="absolute inset-0 overflow-hidden rounded-2xl bg-gradient-to-b from-pink-100/50 to-[#fbfcee]">
@@ -28,9 +33,9 @@ export default function HomeBanner() {
         </div>
         <button
           type="button"
+          onClick={onCreateClick}
           className="flex h-[34px] w-fit items-center gap-2 rounded-lg bg-pink-500 px-2.5 text-white"
         >
-          {/* TODO: 선물 페이지 만들기 플로우 구현 후 연결 */}
           <span className="text-xs font-semibold">선물 페이지 만들기</span>
           <PlusIcon className="size-4" />
         </button>
