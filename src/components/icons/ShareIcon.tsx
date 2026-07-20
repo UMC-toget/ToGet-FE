@@ -1,0 +1,13 @@
+/** 공유 아이콘 (피그마 추출). 색상은 currentColor를 따릅니다. */
+export default function ShareIcon({ className = 'size-8' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path
+        d="M12 18L20 22M20 10L12 14M24 28C21.7909 28 20 26.2091 20 24C20 21.7909 21.7909 20 24 20C26.2091 20 28 21.7909 28 24C28 26.2091 26.2091 28 24 28ZM8 20C5.79086 20 4 18.2091 4 16C4 13.7909 5.79086 12 8 12C10.2091 12 12 13.7909 12 16C12 18.2091 10.2091 20 8 20ZM24 12C21.7909 12 20 10.2091 20 8C20 5.79086 21.7909 4 24 4C26.2091 4 28 5.79086 28 8C28 10.2091 26.2091 12 24 12Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}

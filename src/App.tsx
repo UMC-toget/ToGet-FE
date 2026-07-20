@@ -5,6 +5,7 @@ import ProfileSetupPage from './pages/signup/ProfileSetupPage'
 import HomePage from './pages/home/HomePage'
 import MyPage from './pages/my/MyPage'
 import ProfileEditPage from './pages/my/ProfileEditPage'
+import GiftAboutPage from './pages/gift-about/GiftAboutPage'
 import GiftCreateMyPage from './pages/gift-create/GiftCreateMyPage'
 import GiftCreateTogetherPage from './pages/gift-create/GiftCreateTogetherPage'
 import GiftAboutPage from './pages/gift-about/GiftAboutPage'
@@ -23,6 +24,7 @@ function App() {
       <Route path="/home" element={<HomePage />} />
       <Route path="/my" element={<MyPage />} />
       <Route path="/my/profile" element={<ProfileEditPage />} />
+      <Route path="/gift/about" element={<GiftAboutPage />} />
       <Route path="/gift/create/my" element={<GiftCreateMyPage />} />
       <Route path="/gift/create/together" element={<GiftCreateTogetherPage />} />
       <Route path="/gift/about" element={<GiftAboutPage />} />
