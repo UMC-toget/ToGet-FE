@@ -40,7 +40,7 @@ export interface PriceFilter {
 
 export const PRICE_FILTERS: PriceFilter[] = [
   { id: 'all', label: '전체', min: 0, max: Infinity },
-  { id: 'under-10k', label: '1만 원 미만', min: 0, max: 10_000 },
+  { id: '10k', label: '1만 원대', min: 10_000, max: 20_000 },
   { id: '20k', label: '2만 원대', min: 20_000, max: 30_000 },
   { id: '30k', label: '3만 원대', min: 30_000, max: 40_000 },
   { id: '40k', label: '4만 원대', min: 40_000, max: 50_000 },

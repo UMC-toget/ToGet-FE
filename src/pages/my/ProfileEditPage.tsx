@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import TextField from '../../components/common/TextField'
@@ -8,9 +8,12 @@ import BottomNav from '../../components/common/BottomNav'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import ProfileAvatar from '../signup/ProfileAvatar'
 import { useAuth } from '../../hooks/useAuth'
+import { replayShake } from '../../utils/shake'
 import { MOCK_USER } from './mockUser'
 
 const NICKNAME_MAX_LENGTH = 6
+// 화면 전체 흔들림은 입력창 자체보다 훨씬 은은하게 느껴지도록 진폭을 크게 줄입니다.
+const PAGE_SHAKE_AMPLITUDE = '0.4px'
 
 /** 내 정보 페이지: 닉네임/프로필 사진 변경, 로그아웃/계정 삭제 */
 export default function ProfileEditPage() {
@@ -20,6 +23,7 @@ export default function ProfileEditPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const { logout } = useAuth()
   const navigate = useNavigate()
+  const pageRef = useRef<HTMLDivElement>(null)
 
   const handleSave = () => {
     // TODO: 회원 정보 수정 API 연동
@@ -40,7 +44,11 @@ export default function ProfileEditPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-32">
+    <div
+      ref={pageRef}
+      className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-32"
+      style={{ '--shake-amp': PAGE_SHAKE_AMPLITUDE } as React.CSSProperties}
+    >
       <Header title="내 정보" />
 
       <div className="mt-6 flex flex-col items-center gap-2">
@@ -55,6 +63,7 @@ export default function ProfileEditPage() {
           maxLength={NICKNAME_MAX_LENGTH}
           placeholder="닉네임을 입력해주세요"
           onChange={(e) => setNickname(e.target.value)}
+          onOverflow={() => replayShake(pageRef.current)}
         />
         <Button disabled={nickname.length === 0} onClick={handleSave}>
           저장
