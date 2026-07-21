@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import BottomSheet from '../../components/common/BottomSheet'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import bannerCat from '../../assets/banner-cat.svg'
+import togetherCat from '../../assets/together-cat.svg'
 import wishGift from '../../assets/wish-gift.png'
 
 interface WishCreateSheetProps {
@@ -31,7 +32,7 @@ const GIFT_PAGE_CARDS: WishCreateCardInfo[] = [
     path: '/gift/create/my',
   },
   {
-    icon: bannerCat,
+    icon: togetherCat,
     title: '함께 선물 페이지 만들기',
     description: '친구들과 함께 한 사람을 위한\n선물을 고르고 준비할 수 있어요.',
     path: '/gift/create/together',
