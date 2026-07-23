@@ -3,7 +3,7 @@ import BottomSheet from '../../components/common/BottomSheet'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import bannerCat from '../../assets/banner-cat.svg'
 import togetherCat from '../../assets/together-cat.svg'
-import wishGift from '../../assets/wish-gift.png'
+import wishGift from '../../assets/wish-gift.svg'
 
 interface WishCreateSheetProps {
   open: boolean
