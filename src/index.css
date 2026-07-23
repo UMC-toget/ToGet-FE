@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* 콘텐츠 높이에 따라 세로 스크롤바가 생겼다 사라졌다 하면서 화면 전체가 좌우로 미세하게 밀리는 것을 방지합니다
+   (예: 홈 카테고리 필터로 상품 수가 줄어 스크롤이 필요 없어지는 순간). */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* 피그마 디자인 변수 기반 디자인 토큰
    https://www.figma.com/design/RUHJugPsPKg5TRpbYn7VdG */
 @theme {
