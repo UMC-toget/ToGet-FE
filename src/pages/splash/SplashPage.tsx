@@ -22,14 +22,14 @@ export default function SplashPage() {
   }, [goToLogin])
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-white">
+    <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col items-center justify-center bg-white">
       <video
         autoPlay
         muted
         playsInline
         onEnded={goToLogin}
         onError={goToLogin}
-        className="w-full max-w-[402px]"
+        className="aspect-[402/874] w-full"
       >
         <source src={splashVideo} type="video/mp4" />
       </video>
