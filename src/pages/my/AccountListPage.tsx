@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom'
 import Header from '../../components/common/Header'
-import BottomNav from '../../components/common/BottomNav'
 import PlusIcon from '../../components/icons/PlusIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import EditPencilIcon from '../../components/icons/EditPencilIcon'
@@ -12,7 +11,7 @@ export default function AccountListPage() {
   const navigate = useNavigate()
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-32">
+    <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
       <Header title="등록된 나의 계좌" />
 
       <div className="px-[18px] pt-4">
@@ -67,8 +66,6 @@ export default function AccountListPage() {
           </div>
         )}
       </div>
-
-      <BottomNav active="my" />
     </div>
   )
 }
