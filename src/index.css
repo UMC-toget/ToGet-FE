@@ -66,11 +66,3 @@
   --text-caption2-r--font-weight: 400;
   --text-caption2-r--line-height: 1;
 }
-
-/* 스플래시 로고 획이 실제 손글씨처럼 처음부터 그려지는 효과.
-   pathLength=1로 정규화된 stroke path의 dashoffset을 1→0으로 애니메이션합니다. */
-@keyframes splash-stroke-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
