@@ -29,7 +29,7 @@ export default function SplashPage() {
         playsInline
         onEnded={goToLogin}
         onError={goToLogin}
-        className="size-full object-contain"
+        className="size-full object-cover"
       >
         <source src={splashVideo} type="video/mp4" />
       </video>
