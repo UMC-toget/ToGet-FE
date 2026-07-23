@@ -20,6 +20,11 @@ const MENU_SECTIONS: { title: string; items: string[] }[] = [
 // 비로그인 상태에서는 설정 섹션만 노출됩니다 (피그마 기준)
 const GUEST_MENU_SECTIONS = MENU_SECTIONS.filter((s) => s.title === '설정')
 
+// TODO: 나머지 메뉴 항목들도 해당 화면 구현 후 경로 추가
+const MENU_ITEM_PATHS: Record<string, string> = {
+  '등록된 나의 계좌': '/my/accounts',
+}
+
 /** 마이페이지 (I. 마이) */
 export default function MyPage() {
   const navigate = useNavigate()
@@ -76,7 +81,11 @@ export default function MyPage() {
             <h2 className="text-h3-sb text-black">{section.title}</h2>
             <div className="flex flex-col gap-3">
               {section.items.map((item) => (
-                <MenuRow key={item} label={item} />
+                <MenuRow
+                  key={item}
+                  label={item}
+                  onClick={MENU_ITEM_PATHS[item] ? () => navigate(MENU_ITEM_PATHS[item]) : undefined}
+                />
               ))}
             </div>
           </section>

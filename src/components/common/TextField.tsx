@@ -1,13 +1,13 @@
 import { useId, useRef } from 'react'
-import type { InputHTMLAttributes, KeyboardEvent } from 'react'
+import type { InputHTMLAttributes, KeyboardEvent, ReactNode } from 'react'
 import { replayShake } from '../../utils/shake'
 
 // '닉네임' 라벨의 '닉' 글자 잉크 너비(실측 11px)의 1/3(4px)에서 시작해, 흔들림이 과하다는 피드백에 따라 두 차례 더 낮췄습니다 (4px → 2.7px → 1.8px).
 const INPUT_SHAKE_AMPLITUDE = '1.8px'
 
 interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
-  /** 입력창 위에 표시되는 라벨 */
-  label?: string
+  /** 입력창 위에 표시되는 라벨 (필수 표시 등 강조가 필요하면 ReactNode도 가능) */
+  label?: ReactNode
   value: string
   /** 지정하면 우측에 (현재/최대) 글자수 카운터가 표시됩니다 */
   maxLength?: number
