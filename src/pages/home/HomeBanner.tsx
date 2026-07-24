@@ -21,9 +21,9 @@ export default function HomeBanner({ isLoggedIn, onCreateClick }: HomeBannerProp
     <section className="relative h-[184px] w-full">
       <div className="absolute inset-0 overflow-hidden rounded-2xl bg-gradient-to-b from-pink-100/50 to-[#fbfcee]">
         <img src={heroCat} alt="" className="absolute -right-11 top-1 h-[167px]" />
-        {/* 402px 기준 고정 위치(피그마 스펙) — 더 좁은 화면에서는 오른쪽으로 밀려나며 잘리도록 해서
+        {/* 366px(피그마 배너 폭) 기준 고정 위치 — 더 좁은 화면에서는 오른쪽으로 밀려나며 잘리도록 해서
             인사말 문구와 겹치지 않게 합니다 (문구는 whitespace-nowrap이라 폭이 고정이라 겹칠 수 있음) */}
-        <img src={bannerCat} alt="" className="absolute -bottom-2 left-[198px] h-[148px]" />
+        <img src={bannerCat} alt="" className="absolute -bottom-2 left-[213px] h-[148px]" />
       </div>
       <div className="relative flex h-full flex-col justify-between px-[18px] py-[19px]">
         {isLoggedIn ? (
