@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import BottomNav from '../../components/common/BottomNav'
+import Toast from '../../components/common/Toast'
 import CaretDownIcon from '../../components/icons/CaretDownIcon'
 import WishProductCard from './WishProductCard'
+import WishEditModeSheet from './WishEditModeSheet'
 import { MOCK_PRODUCTS } from '../home/products'
 import { useWishStore } from '../../store/wishStore'
 import type { WishType } from '../../store/wishStore'
+
+const TOAST_DURATION_MS = 2000
 
 const TABS: { id: WishType | 'all'; label: string }[] = [
   { id: 'all', label: '전체' },
@@ -16,6 +20,15 @@ const TABS: { id: WishType | 'all'; label: string }[] = [
 export default function WishPage() {
   const { wishes, removeWish } = useWishStore()
   const [tab, setTab] = useState<WishType | 'all'>('all')
+  const [editModeSheetOpen, setEditModeSheetOpen] = useState(false)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+
+  // TODO: '수정하기'/'삭제하기' 선택 후 다중 선택 인터랙션은 PM/디자이너 확인 후 구현
+  const handleSelectEditMode = () => {
+    setEditModeSheetOpen(false)
+    setToastMessage('선택 편집 기능은 준비 중이에요')
+    setTimeout(() => setToastMessage(null), TOAST_DURATION_MS)
+  }
 
   const wishedProducts = MOCK_PRODUCTS.filter(
     (product) => product.id in wishes && (tab === 'all' || wishes[product.id] === tab),
@@ -53,8 +66,7 @@ export default function WishPage() {
               <span className="text-caption1-m text-black">최신순</span>
               <CaretDownIcon className="size-6 text-black" />
             </button>
-            {/* TODO: 다중 선택 삭제 등 편집 모드 구현 */}
-            <button type="button" className="text-caption1-m text-black">
+            <button type="button" onClick={() => setEditModeSheetOpen(true)} className="text-caption1-m text-black">
               편집
             </button>
           </div>
@@ -74,6 +86,14 @@ export default function WishPage() {
       </div>
 
       <BottomNav active="gift" />
+
+      <WishEditModeSheet
+        open={editModeSheetOpen}
+        onClose={() => setEditModeSheetOpen(false)}
+        onSelectEdit={handleSelectEditMode}
+        onSelectDelete={handleSelectEditMode}
+      />
+      <Toast open={toastMessage !== null} message={toastMessage ?? ''} />
     </div>
   )
 }

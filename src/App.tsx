@@ -4,6 +4,7 @@ import LoginPage from './pages/login/LoginPage'
 import ProfileSetupPage from './pages/signup/ProfileSetupPage'
 import HomePage from './pages/home/HomePage'
 import WishPage from './pages/wish/WishPage'
+import WishEditPage from './pages/wish/WishEditPage'
 import MyPage from './pages/my/MyPage'
 import ProfileEditPage from './pages/my/ProfileEditPage'
 import AccountListPage from './pages/my/AccountListPage'
@@ -31,6 +32,7 @@ function App() {
       <Route path="/signup/profile" element={<ProfileSetupPage />} />
       <Route path="/home" element={<HomePage />} />
       <Route path="/wish" element={<WishPage />} />
+      <Route path="/wish/:id/edit" element={<WishEditPage />} />
       <Route path="/my" element={<MyPage />} />
       <Route path="/my/profile" element={<ProfileEditPage />} />
       <Route path="/my/accounts" element={<AccountListPage />} />

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import MoreVerticalIcon from '../../components/icons/MoreVerticalIcon'
 import PlusIcon from '../../components/icons/PlusIcon'
 import type { Product } from '../home/products'
@@ -10,11 +11,12 @@ interface WishProductCardProps {
 
 /** 위시 페이지 상품 카드. 좌상단 "+"로 펀딩에 추가, 우측 "⋮"로 위시 해제 (피그마 기준) */
 export default function WishProductCard({ product, onRemoveWish }: WishProductCardProps) {
+  const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="relative flex size-[175px] items-center justify-center rounded-xl bg-background p-3">
+      <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-background p-3">
         <img src={product.image} alt={product.name} className="max-h-[75%] max-w-[80%] object-contain" />
         <button
           type="button"
@@ -46,6 +48,16 @@ export default function WishProductCard({ product, onRemoveWish }: WishProductCa
                   className="fixed inset-0 z-10"
                 />
                 <div className="absolute right-0 top-full z-20 mt-1 w-24 rounded-lg border border-gray-100 bg-white py-1 shadow-md">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false)
+                      navigate(`/wish/${product.id}/edit`)
+                    }}
+                    className="w-full px-3 py-2 text-left text-caption1-m text-black"
+                  >
+                    수정하기
+                  </button>
                   <button
                     type="button"
                     onClick={() => {

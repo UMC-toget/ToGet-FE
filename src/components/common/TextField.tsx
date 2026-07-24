@@ -13,6 +13,8 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   maxLength?: number
   /** 글자수 제한을 초과해 입력을 시도했을 때 호출됩니다 (예: 화면 전체 흔들림 트리거용) */
   onOverflow?: () => void
+  /** 지정하면 우측에 괄호로 감싼 단위를 표시합니다 (예: "원" -> "(원)"). maxLength와 동시 사용 시 maxLength 카운터가 우선합니다 */
+  suffix?: string
 }
 
 /**
@@ -30,6 +32,7 @@ export default function TextField({
   onOverflow,
   onKeyDown,
   className = '',
+  suffix,
   ...props
 }: TextFieldProps) {
   const inputId = useId()
@@ -86,10 +89,12 @@ export default function TextField({
           className="min-w-0 flex-1 bg-transparent text-b1-m text-black outline-none placeholder:text-gray-400"
           {...props}
         />
-        {maxLength !== undefined && (
+        {maxLength !== undefined ? (
           <span className="shrink-0 text-b2-r text-gray-400">
             ({value.length}/{maxLength})
           </span>
+        ) : (
+          suffix && <span className="shrink-0 text-b2-r text-gray-400">({suffix})</span>
         )}
       </div>
     </div>
