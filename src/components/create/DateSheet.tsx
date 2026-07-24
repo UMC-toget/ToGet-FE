@@ -161,7 +161,7 @@ export default function DateSheet(props: DateSheetProps) {
             const inRange = isInRange(day);
             // 시작~마감 사이를 끊김 없는 핑크 바로 이어주고, 시작/마감 칸만 좌우를 둥글게 마감
             const barClass = start || end || inRange
-              ? `bg-pink-50 ${start ? 'rounded-l-full' : ''} ${end ? 'rounded-r-full' : ''}`
+              ? `bg-pink-100 ${start ? 'rounded-l-full' : ''} ${end ? 'rounded-r-full' : ''}`
               : '';
 
             return (
