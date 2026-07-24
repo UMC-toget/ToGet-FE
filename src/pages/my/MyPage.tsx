@@ -3,18 +3,24 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import BottomNav from '../../components/common/BottomNav'
 import MenuRow from '../../components/common/MenuRow'
 import Toast from '../../components/common/Toast'
+import DefaultAvatar from '../../components/common/DefaultAvatar'
 import SearchIcon from '../../components/icons/SearchIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
-import avatarCat from '../../assets/avatar-cat.svg'
 import { useAuth } from '../../hooks/useAuth'
 import { MOCK_USER } from './mockUser'
 
 const TOAST_DURATION_MS = 2500
 
-const MENU_SECTIONS: { title: string; items: string[] }[] = [
-  { title: '선물 페이지', items: ['내 선물 페이지', '함께 선물 페이지'] },
-  { title: '계좌', items: ['등록된 나의 계좌'] },
-  { title: '설정', items: ['알림 설정', '고객 문의', '이용약관', '개인정보 처리 방침'] },
+const MENU_SECTIONS: { title: string; items: { label: string; path?: string }[] }[] = [
+  {
+    title: '선물 페이지',
+    items: [{ label: '내 선물 페이지', path: '/funding/create' }, { label: '함께 선물 페이지' }],
+  },
+  { title: '계좌', items: [{ label: '등록된 나의 계좌' }] },
+  {
+    title: '설정',
+    items: [{ label: '알림 설정' }, { label: '고객 문의' }, { label: '이용약관' }, { label: '개인정보 처리 방침' }],
+  },
 ]
 
 // 비로그인 상태에서는 설정 섹션만 노출됩니다 (피그마 기준)
@@ -55,9 +61,7 @@ export default function MyPage() {
         className="flex w-full items-center justify-between px-[18px] py-6"
       >
         <div className="flex items-center gap-3">
-          <span className="flex size-[52px] items-center justify-center overflow-hidden rounded-full bg-gradient-to-t from-[#1e1d1e] from-[76.6%] to-[#3c393c]">
-            <img src={avatarCat} alt="" className="w-9" />
-          </span>
+          <DefaultAvatar className="size-[52px]" />
           <span className="flex flex-col items-start gap-1 text-left">
             <span className="text-b1-m text-black">{isLoggedIn ? MOCK_USER.name : '로그인 및 회원가입'}</span>
             <span className="text-caption1-r text-gray-600">
@@ -78,7 +82,11 @@ export default function MyPage() {
             <h2 className="text-h3-sb text-black">{section.title}</h2>
             <div className="flex flex-col gap-3">
               {section.items.map((item) => (
-                <MenuRow key={item} label={item} />
+                <MenuRow
+                  key={item.label}
+                  label={item.label}
+                  onClick={item.path ? () => navigate(item.path!) : undefined}
+                />
               ))}
             </div>
           </section>

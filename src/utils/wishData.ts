@@ -1,3 +1,12 @@
+import productLipbalm from '../assets/mock/product-lipbalm.png';
+import productVitamin from '../assets/mock/product-vitamin.png';
+import productCamera from '../assets/mock/product-camera.png';
+import productRoomspray from '../assets/mock/product-roomspray.png';
+import productCushion from '../assets/mock/product-cushion.png';
+import productPerfume from '../assets/mock/product-perfume.png';
+import productHandcream from '../assets/mock/product-handcream.png';
+import productLamp from '../assets/mock/product-lamp.png';
+
 export type WishCategory = 'received' | 'given';
 
 export interface WishSourceItem {
@@ -6,14 +15,16 @@ export interface WishSourceItem {
   name: string;
   price: number;
   category: WishCategory; // 받고 싶은 / 주고 싶은
-  color: string; // 실제 상품 이미지 대신 쓰는 플레이스홀더 색상
+  image: string; // 실제 상품 이미지
 }
 
 export const MOCK_WISH_ITEMS: WishSourceItem[] = [
-  { id: 'w1', brand: '탬버린즈', name: '핸드크림', price: 18500, category: 'received', color: '#E8E4D8' },
-  { id: 'w2', brand: '오브리', name: '도트 머쉬룸 램프 화이트', price: 65000, category: 'received', color: '#F2ECE4' },
-  { id: 'w3', brand: '아라코', name: '유리 캔들 홀더', price: 24000, category: 'given', color: '#DCE7E4' },
-  { id: 'w4', brand: '몰펫', name: '캐릭터 인형 키링', price: 15000, category: 'received', color: '#F5E1E8' },
-  { id: 'w5', brand: '이솝', name: '핸드워시 500ml', price: 42000, category: 'given', color: '#E4E8DC' },
-  { id: 'w6', brand: '스와니코코', name: '디퓨저 세트', price: 38000, category: 'received', color: '#EAE0D5' },
+  { id: 'w1', brand: '탬버린즈', name: '핸드크림', price: 18500, category: 'received', image: productHandcream },
+  { id: 'w2', brand: '오브리', name: '도트 머쉬룸 램프 화이트', price: 65000, category: 'received', image: productLamp },
+  { id: 'w3', brand: '이니스프리', name: '립밤', price: 6000, category: 'given', image: productLipbalm },
+  { id: 'w4', brand: '뉴트리원', name: '멀티 비타민', price: 22000, category: 'received', image: productVitamin },
+  { id: 'w5', brand: '캐논', name: '미니 디지털 카메라', price: 89000, category: 'received', image: productCamera },
+  { id: 'w6', brand: '스와니코코', name: '룸스프레이', price: 24000, category: 'given', image: productRoomspray },
+  { id: 'w7', brand: '탬버린즈', name: '퍼퓸 30ml', price: 58000, category: 'given', image: productPerfume },
+  { id: 'w8', brand: '슬립퍼', name: '메모리폼 쿠션', price: 32000, category: 'received', image: productCushion },
 ];

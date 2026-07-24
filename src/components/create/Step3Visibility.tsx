@@ -2,6 +2,8 @@ import { useFundingCreateStore } from '../../store/fundingCreateStore';
 
 interface Props {
   onNext: () => void;
+  submitLabel?: string;
+  disabled?: boolean;
 }
 
 interface ToggleItemProps {
@@ -35,7 +37,7 @@ function ToggleItem({ label, description, checked, onChange }: ToggleItemProps) 
   );
 }
 
-export default function Step3Visibility({ onNext }: Props) {
+export default function Step3Visibility({ onNext, submitLabel = '다음', disabled = false }: Props) {
   const {
     showProgress, showAmount, showParticipantCount, showParticipantNames, showMessages,
     setVisibility,
@@ -86,9 +88,10 @@ export default function Step3Visibility({ onNext }: Props) {
 
       <button
         onClick={onNext}
-        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors"
+        disabled={disabled}
+        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        다음
+        {submitLabel}
       </button>
     </div>
   );

@@ -6,6 +6,8 @@ import { searchBanks } from '../../utils/bankData';
 
 interface Props {
   onNext: () => void;
+  submitLabel?: string;
+  disabled?: boolean;
 }
 
 type View = 'list' | 'add' | 'edit';
@@ -18,7 +20,7 @@ interface AccountFormState {
 
 const emptyForm: AccountFormState = { bankName: '', accountNumber: '', accountHolder: '' };
 
-export default function Step4Account({ onNext }: Props) {
+export default function Step4Account({ onNext, submitLabel = '다음', disabled = false }: Props) {
   const { accounts, selectedAccountId, addAccount, updateAccount, selectAccount } = useFundingCreateStore();
 
   const [view, setView] = useState<View>('list');
@@ -123,10 +125,10 @@ export default function Step4Account({ onNext }: Props) {
 
         <button
           onClick={onNext}
-          disabled={!selectedAccountId}
+          disabled={!selectedAccountId || disabled}
           className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          다음
+          {submitLabel}
         </button>
       </div>
     );
@@ -170,7 +172,7 @@ export default function Step4Account({ onNext }: Props) {
             inputMode="numeric"
             placeholder="본인의 계좌번호를 정확히 입력해주세요"
             value={form.accountNumber}
-            onChange={(e) => setForm({ ...form, accountNumber: e.target.value })}
+            onChange={(e) => setForm({ ...form, accountNumber: e.target.value.replace(/[^0-9]/g, '') })}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-800 transition-colors"
           />
         </div>
@@ -181,7 +183,7 @@ export default function Step4Account({ onNext }: Props) {
             type="text"
             placeholder="예금주 이름을 정확히 입력해 주세요"
             value={form.accountHolder}
-            onChange={(e) => setForm({ ...form, accountHolder: e.target.value })}
+            onChange={(e) => setForm({ ...form, accountHolder: e.target.value.replace(/[0-9]/g, '') })}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-800 transition-colors"
           />
         </div>
