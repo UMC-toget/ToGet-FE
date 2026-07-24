@@ -10,7 +10,7 @@ import ConfirmModal from '../../components/common/ConfirmModal'
 import ProfileAvatar from '../signup/ProfileAvatar'
 import { useAuth } from '../../hooks/useAuth'
 import { useMyProfile } from '../../hooks/useMyProfile'
-import { updateMyProfile, withdrawMe } from '../../api/users'
+import { updateMyProfile, withdrawMe, deleteMyProfileImage } from '../../api/users'
 import { clearTokens } from '../../lib/tokenStorage'
 import { replayShake } from '../../utils/shake'
 
@@ -24,6 +24,7 @@ export default function ProfileEditPage() {
   const [nickname, setNickname] = useState('')
   const [logoutModalOpen, setLogoutModalOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [deletePhotoModalOpen, setDeletePhotoModalOpen] = useState(false)
   const { logout } = useAuth()
   const navigate = useNavigate()
   const pageRef = useRef<HTMLDivElement>(null)
@@ -36,6 +37,15 @@ export default function ProfileEditPage() {
       setNickname('')
     },
     onError: () => replayShake(pageRef.current),
+  })
+
+  const deletePhotoMutation = useMutation({
+    mutationFn: deleteMyProfileImage,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myProfile'] })
+      setDeletePhotoModalOpen(false)
+    },
+    onError: () => setDeletePhotoModalOpen(false),
   })
 
   const withdrawMutation = useMutation({
@@ -73,8 +83,17 @@ export default function ProfileEditPage() {
 
       <div className="mt-6 flex flex-col items-center gap-2">
         {/* TODO: 프로필 사진 업로드 API가 아직 명세에 없어 onSelect로 받은 File은 전송하지 않습니다 */}
-        <ProfileAvatar />
+        <ProfileAvatar imageUrl={profile?.profileImageUrl} />
         <p className="text-h3-sb text-black">{profile?.nickname ?? '회원'}</p>
+        {profile?.profileImageUrl && (
+          <button
+            type="button"
+            onClick={() => setDeletePhotoModalOpen(true)}
+            className="text-caption1-r text-gray-500"
+          >
+            사진 삭제
+          </button>
+        )}
       </div>
 
       <div className="mt-6 flex flex-col gap-5 px-[18px]">
@@ -108,6 +127,13 @@ export default function ProfileEditPage() {
         confirmText="로그아웃"
         onCancel={() => setLogoutModalOpen(false)}
         onConfirm={handleLogout}
+      />
+      <ConfirmModal
+        open={deletePhotoModalOpen}
+        title="프로필 사진을 삭제할까요?"
+        confirmText="삭제하기"
+        onCancel={() => setDeletePhotoModalOpen(false)}
+        onConfirm={() => deletePhotoMutation.mutate()}
       />
       <ConfirmModal
         open={deleteModalOpen}
