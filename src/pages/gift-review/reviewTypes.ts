@@ -18,7 +18,11 @@ interface ReviewWriteTypeConfig {
   contentPlaceholder: string
   /** 편지지 미리보기에 from. 표기를 노출할지 여부 (마음 전하기는 노출 안 함) */
   showFrom: boolean
-  /** 작성 완료 후 이동 경로 (이미지 등록·캐릭터 선택·완료 화면은 별도 이슈라 임시 경로) */
+  /** 이미지 등록 영역 라벨 (피그마 기준: gift/news는 "선물 이미지", message는 "대표 이미지") */
+  imageLabel: string
+  /** 등록 가능한 최대 이미지 개수 (gift만 여러 장, news/message는 대표 이미지 1장) */
+  maxImages: number
+  /** 작성 완료 후 이동 경로 (캐릭터 선택·완료 화면은 별도 이슈라 임시 경로) */
   completePath: string
 }
 
@@ -39,6 +43,8 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
     contentLabel: '후기 내용',
     contentPlaceholder: '후기 내용을 입력해 주세요',
     showFrom: true,
+    imageLabel: '선물 이미지',
+    maxImages: 5,
     completePath: '/gift/review/complete/gift',
   },
   news: {
@@ -51,6 +57,8 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
     contentLabel: '후기 내용',
     contentPlaceholder: '후기 내용을 입력해 주세요',
     showFrom: true,
+    imageLabel: '선물 이미지',
+    maxImages: 1,
     completePath: '/gift/review/complete/news',
   },
   message: {
@@ -63,6 +71,8 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
     contentLabel: '마음전하기 내용',
     contentPlaceholder: '후기 내용을 입력해 주세요',
     showFrom: false,
+    imageLabel: '대표 이미지',
+    maxImages: 1,
     completePath: '/gift/review/complete/message',
   },
 }
