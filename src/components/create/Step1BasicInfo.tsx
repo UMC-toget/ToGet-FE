@@ -1,13 +1,23 @@
 import { useState } from 'react';
+import { X } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import DateSheet, { formatDisplay } from './DateSheet';
 import PhotoActionSheet from './PhotoActionSheet';
+import ImageCropper from './ImageCropper';
+import ConfirmModal from '../common/ConfirmModal';
+
+// 대표 이미지(페이지 썸네일) 자르기 비율 - 목록/카드에서 쓰이는 와이드 배너 형태
+const THUMBNAIL_ASPECT_RATIO = 364 / 173;
 
 interface Props {
   onNext: () => void;
+  /** 하단 제출 버튼 텍스트 (기본값 '다음') - 수정 화면에서는 '수정 저장'으로 덮어씁니다 */
+  submitLabel?: string;
+  /** 기존 유효성 검사에 더해 버튼을 강제로 비활성화 (수정 화면에서 변경 사항이 없을 때 사용) */
+  disabled?: boolean;
 }
 
-export default function Step1BasicInfo({ onNext }: Props) {
+export default function Step1BasicInfo({ onNext, submitLabel = '다음', disabled = false }: Props) {
   const {
     title,
     anniversaryDate,
@@ -21,6 +31,8 @@ export default function Step1BasicInfo({ onNext }: Props) {
   const [errors, setErrors] = useState<{ title?: boolean; anniversaryDate?: boolean; preparation?: boolean }>({});
   const [openSheet, setOpenSheet] = useState<'date' | 'range' | null>(null);
   const [showPhotoSheet, setShowPhotoSheet] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
 
   const isValid = Boolean(title.trim() && anniversaryDate && preparationStartDate && preparationEndDate);
 
@@ -125,15 +137,16 @@ export default function Step1BasicInfo({ onNext }: Props) {
           {thumbnailImage ? (
             <div className="relative">
               <img
-                src={URL.createObjectURL(thumbnailImage)}
+                src={typeof thumbnailImage === 'string' ? thumbnailImage : URL.createObjectURL(thumbnailImage)}
                 alt="대표 이미지"
                 className="w-full h-36 object-cover rounded-lg"
               />
               <button
-                onClick={() => setStep1({ thumbnailImage: null })}
-                className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-md"
+                onClick={() => setShowDeleteConfirm(true)}
+                aria-label="페이지 이미지 삭제하기"
+                className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
               >
-                삭제
+                <X size={14} />
               </button>
             </div>
           ) : (
@@ -152,10 +165,10 @@ export default function Step1BasicInfo({ onNext }: Props) {
 
       <button
         onClick={handleNext}
-        disabled={!isValid}
+        disabled={!isValid || disabled}
         className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        다음
+        {submitLabel}
       </button>
 
       {openSheet === 'date' && (
@@ -184,9 +197,36 @@ export default function Step1BasicInfo({ onNext }: Props) {
       {showPhotoSheet && (
         <PhotoActionSheet
           onClose={() => setShowPhotoSheet(false)}
-          onSelect={(file) => setStep1({ thumbnailImage: file })}
+          onSelect={(file) => {
+            setShowPhotoSheet(false);
+            setPendingCropFile(file);
+          }}
         />
       )}
+
+      {pendingCropFile && (
+        <ImageCropper
+          file={pendingCropFile}
+          aspectRatio={THUMBNAIL_ASPECT_RATIO}
+          onCancel={() => setPendingCropFile(null)}
+          onConfirm={(croppedFile) => {
+            setStep1({ thumbnailImage: croppedFile });
+            setPendingCropFile(null);
+          }}
+        />
+      )}
+
+      <ConfirmModal
+        open={showDeleteConfirm}
+        title="이미지를 삭제하시겠습니까?"
+        cancelText="취소"
+        confirmText="삭제"
+        onCancel={() => setShowDeleteConfirm(false)}
+        onConfirm={() => {
+          setStep1({ thumbnailImage: null });
+          setShowDeleteConfirm(false);
+        }}
+      />
     </div>
   );
 }

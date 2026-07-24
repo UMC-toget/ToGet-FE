@@ -13,20 +13,21 @@ const ACCESSORIES: Record<number, string> = {
   6: '🎁',
 };
 
+// 채도를 낮춘 뮤트 파스텔 팔레트
 export const INVITE_COLORS = [
-  '#FBCFE8', // pink (기본)
-  '#FCA5A5', // red/coral
-  '#FDE68A', // yellow
-  '#BBF7D0', // green
-  '#BFDBFE', // blue
-  '#DDD6FE', // purple
-  '#E9D5FF', // light purple
+  '#FCE4F0', // pink (기본)
+  '#FFD3CC', // red/coral
+  '#FFF7DA', // yellow
+  '#EEF6DD', // green
+  '#DCEBFA', // blue
+  '#E9E3F5', // purple
+  '#F0E5F7', // light purple
   '#FFFFFF', // white
 ];
 
 export const CHARACTER_COUNT = Object.keys(ACCESSORIES).length;
 
-export default function Mascot({ character = 1, color = '#FBCFE8', size = 120 }: MascotProps) {
+export default function Mascot({ character = 1, color = '#F5DCE6', size = 120 }: MascotProps) {
   const accessory = ACCESSORIES[character] ?? '';
   return (
     <div
