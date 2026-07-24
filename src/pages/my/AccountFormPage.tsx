@@ -46,7 +46,7 @@ export default function AccountFormPage() {
       <Header title={editingAccount ? '계좌 수정하기' : '새로운 계좌 등록하기'} />
 
       <div className="flex flex-col gap-4 px-[18px] pt-4">
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-4">
           <label className="text-b1-m text-black">
             은행명 <span className="text-pink-500">*</span>
           </label>
