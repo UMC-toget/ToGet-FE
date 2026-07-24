@@ -9,6 +9,7 @@ import BankSelectSheet from './BankSelectSheet'
 import { useUserAccounts, USER_ACCOUNTS_QUERY_KEY } from '../../hooks/useUserAccounts'
 import { createUserAccount, updateUserAccount, BANK_NAME_LABELS } from '../../api/userAccounts'
 import type { BankName } from '../../api/userAccounts'
+import { ApiError } from '../../lib/apiClient'
 
 /** 계좌 등록/수정 폼 (I. 마이 > 계좌). id가 있으면 수정, 없으면 새 계좌 등록입니다. */
 export default function AccountFormPage() {
@@ -87,7 +88,9 @@ export default function AccountFormPage() {
 
         {saveMutation.isError && (
           <p className="text-caption1-r text-pink-500">
-            {editingAccount ? '계좌 수정' : '계좌 등록'}에 실패했어요. 다시 시도해 주세요.
+            {saveMutation.error instanceof ApiError
+              ? saveMutation.error.message
+              : `${editingAccount ? '계좌 수정' : '계좌 등록'}에 실패했어요. 다시 시도해 주세요.`}
           </p>
         )}
       </div>
