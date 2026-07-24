@@ -11,7 +11,7 @@ import ProfileAvatar from '../signup/ProfileAvatar'
 import { useAuth } from '../../hooks/useAuth'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import { updateMyProfile, withdrawMe } from '../../api/users'
-import { clearTokens } from '../../lib/tokenStorage'
+import { clearTokens, clearLastLoginProvider } from '../../lib/tokenStorage'
 import { replayShake } from '../../utils/shake'
 
 const NICKNAME_MAX_LENGTH = 6
@@ -42,6 +42,7 @@ export default function ProfileEditPage() {
     mutationFn: withdrawMe,
     onSuccess: () => {
       clearTokens()
+      clearLastLoginProvider()
       logout()
       navigate('/my', { state: { toast: '계정 삭제가 완료 되었습니다' } })
     },
