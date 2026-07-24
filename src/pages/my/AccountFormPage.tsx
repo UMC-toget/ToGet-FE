@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Header from '../../components/common/Header'
 import TextField from '../../components/common/TextField'
 import Button from '../../components/common/Button'
-import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
+import SearchIcon from '../../components/icons/SearchIcon'
 import BankSelectSheet from './BankSelectSheet'
 import { useUserAccounts, USER_ACCOUNTS_QUERY_KEY } from '../../hooks/useUserAccounts'
 import { createUserAccount, updateUserAccount, BANK_NAME_LABELS } from '../../api/userAccounts'
@@ -25,6 +25,8 @@ export default function AccountFormPage() {
 
   const isValid = bankName !== '' && accountNumber.length > 0 && accountHolder.length > 0
 
+  // TODO: 계좌번호/예금주 조합이 실제로 유효한지 검증하는 계좌 실명조회 API가 생기면
+  // 등록 완료 누르기 전에 검증 단계를 추가해야 합니다 (지금은 입력값을 그대로 신뢰).
   const saveMutation = useMutation({
     mutationFn: () => {
       if (bankName === '') throw new Error('은행을 선택해 주세요')
@@ -41,7 +43,7 @@ export default function AccountFormPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
-      <Header title={editingAccount ? '계좌 수정하기' : '계좌 등록하기'} />
+      <Header title={editingAccount ? '계좌 수정하기' : '새로운 계좌 등록하기'} />
 
       <div className="flex flex-col gap-4 px-[18px] pt-4">
         <div className="flex flex-col gap-2">
@@ -54,9 +56,9 @@ export default function AccountFormPage() {
             className="flex h-12 w-full items-center justify-between gap-2 rounded-lg bg-background px-4"
           >
             <span className={`text-b1-m ${bankName ? 'text-black' : 'text-gray-400'}`}>
-              {bankName ? BANK_NAME_LABELS[bankName] : '은행을 선택해 주세요'}
+              {bankName ? BANK_NAME_LABELS[bankName] : '은행명을 정확히 선택해주세요'}
             </span>
-            <ChevronRightIcon className="size-6 shrink-0 text-black" />
+            <SearchIcon className="size-6 shrink-0 text-black" />
           </button>
         </div>
 
@@ -68,7 +70,7 @@ export default function AccountFormPage() {
           }
           value={accountNumber}
           onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ''))}
-          placeholder="계좌번호를 입력해 주세요 (- 없이)"
+          placeholder="본인의 계좌번호를 정확히 입력해주세요"
           inputMode="numeric"
         />
 
@@ -80,7 +82,7 @@ export default function AccountFormPage() {
           }
           value={accountHolder}
           onChange={(e) => setAccountHolder(e.target.value)}
-          placeholder="예금주명을 입력해 주세요"
+          placeholder="예금주 이름을 정확히 입력해 주세요"
         />
 
         {saveMutation.isError && (
@@ -92,7 +94,7 @@ export default function AccountFormPage() {
 
       <div className="mt-auto flex flex-col gap-3 px-[18px] pb-8 pt-4">
         <Button disabled={!isValid || saveMutation.isPending} onClick={() => saveMutation.mutate()}>
-          {editingAccount ? '저장하기' : '등록하기'}
+          {editingAccount ? '수정 완료' : '등록 완료'}
         </Button>
       </div>
 
