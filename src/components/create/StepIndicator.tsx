@@ -10,17 +10,20 @@ interface StepIndicatorProps {
 export default function StepIndicator({ currentStep }: StepIndicatorProps) {
   return (
     <div className="relative flex items-start px-1 mb-6">
-      {/* 점선 커넥터 - 각 원의 중심을 가로지르도록 절대 위치로 배치 */}
-      <div className="absolute top-3.5 left-0 right-0 flex items-center px-1" aria-hidden>
+      {/* 점선 커넥터 - 원의 중심(= (idx + 0.5) / STEP_COUNT 지점)끼리를 잇되,
+          원 반지름(14px)만큼은 양쪽에서 빼서 원과 겹치지 않게 함 */}
+      <div className="absolute top-3.5 left-0 right-0 px-1" aria-hidden>
         {STEPS.slice(0, -1).map((_, idx) => {
           const isDone = idx + 1 < currentStep;
+          const leftPct = ((idx + 0.5) / STEP_COUNT) * 100;
+          const widthPct = (1 / STEP_COUNT) * 100;
           return (
             <div
               key={idx}
-              className={`flex-1 border-t border-dashed ${isDone ? 'border-gray-800' : 'border-gray-200'}`}
+              className={`absolute border-t border-dashed ${isDone ? 'border-gray-800' : 'border-gray-200'}`}
               style={{
-                marginLeft: `${(100 / STEP_COUNT) / 2}%`,
-                marginRight: `${(100 / STEP_COUNT) / 2}%`,
+                left: `calc(${leftPct}% + 14px)`,
+                width: `calc(${widthPct}% - 28px)`,
               }}
             />
           );
