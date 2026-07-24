@@ -20,9 +20,11 @@ export default function MyFundingCard({ funding, onOpen, onShareInvite }: MyFund
         <div className="flex flex-1 flex-col gap-[18px]">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-2">
-              <div className="flex flex-col gap-1">
-                <p className="text-b2-m text-black">{funding.title}</p>
-                <p className="text-caption1-r text-gray-700">목표 {funding.targetAmount.toLocaleString()}원</p>
+              <div className="flex shrink-0 flex-col gap-1">
+                <p className="whitespace-nowrap text-b2-m text-black">{funding.title}</p>
+                <p className="whitespace-nowrap text-caption1-r text-gray-700">
+                  목표 {funding.targetAmount.toLocaleString()}원
+                </p>
               </div>
               <span className="shrink-0 rounded-full bg-pink-100/50 px-2 py-0.5 text-caption2-m text-pink-500">
                 {getDdayLabel(funding.anniversaryDate)}
