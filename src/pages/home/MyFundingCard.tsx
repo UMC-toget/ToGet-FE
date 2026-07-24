@@ -15,7 +15,7 @@ export default function MyFundingCard({ funding, onOpen, onShareInvite }: MyFund
     <div className="flex w-full shrink-0 flex-col gap-5 rounded-xl border border-gray-100 bg-white px-3.5 py-3">
       <button type="button" onClick={onOpen} className="flex w-full items-center gap-3 text-left">
         <span className="flex size-20 shrink-0 items-center justify-center rounded-lg bg-background">
-          <img src={funding.thumbnailImage} alt="" className="h-[52px] w-[48px] object-contain" />
+          <img src={funding.thumbnailImage} alt="" className="h-[52px] w-[48px] object-cover" />
         </span>
         <div className="flex flex-1 flex-col gap-[18px]">
           <div className="flex items-start justify-between gap-2">
