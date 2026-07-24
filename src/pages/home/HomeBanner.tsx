@@ -4,9 +4,7 @@ import PlusIcon from '../../components/icons/PlusIcon'
 import LogOutIcon from '../../components/icons/LogOutIcon'
 import heroCat from '../../assets/hero-cat.svg'
 import bannerCat from '../../assets/banner-cat.svg'
-
-// TODO: 가입 API 연동 후 실제 사용자 닉네임으로 교체
-const MOCK_NICKNAME = '희주'
+import { useMyProfile } from '../../hooks/useMyProfile'
 
 // 피그마 배너 스펙 크기(402px 프레임 기준). 화면 폭에 맞춰 이 캔버스를 통째로 스케일링해서
 // 텍스트/캐릭터/버튼 간 상대적 위치와 간격이 화면 크기와 무관하게 항상 피그마와 동일하게 유지됩니다.
@@ -22,6 +20,8 @@ interface HomeBannerProps {
 /** 홈 상단 배너: 인사말 + 선물 페이지 만들기/로그인 버튼 + 캐릭터 그래픽 (B01/B02) */
 export default function HomeBanner({ isLoggedIn, onCreateClick }: HomeBannerProps) {
   const navigate = useNavigate()
+  const { data: profile } = useMyProfile()
+  const nickname = profile?.nickname
   const containerRef = useRef<HTMLElement>(null)
   const [scale, setScale] = useState(1)
 
@@ -49,7 +49,7 @@ export default function HomeBanner({ isLoggedIn, onCreateClick }: HomeBannerProp
           {isLoggedIn ? (
             <div className="flex flex-col gap-1.5">
               <p className="whitespace-nowrap text-h3-sb leading-normal text-black">
-                {MOCK_NICKNAME}님!
+                {nickname ?? '회원'}님!
                 <br />
                 선물을 함께 준비할까요?
               </p>

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Header from '../../components/common/Header'
 import TextField from '../../components/common/TextField'
 import Button from '../../components/common/Button'
@@ -8,8 +9,10 @@ import BottomNav from '../../components/common/BottomNav'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import ProfileAvatar from '../signup/ProfileAvatar'
 import { useAuth } from '../../hooks/useAuth'
+import { useMyProfile } from '../../hooks/useMyProfile'
+import { updateMyProfile, withdrawMe } from '../../api/users'
+import { clearTokens } from '../../lib/tokenStorage'
 import { replayShake } from '../../utils/shake'
-import { MOCK_USER } from './mockUser'
 
 const NICKNAME_MAX_LENGTH = 6
 // 화면 전체 흔들림은 입력창 자체보다 훨씬 은은하게 느껴지도록 진폭을 크게 줄입니다.
@@ -17,30 +20,47 @@ const PAGE_SHAKE_AMPLITUDE = '0.4px'
 
 /** 내 정보 페이지: 닉네임/프로필 사진 변경, 로그아웃/계정 삭제 */
 export default function ProfileEditPage() {
-  const [name, setName] = useState(MOCK_USER.name)
+  const { data: profile } = useMyProfile()
   const [nickname, setNickname] = useState('')
   const [logoutModalOpen, setLogoutModalOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const { logout } = useAuth()
   const navigate = useNavigate()
   const pageRef = useRef<HTMLDivElement>(null)
+  const queryClient = useQueryClient()
+
+  const updateProfileMutation = useMutation({
+    mutationFn: updateMyProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myProfile'] })
+      setNickname('')
+    },
+    onError: () => replayShake(pageRef.current),
+  })
+
+  const withdrawMutation = useMutation({
+    mutationFn: withdrawMe,
+    onSuccess: () => {
+      clearTokens()
+      logout()
+      navigate('/my', { state: { toast: '계정 삭제가 완료 되었습니다' } })
+    },
+    onError: () => setDeleteModalOpen(false),
+  })
 
   const handleSave = () => {
-    // TODO: 회원 정보 수정 API 연동 (닉네임, ProfileAvatar의 onSelect로 받은 프로필 사진 File 함께 전송)
-    setName(nickname)
-    setNickname('')
+    updateProfileMutation.mutate({ nickname })
   }
 
   const handleLogout = () => {
-    // TODO: 로그아웃 API 연동
+    // TODO: 서버 측 로그아웃(리프레시 토큰 폐기) API가 명세에 없어 클라이언트 토큰만 정리합니다.
+    clearTokens()
     logout()
     navigate('/my', { state: { toast: '로그아웃이 완료 되었습니다' } })
   }
 
   const handleDeleteAccount = () => {
-    // TODO: 계정 삭제 API 연동
-    logout()
-    navigate('/my', { state: { toast: '계정 삭제가 완료 되었습니다' } })
+    withdrawMutation.mutate()
   }
 
   return (
@@ -52,9 +72,9 @@ export default function ProfileEditPage() {
       <Header title="내 정보" />
 
       <div className="mt-6 flex flex-col items-center gap-2">
-        {/* TODO: onSelect로 크롭된 프로필 사진 File을 받아 수정 요청에 포함해야 함 */}
+        {/* TODO: 프로필 사진 업로드 API가 아직 명세에 없어 onSelect로 받은 File은 전송하지 않습니다 */}
         <ProfileAvatar />
-        <p className="text-h3-sb text-black">{name}</p>
+        <p className="text-h3-sb text-black">{profile?.nickname ?? '회원'}</p>
       </div>
 
       <div className="mt-6 flex flex-col gap-5 px-[18px]">
@@ -66,9 +86,12 @@ export default function ProfileEditPage() {
           onChange={(e) => setNickname(e.target.value)}
           onOverflow={() => replayShake(pageRef.current)}
         />
-        <Button disabled={nickname.length === 0} onClick={handleSave}>
+        <Button disabled={nickname.length === 0 || updateProfileMutation.isPending} onClick={handleSave}>
           저장
         </Button>
+        {updateProfileMutation.isError && (
+          <p className="text-caption1-r text-pink-500">닉네임 변경에 실패했어요. 다시 시도해 주세요.</p>
+        )}
       </div>
 
       <div className="mt-7 h-3 w-full shrink-0 bg-background" />

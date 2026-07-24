@@ -7,7 +7,8 @@ import DefaultAvatar from '../../components/common/DefaultAvatar'
 import SearchIcon from '../../components/icons/SearchIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import { useAuth } from '../../hooks/useAuth'
-import { MOCK_USER } from './mockUser'
+import { useMyProfile } from '../../hooks/useMyProfile'
+import { OAUTH_PROVIDER_LABELS } from '../../api/users'
 
 const TOAST_DURATION_MS = 2500
 
@@ -16,7 +17,7 @@ const MENU_SECTIONS: { title: string; items: { label: string; path?: string }[] 
     title: '선물 페이지',
     items: [{ label: '내 선물 페이지', path: '/funding/create' }, { label: '함께 선물 페이지' }],
   },
-  { title: '계좌', items: [{ label: '등록된 나의 계좌' }] },
+  { title: '계좌', items: [{ label: '등록된 나의 계좌', path: '/my/accounts' }] },
   {
     title: '설정',
     items: [{ label: '알림 설정' }, { label: '고객 문의' }, { label: '이용약관' }, { label: '개인정보 처리 방침' }],
@@ -31,6 +32,7 @@ export default function MyPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { isLoggedIn } = useAuth()
+  const { data: profile } = useMyProfile()
   // 다른 페이지에서 navigate state로 전달한 토스트 메시지를 일정 시간 표시
   const [toastMessage, setToastMessage] = useState<string | null>(
     () => (location.state as { toast?: string } | null)?.toast ?? null,
@@ -63,10 +65,12 @@ export default function MyPage() {
         <div className="flex items-center gap-3">
           <DefaultAvatar className="size-[52px]" />
           <span className="flex flex-col items-start gap-1 text-left">
-            <span className="text-b1-m text-black">{isLoggedIn ? MOCK_USER.name : '로그인 및 회원가입'}</span>
+            <span className="text-b1-m text-black">
+              {isLoggedIn ? (profile?.nickname ?? '회원') : '로그인 및 회원가입'}
+            </span>
             <span className="text-caption1-r text-gray-600">
               {isLoggedIn
-                ? `${MOCK_USER.loginProvider}으로 로그인 중이에요`
+                ? `${OAUTH_PROVIDER_LABELS[profile?.oauthProvider ?? ''] ?? '소셜'}으로 로그인 중이에요`
                 : '소셜 로그인으로 선물 페이지를 모아 볼 수 있어요'}
             </span>
           </span>
