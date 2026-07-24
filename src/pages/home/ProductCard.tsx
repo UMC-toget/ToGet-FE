@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import GiftIcon from '../../components/icons/GiftIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import type { Product } from './products'
@@ -8,14 +7,26 @@ interface ProductCardProps {
   /** 좌상단에 표시되는 순위 번호 */
   rank: number
   isLoggedIn: boolean
+  /** 위시 등록 여부 (전역 위시 스토어 기준) */
+  wished: boolean
   /** 비로그인 상태에서 카드/위시 버튼 클릭 시 호출 (로그인 화면으로 라우팅) */
   onLoginRequired: () => void
+  /** 위시 미등록 상태에서 위시 버튼 클릭 시 호출 (위시 유형 선택 바텀시트 오픈) */
+  onWishClick: () => void
+  /** 위시 등록 상태에서 위시 버튼 클릭 시 호출 (위시 해제) */
+  onRemoveWish: () => void
 }
 
 /** 선물 둘러보기 상품 카드. 좌상단에 순위 번호, 우상단 버튼으로 위시 등록을 토글합니다. */
-export default function ProductCard({ product, rank, isLoggedIn, onLoginRequired }: ProductCardProps) {
-  const [wished, setWished] = useState(false)
-
+export default function ProductCard({
+  product,
+  rank,
+  isLoggedIn,
+  wished,
+  onLoginRequired,
+  onWishClick,
+  onRemoveWish,
+}: ProductCardProps) {
   const handleCardClick = () => {
     if (!isLoggedIn) onLoginRequired()
     // TODO: 상품 상세 화면 구현 후 로그인 상태일 때 해당 화면으로 라우팅
@@ -27,7 +38,11 @@ export default function ProductCard({ product, rank, isLoggedIn, onLoginRequired
       onLoginRequired()
       return
     }
-    setWished((prev) => !prev)
+    if (wished) {
+      onRemoveWish()
+    } else {
+      onWishClick()
+    }
   }
 
   return (
