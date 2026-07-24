@@ -85,7 +85,7 @@ export default function AccountListPage() {
           </>
         ) : (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 pb-20">
-            <BankIcon className="size-12 text-gray-400" />
+            <PlusIcon className="size-12 text-gray-400" />
             <p className="text-b1-m text-gray-600">등록된 계좌가 없어요</p>
           </div>
         )}
