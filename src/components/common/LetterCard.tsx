@@ -89,6 +89,7 @@ export default function LetterCard({
             {content}
           </span>
         )}
+        {open && showFrom && <span className="block w-full text-right text-b2-r text-gray-800">{fromLabel}</span>}
       </button>
     )
   }
