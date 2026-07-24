@@ -31,17 +31,17 @@ export default function MyFundingCard({ funding, onOpen, onShareInvite }: MyFund
             <ChevronRightIcon className="size-6 shrink-0 text-black" />
           </div>
           <div className="flex flex-col gap-1">
-            <div className="flex items-center justify-between">
-              <span className="text-caption2-r text-gray-700">{funding.gaugePercent}% 달성</span>
-              <span className="text-caption2-r text-gray-700">
-                <span className="font-semibold">{funding.currentAmount.toLocaleString()}</span>원 모였어요
-              </span>
-            </div>
             <div className="h-[5px] w-full rounded-full bg-gray-100">
               <div
                 className="h-full rounded-full bg-pink-400"
                 style={{ width: `${Math.min(funding.gaugePercent, 100)}%` }}
               />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-caption2-r text-gray-700">{funding.gaugePercent}% 달성</span>
+              <span className="text-caption2-r text-gray-700">
+                <span className="font-semibold">{funding.currentAmount.toLocaleString()}</span>원 모였어요
+              </span>
             </div>
           </div>
         </div>
