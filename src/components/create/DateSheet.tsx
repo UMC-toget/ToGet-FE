@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { RotateCcw } from 'lucide-react';
 
 interface DateSheetSingleProps {
   mode: 'single';
@@ -90,11 +91,22 @@ export default function DateSheet(props: DateSheetProps) {
     }
   };
 
+  const handleReset = () => {
+    if (props.mode === 'single') {
+      setSingle(undefined);
+    } else {
+      setRangeStart(undefined);
+      setRangeEnd(undefined);
+    }
+  };
+
   const isSelected = (day: number) => {
     const key = toKey(viewYear, viewMonth, day);
     if (props.mode === 'single') return key === single;
     return key === rangeStart || key === rangeEnd;
   };
+  const isRangeStart = (day: number) => props.mode === 'range' && toKey(viewYear, viewMonth, day) === rangeStart;
+  const isRangeEnd = (day: number) => props.mode === 'range' && toKey(viewYear, viewMonth, day) === rangeEnd;
   const isInRange = (day: number) => {
     if (props.mode !== 'range' || !rangeStart || !rangeEnd) return false;
     const key = toKey(viewYear, viewMonth, day);
@@ -102,6 +114,7 @@ export default function DateSheet(props: DateSheetProps) {
   };
 
   const canConfirm = props.mode === 'single' ? Boolean(single) : Boolean(rangeStart && rangeEnd);
+  const canReset = props.mode === 'single' ? Boolean(single) : Boolean(rangeStart || rangeEnd);
 
   const handleConfirm = () => {
     if (props.mode === 'single' && single) {
@@ -123,13 +136,13 @@ export default function DateSheet(props: DateSheetProps) {
         </p>
 
         <div className="flex items-center justify-between mb-3">
-          <button onClick={goPrevMonth} aria-label="이전 달" className="text-gray-400 px-2 text-lg">
+          <button type="button" onClick={goPrevMonth} aria-label="이전 달" className="text-gray-400 px-2 text-lg">
             ‹
           </button>
           <p className="text-sm font-semibold text-gray-800">
             {viewYear}년 {pad(viewMonth + 1)}월
           </p>
-          <button onClick={goNextMonth} aria-label="다음 달" className="text-gray-400 px-2 text-lg">
+          <button type="button" onClick={goNextMonth} aria-label="다음 달" className="text-gray-400 px-2 text-lg">
             ›
           </button>
         </div>
@@ -140,25 +153,41 @@ export default function DateSheet(props: DateSheetProps) {
           ))}
         </div>
         <div className="grid grid-cols-7 gap-y-1 mb-3">
-          {cells.map((day, idx) => (
-            <div key={idx} className="flex items-center justify-center h-9">
-              {day && (
+          {cells.map((day, idx) => {
+            if (!day) return <div key={idx} className="h-11" />;
+
+            const start = isRangeStart(day);
+            const end = isRangeEnd(day);
+            const inRange = isInRange(day);
+            // 시작~마감 사이를 끊김 없는 핑크 바로 이어주고, 시작/마감 칸만 좌우를 둥글게 마감
+            const barClass = start || end || inRange
+              ? `bg-pink-100 ${start ? 'rounded-l-full' : ''} ${end ? 'rounded-r-full' : ''}`
+              : '';
+
+            return (
+              <div key={idx} className={`relative flex flex-col items-center justify-center h-11 ${barClass}`}>
                 <button
+                  type="button"
                   onClick={() => handlePick(day)}
                   className={`w-8 h-8 rounded-full text-xs flex items-center justify-center transition-colors
                     ${
                       isSelected(day)
                         ? 'bg-pink-400 text-white font-semibold'
-                        : isInRange(day)
-                        ? 'bg-pink-50 text-gray-700'
+                        : inRange
+                        ? 'text-gray-700'
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
                 >
                   {day}
                 </button>
-              )}
-            </div>
-          ))}
+                {(start || end) && (
+                  <span className="text-[9px] leading-none text-pink-400 font-medium mt-0.5">
+                    {start ? '시작' : '마감'}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {props.mode === 'range' && (
@@ -174,13 +203,25 @@ export default function DateSheet(props: DateSheetProps) {
           </div>
         )}
 
-        <button
-          onClick={handleConfirm}
-          disabled={!canConfirm}
-          className="w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {props.mode === 'single' ? '날짜 저장' : '기간 저장'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handleReset}
+            disabled={!canReset}
+            aria-label="초기화"
+            className="w-12 py-3 rounded-xl border border-gray-200 text-gray-500 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <RotateCcw size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={!canConfirm}
+            className="flex-1 py-3 rounded-xl bg-gray-900 text-white text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {props.mode === 'single' ? '날짜 저장' : '기간 저장'}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -7,6 +7,8 @@ import ImageCropper from './ImageCropper';
 
 interface Props {
   onNext: () => void;
+  submitLabel?: string;
+  disabled?: boolean;
 }
 
 type View = 'list' | 'add';
@@ -19,7 +21,7 @@ interface AddFormState {
 
 const emptyForm: AddFormState = { name: '', price: '', link: '' };
 
-export default function Step2Wishlist({ onNext }: Props) {
+export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled = false }: Props) {
   const { wishlist, addWishlistItem, removeWishlistItem } = useFundingCreateStore();
   const [view, setView] = useState<View>('list');
 
@@ -90,6 +92,7 @@ export default function Step2Wishlist({ onNext }: Props) {
         id: crypto.randomUUID(),
         name: item.name,
         price: item.price,
+        imageUrl: item.image,
       });
     });
     closeWishSheet();
@@ -260,10 +263,10 @@ export default function Step2Wishlist({ onNext }: Props) {
 
       <button
         onClick={onNext}
-        disabled={wishlist.length === 0}
+        disabled={wishlist.length === 0 || disabled}
         className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        다음
+        {submitLabel}
       </button>
 
       {/* 위시 불러오기 바텀시트 */}
@@ -314,7 +317,7 @@ export default function Step2Wishlist({ onNext }: Props) {
                 return (
                   <button key={item.id} onClick={() => toggleWishSelect(item.id)} className="text-left">
                     <div className="relative">
-                      <div className="w-full aspect-square rounded-xl" style={{ background: item.color }} />
+                      <img src={item.image} alt={item.name} className="w-full aspect-square rounded-xl object-cover" />
                       <span
                         className={`absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs
                           ${selected ? 'bg-gray-900 text-white' : 'bg-white/80 text-gray-500'}`}
