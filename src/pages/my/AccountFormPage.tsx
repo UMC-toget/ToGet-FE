@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Header from '../../components/common/Header'
 import TextField from '../../components/common/TextField'
 import Button from '../../components/common/Button'
+import ConfirmModal from '../../components/common/ConfirmModal'
 import SearchIcon from '../../components/icons/SearchIcon'
 import BankSelectSheet from './BankSelectSheet'
 import { useUserAccounts, USER_ACCOUNTS_QUERY_KEY } from '../../hooks/useUserAccounts'
@@ -23,6 +24,7 @@ export default function AccountFormPage() {
   const [accountNumber, setAccountNumber] = useState(editingAccount?.account ?? '')
   const [accountHolder, setAccountHolder] = useState(editingAccount?.accountOwner ?? '')
   const [bankSheetOpen, setBankSheetOpen] = useState(false)
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false)
 
   const isValid = bankName !== '' && accountNumber.length > 0 && accountHolder.length > 0
 
@@ -96,7 +98,7 @@ export default function AccountFormPage() {
       </div>
 
       <div className="mt-auto flex flex-col gap-3 px-[18px] pb-8 pt-4">
-        <Button disabled={!isValid || saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+        <Button disabled={!isValid || saveMutation.isPending} onClick={() => setConfirmModalOpen(true)}>
           {editingAccount ? '수정 완료' : '등록 완료'}
         </Button>
       </div>
@@ -107,6 +109,19 @@ export default function AccountFormPage() {
         onSelect={(bank) => {
           setBankName(bank)
           setBankSheetOpen(false)
+        }}
+      />
+
+      <ConfirmModal
+        open={confirmModalOpen}
+        title="계좌 정보를 확인해 주세요"
+        description={'입력한 계좌로 선물 금액이 전달돼요.\n계좌 정보가 맞는지 다시 확인해 주세요.'}
+        cancelText="다시 확인할게요"
+        confirmText="네, 확인했어요"
+        onCancel={() => setConfirmModalOpen(false)}
+        onConfirm={() => {
+          setConfirmModalOpen(false)
+          saveMutation.mutate()
         }}
       />
     </div>
