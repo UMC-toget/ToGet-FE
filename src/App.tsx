@@ -6,6 +6,8 @@ import HomePage from './pages/home/HomePage'
 import WishPage from './pages/wish/WishPage'
 import MyPage from './pages/my/MyPage'
 import ProfileEditPage from './pages/my/ProfileEditPage'
+import AccountListPage from './pages/my/AccountListPage'
+import AccountFormPage from './pages/my/AccountFormPage'
 import FundingCreatePage from './pages/FundingCreatePage';
 import GiftAboutPage from './pages/gift-about/GiftAboutPage'
 import GiftCreateMyPage from './pages/gift-create/GiftCreateMyPage'
@@ -31,6 +33,9 @@ function App() {
       <Route path="/wish" element={<WishPage />} />
       <Route path="/my" element={<MyPage />} />
       <Route path="/my/profile" element={<ProfileEditPage />} />
+      <Route path="/my/accounts" element={<AccountListPage />} />
+      <Route path="/my/accounts/new" element={<AccountFormPage />} />
+      <Route path="/my/accounts/:id/edit" element={<AccountFormPage />} />
       <Route path="/funding/create" element={<FundingCreatePage />} />
       <Route path="/gift/about" element={<GiftAboutPage />} />
       <Route path="/gift/create/my" element={<GiftCreateMyPage />} />

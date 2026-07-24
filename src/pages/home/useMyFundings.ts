@@ -1,16 +1,31 @@
-import { useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { getMockMyFundings } from './myFundingsMock'
+import { useQuery } from '@tanstack/react-query'
+import { useAuth } from '../../hooks/useAuth'
+import { getMyFundings } from '../../api/users'
+import type { MyFunding } from '../../api/users'
+import type { MyFundingSummary } from '../../types/funding'
 
-/**
- * 홈 화면 '진행 중인 내 선물 모으기' 카드 목록을 반환합니다.
- * ?mine=0|1|3 쿼리로 진행 중인 선물 없음/1개/여러 개 상태를 확인할 수 있습니다.
- * TODO: BE 연동 시 이 훅을 API 조회로 교체
- */
+// 홈 카드에는 최대 3개까지만 노출합니다 (피그마 dev 주석 기준)
+const HOME_FUNDING_PAGE_SIZE = 3
+
+function toMyFundingSummary(funding: MyFunding): MyFundingSummary {
+  return {
+    id: String(funding.fundingId),
+    title: funding.title,
+    thumbnailImage: funding.thumbnailImageUrl,
+    targetAmount: funding.targetAmount,
+    currentAmount: funding.collectedAmount,
+    gaugePercent: funding.progressRate,
+    anniversaryDate: funding.endDate,
+  }
+}
+
+/** 홈 화면 '진행 중인 내 선물 모으기' 카드 목록 (GET /api/v1/users/me/fundings 연동) */
 export function useMyFundings() {
-  const [searchParams] = useSearchParams()
-  return useMemo(() => {
-    const count = Number(searchParams.get('mine') ?? 0)
-    return getMockMyFundings(Number.isFinite(count) ? count : 0)
-  }, [searchParams])
+  const { isLoggedIn } = useAuth()
+  const query = useQuery({
+    queryKey: ['myFundings'],
+    queryFn: () => getMyFundings({ page: 0, size: HOME_FUNDING_PAGE_SIZE }),
+    enabled: isLoggedIn,
+  })
+  return (query.data?.fundings ?? []).map(toMyFundingSummary)
 }

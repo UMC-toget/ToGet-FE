@@ -21,7 +21,7 @@ export default function BottomSheet({ open, onClose, radius = 'md', children }: 
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end">
+    <div className="fixed inset-x-0 top-0 z-50 flex h-dvh flex-col justify-end">
       <button
         type="button"
         aria-label="닫기"
@@ -29,7 +29,7 @@ export default function BottomSheet({ open, onClose, radius = 'md', children }: 
         className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
       />
       <div
-        className={`relative flex w-full flex-col items-center bg-white px-[18px] pb-8 pt-3.5 ${
+        className={`relative flex w-full max-h-full flex-col items-center overflow-y-auto bg-white px-[18px] pb-8 pt-3.5 ${
           radius === 'lg' ? 'rounded-t-[32px]' : 'rounded-t-[25px]'
         }`}
       >

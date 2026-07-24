@@ -37,10 +37,11 @@ export interface FundingMessage {
 export interface MyFundingSummary {
   id: string
   title: string
-  thumbnailImage: string
+  thumbnailImage: string | null
   targetAmount: number
   currentAmount: number
   gaugePercent: number
+  /** D-day 배지 계산 기준. 요약 API는 기념일을 따로 내려주지 않아 펀딩 마감일을 사용합니다 */
   anniversaryDate: string
 }
 

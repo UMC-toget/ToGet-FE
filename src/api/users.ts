@@ -18,6 +18,13 @@ export interface UserProfileUpdateResult {
   profileImageUrl: string | null
 }
 
+/** 서버 소셜 로그인 제공자 코드 -> 화면에 표시할 한글 라벨 */
+export const OAUTH_PROVIDER_LABELS: Record<string, string> = {
+  KAKAO: '카카오',
+  GOOGLE: '구글',
+  APPLE: '애플',
+}
+
 export function getMyProfile() {
   return unwrap<UserProfile>(apiClient.get('/api/v1/users/me'))
 }
