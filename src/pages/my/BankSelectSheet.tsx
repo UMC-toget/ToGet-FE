@@ -12,15 +12,17 @@ interface BankSelectSheetProps {
 }
 
 /**
- * 은행명 앞부분이 검색어로 시작하면 매치된 부분을 회색으로, 나머지를 검게 표시합니다.
- * 매치가 한글 은행명이 아니라 영문 코드(예: SHINHAN)로만 된 경우엔 강조 없이 그대로 보여줍니다.
+ * 은행명 중 검색어와 일치하는 부분을 회색으로, 나머지를 검게 표시합니다.
+ * 매치가 한글 은행명이 아니라 영문 코드(예: NH)로만 이루어진 경우엔 강조 없이 그대로 보여줍니다.
  */
 function BankLabel({ label, query }: { label: string; query: string }) {
-  if (query && label.startsWith(query)) {
+  const index = query ? label.indexOf(query) : -1
+  if (index !== -1) {
     return (
       <p className="text-b1-m text-black">
-        <span className="text-gray-400">{label.slice(0, query.length)}</span>
-        {label.slice(query.length)}
+        {label.slice(0, index)}
+        <span className="text-gray-400">{label.slice(index, index + query.length)}</span>
+        {label.slice(index + query.length)}
       </p>
     )
   }
@@ -33,7 +35,7 @@ function searchBanks(query: string): BankName[] {
   if (!query) return []
   const normalized = query.trim().toLowerCase()
   return BANK_NAMES.filter(
-    (bank) => BANK_NAME_LABELS[bank].startsWith(query.trim()) || bank.toLowerCase().startsWith(normalized),
+    (bank) => BANK_NAME_LABELS[bank].includes(query.trim()) || bank.toLowerCase().includes(normalized),
   )
 }
 
