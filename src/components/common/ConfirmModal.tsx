@@ -1,15 +1,6 @@
 import { useState } from 'react'
 import CheckIcon from '../icons/CheckIcon'
-
-/** 느낌표 아이콘 (모달용, 흰색) */
-function ExclamationIcon() {
-  return (
-    <svg className="h-8 w-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M16 4.5V19.5" stroke="white" strokeWidth="5" strokeLinecap="round" />
-      <circle cx="16" cy="27" r="2.5" fill="white" />
-    </svg>
-  )
-}
+import alertIcon from '../../assets/icon-alert-pink.svg'
 
 interface ConfirmModalProps {
   open: boolean
@@ -66,9 +57,8 @@ export default function ConfirmModal({
       <div className="relative flex w-[320px] flex-col items-center gap-5 rounded-[20px] bg-white px-6 py-7">
         <div className="flex flex-col items-center gap-1">
           <div className="flex flex-col items-center gap-5">
-            <div className="flex size-12 items-center justify-center rounded-3xl bg-pink-500">
-              <ExclamationIcon />
-            </div>
+            {/* 피그마 '이모티콘 있는 팝업' 원본 아이콘 (핑크 원 + 흰 느낌표 + 수염 마크) */}
+            <img src={alertIcon} alt="" aria-hidden className="size-12" />
             <p className="text-h3-sb text-black">{title}</p>
           </div>
           <div className="flex flex-col items-center gap-3">

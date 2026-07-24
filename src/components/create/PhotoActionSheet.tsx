@@ -1,23 +1,41 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import ImageCropper from './ImageCropper';
 
 // 이미지 업로드 버튼을 누르면 바로 OS 파일창이 뜨는 대신,
-// "웹 사진 검색 / 사진 보관함 / 사진 찍기 / 파일 선택" 액션시트를 먼저 보여줍니다.
+// "웹 사진 검색 / 사진 보관함 / 사진 찍기 / 파일 선택" 액션시트를 먼저 보여주고,
+// 파일을 고르면 지정된 비율로 자르는 화면을 거쳐서 최종 이미지를 넘겨줍니다.
 
 interface Props {
   onClose: () => void;
   onSelect: (file: File) => void;
+  aspectRatio?: number; // width / height, 기본값은 대표 이미지 비율(364:173)
 }
 
-export default function PhotoActionSheet({ onClose, onSelect }: Props) {
+export default function PhotoActionSheet({ onClose, onSelect, aspectRatio = 364 / 173 }: Props) {
   const libraryRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) onSelect(file);
-    onClose();
+    if (file) setPendingFile(file);
   };
+
+  if (pendingFile) {
+    return (
+      <ImageCropper
+        file={pendingFile}
+        aspectRatio={aspectRatio}
+        onCancel={() => setPendingFile(null)}
+        onConfirm={(croppedFile) => {
+          onSelect(croppedFile);
+          setPendingFile(null);
+          onClose();
+        }}
+      />
+    );
+  }
 
   const handleOptionClick = (key: 'search' | 'library' | 'camera' | 'file') => {
     if (key === 'library') libraryRef.current?.click();

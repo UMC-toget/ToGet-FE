@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Check, Copy, Share2, Heart, X } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
-import Mascot from './Mascot';
+import { CHARACTER_IMAGES, ACCENT_COLORS } from './Step5Invite';
 
 interface Props {
   onViewFunding: () => void;
@@ -11,6 +11,8 @@ interface Props {
 export default function StepComplete({ onViewFunding, onGoHome }: Props) {
   const { title, anniversaryDate, inviteCharacter, inviteColor } = useFundingCreateStore();
   const [copied, setCopied] = useState(false);
+  const glowColor = inviteColor === '#FFFFFF' ? '#D1D5DB' : inviteColor;
+  const accentColor = ACCENT_COLORS[inviteColor] ?? '#DB2777';
 
   const slug = title
     .toLowerCase()
@@ -42,22 +44,36 @@ export default function StepComplete({ onViewFunding, onGoHome }: Props) {
 
   return (
     <div className="flex flex-col items-center h-full relative">
+      {/* 페이지 전체 배경 그라데이션 - 캐릭터를 중심으로 진하게 시작해서 아래로 갈수록 옅어짐 */}
+      <div
+        className="absolute inset-x-0 top-0 h-96 pointer-events-none"
+        style={{ background: `radial-gradient(circle at 50% 25%, ${accentColor} 0%, ${glowColor} 15%, transparent 60%)`, opacity: 0.5 }}
+      />
       <button
         onClick={onGoHome}
         aria-label="닫기"
-        className="absolute top-0 right-0 p-2 text-gray-600 hover:text-gray-900 transition-colors"
+        className="absolute top-0 right-0 p-2 text-gray-600 hover:text-gray-900 transition-colors z-10"
       >
         <X size={20} />
       </button>
 
       <div className="flex-1 flex flex-col items-center justify-center w-full gap-6">
         {/* 완료 아이콘 - 초대장에서 고른 캐릭터/색상을 그대로 사용해 일관성 유지 */}
-        <div className="relative">
-          <Heart size={18} className="absolute -top-2 -left-3 text-pink-400 fill-pink-400 -rotate-15" />
-          <Heart size={12} className="absolute top-7 -left-7 text-pink-300 fill-pink-300 -rotate-15" />
-          <Heart size={14} className="absolute bottom-6 -right-5 text-pink-300 fill-pink-300 -rotate-15" />
-          <Mascot character={inviteCharacter} color={inviteColor} size={100} />
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 w-9 h-9 bg-pink-400 rounded-full flex items-center justify-center border-2 border-white">
+        <div className="relative flex items-center justify-center w-64 h-64">
+          {/* 캐릭터 바로 뒤 글로우 - 페이지 배경 그라데이션 위에 한 번 더 진하게 */}
+          <div
+            className="absolute inset-0 rounded-full blur-2xl pointer-events-none"
+            style={{ background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`, opacity: 0.8 }}
+          />
+          <Heart size={22} className="absolute top-8 left-4 -rotate-15 z-10" style={{ color: accentColor, fill: accentColor }} />
+          <Heart size={14} className="absolute top-18 left-0 -rotate-15 z-10" style={{ color: accentColor, fill: accentColor, opacity: 0.6 }} />
+          <Heart size={16} className="absolute bottom-18 right-2 -rotate-15 z-10" style={{ color: accentColor, fill: accentColor, opacity: 0.6 }} />
+          <img
+            src={CHARACTER_IMAGES[inviteCharacter - 1]}
+            alt=""
+            className="w-[150px] h-[150px] object-contain relative z-10"
+          />
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-9 h-9 bg-pink-400 rounded-full flex items-center justify-center border-2 border-white z-20">
             <Check size={16} className="text-white" />
           </div>
         </div>
@@ -88,7 +104,7 @@ export default function StepComplete({ onViewFunding, onGoHome }: Props) {
           </div>
           <button
             onClick={handleShare}
-            className="w-full py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+            className="w-full py-2 bg-gray-100 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-200 transition-colors flex items-center justify-center gap-1"
           >
             <Share2 size={14} /> 초대장 공유
           </button>
@@ -99,18 +115,12 @@ export default function StepComplete({ onViewFunding, onGoHome }: Props) {
         )}
       </div>
 
-      <div className="w-full space-y-3 mt-4">
+      <div className="w-full mt-4">
         <button
           onClick={onViewFunding}
           className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-colors"
         >
           선물 페이지 보기
-        </button>
-        <button
-          onClick={onGoHome}
-          className="w-full py-3 text-sm text-gray-400 hover:text-gray-600 transition-colors"
-        >
-          홈으로 돌아가기
         </button>
       </div>
     </div>
