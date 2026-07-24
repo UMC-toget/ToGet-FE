@@ -13,7 +13,7 @@ import type { MyFundingSummary } from "../../types/funding";
 
 const TOAST_DURATION_MS = 2500;
 
-/** 홈 페이지 (B02: 로그인 시 진행 중인 내 선물 없음/1개/여러 개 상태를 모두 다룸) */
+/** 홈 페이지 (B01: 비로그인 / B02: 로그인 — 진행 중인 내 선물 없음/1개/여러 개 상태를 모두 다룸) */
 export default function HomePage() {
   const { isLoggedIn } = useAuth();
   const myFundings = useMyFundings();
@@ -44,7 +44,7 @@ export default function HomePage() {
       </header>
 
       <div className="mt-6 flex flex-col gap-9 px-[18px]">
-        <HomeBanner onCreateClick={() => setCreateSheetOpen(true)} />
+        <HomeBanner isLoggedIn={isLoggedIn} onCreateClick={() => setCreateSheetOpen(true)} />
         <div className="flex flex-col gap-8">
           {isLoggedIn && (
             <MyFundingsSection fundings={myFundings} onShareInvite={handleShareInvite} />
