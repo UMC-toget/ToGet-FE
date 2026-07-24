@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* 콘텐츠 높이에 따라 세로 스크롤바가 생겼다 사라졌다 하면서 화면 전체가 좌우로 미세하게 밀리는 것을 방지합니다
+   (예: 홈 카테고리 필터로 상품 수가 줄어 스크롤이 필요 없어지는 순간). */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* 피그마 디자인 변수 기반 디자인 토큰
    https://www.figma.com/design/RUHJugPsPKg5TRpbYn7VdG */
 @theme {
@@ -22,17 +28,24 @@
   --color-gray-500: #7f7779;
   --color-gray-600: #797378;
   --color-gray-700: #5b565a;
+  --color-gray-800: #3c393c;
   --color-gray-900: #1e1d1e;
 
   /* 색상 - 기본 */
   --color-black: #191919;
   --color-background: #f5f4f5;
+  /* E02 인사말 카드/아바타 배경 (피그마 값, 정식 명칭은 디자이너 확인 필요) */
+  --color-background-2: #f7f5f8;
 
   /* 타이포그래피 (피그마 텍스트 스타일명 기준)
      사용 예: <p class="text-h3-sb">제목</p> */
   --text-h1-sb: 24px;
   --text-h1-sb--font-weight: 600;
   --text-h1-sb--line-height: 1;
+
+  --text-h2-sb: 20px;
+  --text-h2-sb--font-weight: 600;
+  --text-h2-sb--line-height: 1.45;
 
   --text-h3-sb: 18px;
   --text-h3-sb--font-weight: 600;
@@ -65,4 +78,39 @@
   --text-caption2-r: 10px;
   --text-caption2-r--font-weight: 400;
   --text-caption2-r--line-height: 1;
+
+  --text-caption2-m: 10px;
+  --text-caption2-m--font-weight: 500;
+  --text-caption2-m--line-height: 1;
+}
+
+/* 글자수 제한 초과 등 입력 거부 피드백용 좌우 흔들림. 좌↔우 왕복 정확히 2회.
+   진폭은 --shake-amp로 요소마다 다르게 줄 수 있습니다. */
+@keyframes shake-x {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(calc(var(--shake-amp, 4px) * -1));
+  }
+  40%,
+  80% {
+    transform: translateX(var(--shake-amp, 4px));
+  }
+}
+
+.animate-shake {
+  animation: shake-x 0.225s ease-in-out;
+}
+
+/* 스크롤은 되지만 스크롤바는 숨기고 싶을 때 (예: 초대장 캐릭터/색상 캐러셀) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
