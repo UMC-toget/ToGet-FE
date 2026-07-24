@@ -22,7 +22,7 @@ export default function HomeBanner({ isLoggedIn, onCreateClick }: HomeBannerProp
       <div className="absolute inset-0 overflow-hidden rounded-2xl bg-gradient-to-b from-pink-100/50 to-[#fbfcee]">
         <img src={heroCat} alt="" className="absolute -right-11 top-1 h-[167px]" />
       </div>
-      <img src={bannerCat} alt="" className="absolute -bottom-2 right-1 h-[148px]" />
+      <img src={bannerCat} alt="" className="absolute -bottom-2 right-1 h-auto w-[29%]" />
       <div className="relative flex h-full flex-col justify-between px-[18px] py-[19px]">
         {isLoggedIn ? (
           <div className="flex flex-col gap-1.5">
