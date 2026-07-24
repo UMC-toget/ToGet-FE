@@ -103,7 +103,7 @@ const initialState = {
   showAmount: true,
   showParticipantCount: true,
   showParticipantNames: true,
-  showMessages: false,
+  showMessages: true,
   accounts: [],
   selectedAccountId: null,
   inviteTitle: '',
@@ -158,7 +158,7 @@ export const useFundingCreateStore = create<FundingCreateState>((set) => ({
       const id = crypto.randomUUID();
       return {
         accounts: [...state.accounts, { id, ...data }],
-        selectedAccountId: id, // 새로 등록한 계좌를 바로 선택 상태로
+        selectedAccountId: id,
       };
     }),
   updateAccount: (id, data) =>

@@ -8,8 +8,7 @@ type Tab = 'home' | 'gift' | 'my'
 
 const TABS: { id: Tab; label: string; path: string | null; Icon: typeof HomeIcon }[] = [
   { id: 'home', label: '홈', path: '/home', Icon: HomeIcon },
-  /* TODO: 선물(위시) 페이지 구현 후 path 연결 */
-  { id: 'gift', label: '선물', path: null, Icon: GiftIcon },
+  { id: 'gift', label: '선물', path: '/wish', Icon: GiftIcon },
   { id: 'my', label: '마이', path: '/my', Icon: ProfileIcon },
 ]
 

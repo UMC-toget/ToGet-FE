@@ -3,6 +3,7 @@ import SplashPage from './pages/splash/SplashPage'
 import LoginPage from './pages/login/LoginPage'
 import ProfileSetupPage from './pages/signup/ProfileSetupPage'
 import HomePage from './pages/home/HomePage'
+import WishPage from './pages/wish/WishPage'
 import MyPage from './pages/my/MyPage'
 import ProfileEditPage from './pages/my/ProfileEditPage'
 import FundingCreatePage from './pages/FundingCreatePage';
@@ -18,6 +19,7 @@ import ParticipatePage from './pages/participate/ParticipatePage'
 import CompletePage from './pages/participate/CompletePage'
 import ReviewWritePage from './pages/gift-review/ReviewWritePage'
 import ReviewCompletePage from './pages/gift-review/ReviewCompletePage'
+import GiftReviewDetailPage from './pages/gift-review/GiftReviewDetailPage'
 
 function App() {
   return (
@@ -26,6 +28,7 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup/profile" element={<ProfileSetupPage />} />
       <Route path="/home" element={<HomePage />} />
+      <Route path="/wish" element={<WishPage />} />
       <Route path="/my" element={<MyPage />} />
       <Route path="/my/profile" element={<ProfileEditPage />} />
       <Route path="/funding/create" element={<FundingCreatePage />} />
@@ -41,6 +44,7 @@ function App() {
       <Route path="/funding/:id/complete" element={<CompletePage />} />
       <Route path="/gift/review/write/:type" element={<ReviewWritePage />} />
       <Route path="/gift/review/complete/:type" element={<ReviewCompletePage />} />
+      <Route path="/gift/review/:id" element={<GiftReviewDetailPage />} />
     </Routes>
   )
 }
