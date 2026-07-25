@@ -26,7 +26,8 @@ ToGet은 생일·졸업·집들이 등 특별한 날의 선물을 **여러 사�
 받고 싶은 선물을 모아 선물 페이지(펀딩)를 만들고, 초대장을 공유해 친구들과 함께 금액을 모으고, 선물이 전달된 뒤에는 후기와 감사 인사를 남기는 흐름을 제공합니다.
 
 현재 저장소는 모바일 우선(Mobile-first) 반응형 웹으로 구현되었으며, 최대 너비 **402px** 기준의 모바일 레이아웃을 중심으로 설계되었습니다.
-온보딩부터 선물 만들기·펀딩 참여·마이(계좌 관리)·선물 후기까지 전체 서비스 흐름의 화면이 구현되어 있으며, **프로필·계좌 등 일부 도메인은 실제 백엔드 API와 연동**되고 나머지는 Mock 데이터로 렌더링됩니다. 미연동 지점은 코드 내 `// TODO` 주석으로 표시되어 있습니다.
+
+**스플래시 → 로그인(카카오/구글) → 프로필 설정(회원가입) → 홈(선물 둘러보기 · 내가 개최한 선물 모으기) → 위시 등록/수정 → 마이페이지(내 정보 · 계좌 관리) → 선물 만들기 → 펀딩 상세/참여/후기**까지 전체 서비스 흐름의 화면이 구현되어 있으며, **프로필·계좌 등 일부 도메인은 실제 백엔드 API와 연동**되고 상품·위시·펀딩 등 나머지는 Mock 데이터로 렌더링됩니다. 미연동 지점은 코드 내 `// TODO` 주석으로 표시되어 있습니다.
 
 <br />
 
@@ -80,20 +81,20 @@ ToGet은 생일·졸업·집들이 등 특별한 날의 선물을 **여러 사�
 | Language | TypeScript | `~6.0.2` |
 | Library | React / React DOM | `^19.2.7` |
 | Routing | react-router-dom | `^7.18.1` |
+| 서버 상태 | @tanstack/react-query | `^5.101.2` |
+| 클라이언트 상태 | zustand | `^5.0.14` |
+| HTTP 클라이언트 | axios | `^1.18.1` |
+| 아이콘 | lucide-react (+ 자체 SVG 아이콘 컴포넌트) | `^1.23.0` |
 | Styling | Tailwind CSS | `^4.3.2` |
 | | @tailwindcss/vite | `^4.3.2` |
-| Server State | @tanstack/react-query | `^5.101.2` |
-| Client State | zustand | `^5.0.14` |
-| HTTP | axios | `^1.18.1` |
-| Icons | lucide-react (+ 자체 SVG 아이콘) | `^1.23.0` |
 | Build Tool | Vite | `^8.1.1` |
 | | @vitejs/plugin-react | `^6.0.3` |
 | Lint | ESLint / typescript-eslint | `^10.6.0` / `^8.62.0` |
 | Package Manager | pnpm | `pnpm-lock.yaml` 사용 |
 | Deploy | Vercel | GitHub Actions 연동 |
 
-**상태 관리**: 인증은 React `Context API`(`AuthProvider`), 서버 상태는 `TanStack Query`, 클라이언트 전역 상태는 `Zustand`로 분리해 관리합니다.
-**데이터**: 프로필·계좌·토큰 갱신은 `axios` 기반으로 **실제 API 연동**, 상품·펀딩·후기 등은 Mock 데이터를 사용합니다.
+**상태 관리**: 인증은 React `Context API`(`AuthProvider`), 서버 상태는 `TanStack Query`, 화면 간 공유되는 클라이언트 전역 상태는 `Zustand`(`wishStore`, `fundingCreateStore`)로 분리해 관리합니다.
+**데이터**: 프로필·계좌·토큰 갱신은 `axios` 기반 `apiClient`로 **실제 API 연동**되어 있고, 상품·위시·펀딩·후기 등은 Mock 데이터를 사용합니다. 연동 여부는 각 페이지 상단 주석과 코드 내 `// TODO`로 표시되어 있습니다.
 
 <br />
 
@@ -125,8 +126,8 @@ pnpm preview
 pnpm lint
 ```
 
-> ℹ️ 백엔드 주소는 `VITE_API_BASE_URL` 환경 변수로 주입합니다. (미설정 시 기본값 `http://43.201.153.143:8080`)
-> 로컬에서 다른 백엔드를 바라보려면 `.env`에 `VITE_API_BASE_URL`을 지정하세요.
+> ℹ️ 백엔드 주소는 `VITE_API_BASE_URL` 환경 변수로 주입합니다. (미설정 시 기본값 `http://43.201.153.143:8080`, `src/lib/apiClient.ts` 참고)
+> 로컬에서 다른 백엔드를 바라보려면 `.env.local`에 `VITE_API_BASE_URL`을 지정하세요.
 
 <br />
 
@@ -164,7 +165,7 @@ src/
 │
 ├── pages/
 │   ├── splash/ login/ signup/  # 온보딩 (스플래시/소셜 로그인/프로필 설정)
-│   ├── home/ wish/             # 홈(둘러보기·내 펀딩) / 위시
+│   ├── home/ wish/             # 홈(둘러보기·내 펀딩) / 위시 (WishPage/WishEditPage/WishEditModeSheet)
 │   ├── my/                     # 마이페이지·내 정보 수정·계좌 목록/등록/수정
 │   ├── gift-about/             # 선물 페이지 이용 방법
 │   ├── gift-create/            # 선물 만들기 진입 시트 (+ 임시 진입 페이지)
@@ -188,14 +189,14 @@ src/
    ▼
 [/login] LoginPage ── 카카오/구글 ──▶ [/signup/profile] (신규 가입자) ──▶ [/home] HomePage
                                                                               │
-        ┌─────────────────────────────────────────────────────────────────┤ BottomNav
-        ▼                        ▼                         ▼                 ▼
-   [/wish]               [/funding/create]           [/my]           [/gift/about]
-   위시 조회              선물 만들기 5단계            마이페이지          이용 방법
-                              │ 완료                     │
-                              ▼                          ▼
-                     [/funding/:id] ◀──────────  [/my/accounts] 계좌 관리 (API)
-                     펀딩 상세(개설자/참여자)          [/my/profile] 내 정보 수정 (API)
+        ┌─────────────────────────────────────┬──────────────────────────┤ BottomNav
+        ▼                        ▼             ▼                          ▼
+   [/wish] WishPage      [/funding/create]   [/my] MyPage         [/gift/about]
+   위시 조회 → 등록/수정   선물 만들기 5단계    마이페이지            이용 방법
+   (카드 "⋮" → 수정/삭제)     │ 완료               │
+                              ▼                    ▼
+                     [/funding/:id] ◀──────  [/my/accounts] 계좌 관리 (API)
+                     펀딩 상세(개설자/참여자)    [/my/profile] 내 정보 수정 (API)
                               │
               ┌───────────────┼────────────────┐
               ▼               ▼                 ▼
@@ -212,12 +213,12 @@ src/
 
 | 항목 | 방식 |
 | --- | --- |
-| 인증(로그인) 상태 | `AuthProvider` (Context) — `isLoggedIn`, `login()`, `logout()` |
-| 서버 상태 | `TanStack Query` — `useMyProfile`, `useUserAccounts` (`useQuery`) |
-| 클라이언트 전역 상태 | `Zustand` — `fundingCreateStore`(만들기 플로우), `wishStore`(위시 토글) |
-| 로컬 상태 | 각 페이지/컴포넌트의 `useState` (시트 열림, 스텝, 필터 등) |
-| 화면 간 전달 | `react-router-dom`의 `navigate(state)` (후기 데이터, 토스트 메시지 등) |
-| 토큰 저장 | `localStorage` (`toget_access_token` / `toget_refresh_token`) |
+| 전역 인증 상태 | `AuthProvider` (Context) — `isLoggedIn`, `login()`, `logout()`, 토큰 만료 시 자동 로그아웃 구독 |
+| 서버 상태 | `TanStack Query` — `useMyProfile`, `useUserAccounts` 등 (`lib/queryClient.ts`) |
+| 클라이언트 전역 상태 | `Zustand` — `wishStore`(위시 등록/유형), `fundingCreateStore`(선물 만들기 5단계 입력값) |
+| 로컬 상태 | 각 페이지/컴포넌트의 `useState` (입력값, 시트 열림, 스텝, 필터 선택 등) |
+| 화면 간 전달 | `react-router-dom`의 `navigate(state)` (마이페이지 토스트 메시지, 후기 데이터 등) |
+| 토큰 저장 | `localStorage` (`toget_access_token` / `toget_refresh_token`, `lib/tokenStorage.ts`) |
 
 **API 연동 현황**
 
@@ -226,11 +227,13 @@ src/
 | 프로필 조회/수정/탈퇴 (`/api/v1/users/me`) | ✅ 연동 |
 | 계좌 CRUD (`/api/v1/user-accounts`) | ✅ 연동 |
 | 토큰 자동 갱신 (`/api/v1/auth/tokens/refresh`) | ✅ 연동 |
-| 소셜 로그인 (`/api/v1/auth/tokens/{provider}`) | 🟡 API 정의 / 클라이언트 SDK 미연동 |
+| 로그아웃 (`/api/v1/auth/tokens/me` DELETE) | ✅ 연동 |
+| 소셜 로그인 (`/api/v1/auth/tokens/{provider}`) | 🟡 API 정의 / 클라이언트 SDK 연동 완료, PR 병합 대기 |
 | 상품·위시·펀딩·후기 | ❌ Mock (연동 예정) |
 
 > 모든 API 응답은 `ApiEnvelope<T>`(`{ isSuccess, code, message, result }`) 형태이며, `apiClient`의 `unwrap()`이 `result`만 반환하고 실패 시 `ApiError`를 던집니다.
 > `apiClient`는 요청에 access token을 주입하고, 401 응답 시 refresh token으로 자동 재발급 후 원요청을 재시도합니다.
+> 연동 여부는 각 페이지 상단 주석과 코드 내 `// TODO`로도 표시되어 있습니다.
 
 <br />
 
