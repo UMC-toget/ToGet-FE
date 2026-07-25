@@ -20,6 +20,8 @@ export interface Product {
   image: string
   /** TODO: 카테고리 API 연동 후 실제 값으로 교체 (현재는 목업 태그) */
   occasion: ProductOccasion
+  /** 상품 구매처 외부 링크. TODO: 상품 API 연동 후 실제 값으로 채워짐 (목업 데이터에는 없음) */
+  link?: string
 }
 
 /** TODO: 상품 API 연동 후 제거 (피그마 디자인 기준 목업 데이터) */
