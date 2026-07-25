@@ -4,5 +4,9 @@ export const GOOGLE_CLIENT_ID =
   import.meta.env.VITE_GOOGLE_CLIENT_ID ??
   '822457623986-3cjnid3nq13pujhtrr7qtbqacm3f0da5.apps.googleusercontent.com'
 
-// TODO: 카카오 JavaScript 키 발급 후 채우기
-export const KAKAO_JS_KEY: string | undefined = import.meta.env.VITE_KAKAO_JS_KEY
+export const KAKAO_JS_KEY: string =
+  import.meta.env.VITE_KAKAO_JS_KEY ?? 'db23e6e2ac0d68b2023322fbd4e61e77'
+
+/** authorize() → code 발급 후, 그 code를 access token으로 교환할 때(카카오 토큰 엔드포인트 호출) 사용 */
+export const KAKAO_REST_API_KEY: string =
+  import.meta.env.VITE_KAKAO_REST_API_KEY ?? 'bea9109420ad1129e9569455316f163a'

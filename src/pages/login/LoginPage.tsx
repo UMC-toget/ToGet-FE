@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { GoogleLogin } from '@react-oauth/google'
 import type { CredentialResponse } from '@react-oauth/google'
@@ -14,9 +14,13 @@ import kakaoIcon from '../../assets/icon-kakao.png'
 import googleIcon from '../../assets/icon-google.png'
 import { useAuth } from '../../hooks/useAuth'
 import { postSocialLogin } from '../../api/auth'
+import type { SocialLoginProvider } from '../../api/auth'
 import { setTokens, getLastLoginProvider, setLastLoginProvider } from '../../lib/tokenStorage'
+import { kakaoAuthorize, exchangeKakaoCode } from '../../lib/kakao'
 
 const LOGIN_FAIL_MESSAGE = '로그인에 실패했어요. 다시 시도해 주세요.'
+/** 카카오 authorize()가 로그인 완료 후 돌아오는 주소. 카카오 디벨로퍼스에 등록된 Redirect URI와 정확히 일치해야 함 */
+const KAKAO_REDIRECT_URI = `${window.location.origin}/login`
 
 /** 카카오/구글 버튼 위에 붙는 "최근에 로그인한 계정" 말풍선 배지 */
 function LastLoginBadge() {
@@ -34,26 +38,52 @@ export default function LoginPage() {
   const { login } = useAuth()
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [lastProvider] = useState(getLastLoginProvider)
+  /** 카카오 인가 code는 1회용이라, StrictMode의 effect 이중 실행으로 같은 code를 두 번 교환하지 않도록 막습니다 */
+  const kakaoCodeHandledRef = useRef(false)
 
-  // TODO: 카카오 JavaScript 키 발급 후 실제 OAuth 플로우로 교체. 지금은 실제 로그인이 아니라
-  // "최근에 로그인한 계정" 마커도 남기지 않음(진짜 로그인 성공 시에만 남겨야 함).
-  const handleKakaoLogin = () => {
-    navigate('/signup/profile')
-  }
-
-  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
-    const idToken = credentialResponse.credential
-    if (!idToken) return
+  const completeSocialLogin = async (provider: SocialLoginProvider, identityToken: string) => {
     setErrorMessage(null)
     try {
-      const result = await postSocialLogin('google', idToken)
+      const result = await postSocialLogin(provider, identityToken)
       setTokens(result.accessToken, result.refreshToken)
-      setLastLoginProvider('google')
+      setLastLoginProvider(provider)
       login()
       navigate(result.isNewUser ? '/signup/profile' : '/home', { replace: true })
     } catch {
       setErrorMessage(LOGIN_FAIL_MESSAGE)
     }
+  }
+
+  // 카카오 authorize()가 로그인 완료 후 이 페이지로 돌려보내면(?code=...), 그 code를 access token으로
+  // 교환해서 로그인을 마저 진행합니다.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
+    const kakaoError = params.get('error')
+    if (!code && !kakaoError) return
+    if (kakaoCodeHandledRef.current) return
+    kakaoCodeHandledRef.current = true
+
+    navigate('/login', { replace: true })
+    if (kakaoError) return
+
+    exchangeKakaoCode(code!, KAKAO_REDIRECT_URI)
+      .then((accessToken) => completeSocialLogin('kakao', accessToken))
+      .catch((error) => {
+        console.error('[카카오 로그인 실패]', error)
+        setErrorMessage(LOGIN_FAIL_MESSAGE)
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleKakaoLogin = () => {
+    kakaoAuthorize(KAKAO_REDIRECT_URI)
+  }
+
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    const idToken = credentialResponse.credential
+    if (!idToken) return
+    await completeSocialLogin('google', idToken)
   }
 
   return (
