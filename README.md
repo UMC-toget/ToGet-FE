@@ -3,8 +3,6 @@
 > UMC 10기 **투겟(ToGet)** 팀에서 설계한 선물 펀딩 서비스의 프론트엔드 저장소입니다.
 > 마음을 모아 함께 선물을 준비하는 모바일 웹 서비스를 목표로 합니다.
 
-<br />
-
 ## 📑 목차
 
 - [프로젝트 소개](#-프로젝트-소개)
@@ -18,18 +16,20 @@
 - [배포](#-배포)
 - [관련 문서](#-관련-문서)
 
-<br />
 
 ## 🎁 프로젝트 소개
 
-ToGet은 생일·졸업·집들이 등 특별한 날의 선물을 **여러 사람이 함께 준비**할 수 있도록 돕는 선물 펀딩 서비스입니다.
+ToGet은 생일·졸업·집들이 등 특별한 날의 선물을 **여러 사람이 함께 준비**할 수 있도록 돕는 선물 펀딩 서비스입니다.<br><br>
 받고 싶은 선물을 모아 선물 페이지(펀딩)를 만들고, 초대장을 공유해 친구들과 함께 금액을 모으고, 선물이 전달된 뒤에는 후기와 감사 인사를 남기는 흐름을 제공합니다.
 
 현재 저장소는 모바일 우선(Mobile-first) 반응형 웹으로 구현되었으며, 최대 너비 **402px** 기준의 모바일 레이아웃을 중심으로 설계되었습니다.
 
-**스플래시 → 로그인(카카오/구글) → 프로필 설정(회원가입) → 홈(선물 둘러보기 · 내가 개최한 선물 모으기) → 위시 등록/수정 → 마이페이지(내 정보 · 계좌 관리) → 선물 만들기 → 펀딩 상세/참여/후기**까지 전체 서비스 흐름의 화면이 구현되어 있으며, **프로필·계좌·내 펀딩 목록 등 일부 도메인은 실제 백엔드 API와 연동**되고 상품·위시·펀딩 등 나머지는 Mock 데이터로 렌더링됩니다. 소셜 로그인·로그아웃은 클라이언트 구현이 별도 브랜치에 완료되어 있으나 `dev`에는 아직 병합되지 않았습니다. 미연동 지점은 코드 내 `// TODO` 주석으로 표시되어 있습니다.
+**스플래시 → 로그인(카카오/구글) → 프로필 설정(회원가입) → 홈(선물 둘러보기 · 내가 개최한 선물 모으기) → 위시 등록/수정 → 마이페이지(내 정보 · 계좌 관리) → 선물 만들기 → 펀딩 상세/참여/후기**까지 전체 서비스 흐름의 화면이 구현되어 있습니다. <br><br>
+**프로필·계좌·내 펀딩 목록 등 일부 도메인은 실제 백엔드 API와 연동**되고 상품·위시·펀딩 등 나머지는 Mock 데이터로 렌더링됩니다. <br><br>
 
-<br />
+소셜 로그인·로그아웃은 클라이언트 구현이 별도 브랜치에 완료되어 있으나 백엔드 데이터베이스 미구축으로 인해 `dev`에는 아직 병합되지 않았습니다. <br>
+미연동 지점은 코드 내 `// TODO` 주석으로 표시되어 있습니다.
+
 
 ## 💁‍♂️ 프로젝트 팀원
 
@@ -70,33 +70,29 @@ ToGet은 생일·졸업·집들이 등 특별한 날의 선물을 **여러 사�
   </tr>
 </table>
 
-<br />
-
 ## ⚙️ Tech Stack
 
-> 아래 버전은 `package.json` 기준입니다. (교차 검증 완료)
+> 아래 버전은 `package.json` 기준입니다.
 
 | 구분 | 기술 | 버전 |
 | --- | --- | --- |
-| Language | TypeScript | `~6.0.2` |
-| Library | React / React DOM | `^19.2.7` |
-| Routing | react-router-dom | `^7.18.1` |
-| 서버 상태 | @tanstack/react-query | `^5.101.2` |
-| 클라이언트 상태 | zustand | `^5.0.14` |
-| HTTP 클라이언트 | axios | `^1.18.1` |
-| 아이콘 | lucide-react (+ 자체 SVG 아이콘 컴포넌트) | `^1.23.0` |
-| Styling | Tailwind CSS | `^4.3.2` |
-| | @tailwindcss/vite | `^4.3.2` |
-| Build Tool | Vite | `^8.1.1` |
-| | @vitejs/plugin-react | `^6.0.3` |
-| Lint | ESLint / typescript-eslint | `^10.6.0` / `^8.62.0` |
+| Language | TypeScript | `6.0.2` |
+| Library | React / React DOM | `19.2.7` |
+| Routing | react-router-dom | `7.18.1` |
+| 서버 상태 | @tanstack/react-query | `^.101.2` |
+| 클라이언트 상태 | zustand | `5.0.14` |
+| HTTP 클라이언트 | axios | `1.18.1` |
+| 아이콘 | lucide-react (+ 자체 SVG 아이콘 컴포넌트) | `1.23.0` |
+| Styling | Tailwind CSS | `4.3.2` |
+| | @tailwindcss/vite | `4.3.2` |
+| Build Tool | Vite | `8.1.1` |
+| | @vitejs/plugin-react | `6.0.3` |
+| Lint | ESLint / typescript-eslint | `10.6.0` / `8.62.0` |
 | Package Manager | pnpm | `pnpm-lock.yaml` 사용 |
 | Deploy | Vercel | GitHub Actions 연동 |
 
-**상태 관리**: 인증은 React `Context API`(`AuthProvider`), 서버 상태는 `TanStack Query`, 화면 간 공유되는 클라이언트 전역 상태는 `Zustand`(`wishStore`, `fundingCreateStore`)로 분리해 관리합니다.
+**상태 관리**: 인증은 React `Context API`(`AuthProvider`), 서버 상태는 `TanStack Query`, 화면 간 공유되는 클라이언트 전역 상태는 `Zustand`(`wishStore`, `fundingCreateStore`)로 분리해 관리합니다. <br><br>
 **데이터**: 프로필·계좌·토큰 갱신은 `axios` 기반 `apiClient`로 **실제 API 연동**되어 있고, 상품·위시·펀딩·후기 등은 Mock 데이터를 사용합니다. 연동 여부는 각 페이지 상단 주석과 코드 내 `// TODO`로 표시되어 있습니다.
-
-<br />
 
 ## 🚀 실행 방법
 
@@ -128,8 +124,6 @@ pnpm lint
 
 > ℹ️ 백엔드 주소는 `VITE_API_BASE_URL` 환경 변수로 주입합니다. (미설정 시 기본값 `http://43.201.153.143:8080`, `src/lib/apiClient.ts` 참고)
 > 로컬에서 다른 백엔드를 바라보려면 `.env.local`에 `VITE_API_BASE_URL`을 지정하세요.
-
-<br />
 
 ## 📁 프로젝트 구조
 
@@ -179,8 +173,6 @@ src/
 └── utils/                      # formatDate, cropImage, recommendAmounts 등 유틸
 ```
 
-<br />
-
 ## 🧭 화면 흐름
 
 ```
@@ -207,8 +199,6 @@ src/
 전체 화면 목록, 진입 경로, 라우팅 표, 담당자, 공통 컴포넌트 사용 방식 등 상세 내용은
 **[프론트엔드 명세서](./프론트엔드-명세서.md)** 를 참고하세요.
 
-<br />
-
 ## 🗂 상태 관리 & 데이터
 
 | 항목 | 방식 |
@@ -232,13 +222,13 @@ src/
 | 소셜 로그인 (`/api/v1/auth/tokens/{provider}`) | 🟡 구글(`feat/#104-google-login`)·카카오(`feat/#129-kakao-login`) 모두 클라이언트 SDK 연동까지 완료됐으나 `dev` 미병합. 백엔드 이슈(구글: DB 미구축 / 카카오: 토큰 검증 오류 `USER401_1`)로 실제 로그인은 미검증 |
 | 상품·위시·펀딩·후기 | ❌ Mock (연동 예정) |
 
-> 모든 API 응답은 `ApiEnvelope<T>`(`{ isSuccess, code, message, result }`) 형태이며, `apiClient`의 `unwrap()`이 `result`만 반환하고 실패 시 `ApiError`를 던집니다.
-> `apiClient`는 요청에 access token을 주입하고, 401 응답 시 refresh token으로 자동 재발급 후 원요청을 재시도합니다.
-> 연동 여부는 각 페이지 상단 주석과 코드 내 `// TODO`로도 표시되어 있습니다.
-
-<br />
+> 모든 API 응답은 `ApiEnvelope<T>`(`{ isSuccess, code, message, result }`) 형태이며, `apiClient`의 `unwrap()`이 `result`만 반환하고 실패 시 `ApiError`를 던집니다. <br> <br>
+> `apiClient`는 요청에 access token을 주입하고, 401 응답 시 refresh token으로 자동 재발급 후 원요청을 재시도합니다. <br><br>
+> 연동 여부는 각 페이지 상단 주석과 코드 내 `// TODO`로도 표시되어 있습니다. 
 
 ## 🌿 브랜치 · 커밋 · PR 컨벤션
+
+[📄깃 워크플로우 노션](https://app.notion.com/p/54781f992be583148d9f015b187a55ec?source=copy_link)
 
 **브랜치**
 
@@ -249,8 +239,6 @@ src/
 | `feat/#<이슈번호>-<slug>` | 기능 개발 (예: `feat/#10-home-page`) |
 | `fix/#<이슈번호>-<slug>` | 버그 수정 |
 | `chore/#<이슈번호>-<slug>` | 설정·문서·리팩토링 |
-
-> ⚠️ 고정 브랜치명은 `main`으로 통일합니다. (`master` 사용 금지)
 
 **커밋 메시지**
 
@@ -271,20 +259,16 @@ prefix: `feat` · `fix` · `chore` · `docs` · `refactor` · `style`
 - 템플릿(`.github/PULL_REQUEST_TEMPLATE.md`)의 체크리스트 준수
 - 하나의 커밋에 하나의 논리적 변경
 
-<br />
-
 ## 🚢 배포
 
 - **플랫폼**: Vercel
 - **자동화**: GitHub Actions
   - `preview.yaml` — `main`/`dev` 대상 PR 생성 시 Vercel Preview 배포 후 PR에 미리보기 URL 코멘트
   - `deploy.yml` — `main` push 시 배포 파이프라인 실행
-- **배포 주소**: `https://…` *(운영 URL 확정 후 기입 예정)*
+- **배포 주소**: `https://to-get-fe.vercel.app/`
 
-> 환경 변수: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`(저장소 Secrets), `VITE_API_BASE_URL`(백엔드 주소).
-> ⚠️ 배포 프론트(HTTPS)에서 HTTP 백엔드를 호출할 경우 브라우저 mixed-content 정책에 막힐 수 있어, 백엔드 HTTPS 적용 또는 프록시 설정이 필요합니다.
+> 환경 변수: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`(저장소 Secrets), `VITE_API_BASE_URL`(백엔드 주소). <br>
 
-<br />
 
 ## 📚 관련 문서
 
