@@ -2,8 +2,8 @@ import { useState } from 'react'
 import BottomNav from '../../components/common/BottomNav'
 import Toast from '../../components/common/Toast'
 import CaretDownIcon from '../../components/icons/CaretDownIcon'
+import SearchIcon from '../../components/icons/SearchIcon'
 import WishProductCard from './WishProductCard'
-import WishEditModeSheet from './WishEditModeSheet'
 import { MOCK_PRODUCTS } from '../home/products'
 import { useWishStore } from '../../store/wishStore'
 import type { WishType } from '../../store/wishStore'
@@ -20,12 +20,10 @@ const TABS: { id: WishType | 'all'; label: string }[] = [
 export default function WishPage() {
   const { wishes, removeWish } = useWishStore()
   const [tab, setTab] = useState<WishType | 'all'>('all')
-  const [editModeSheetOpen, setEditModeSheetOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
-  // TODO: '수정하기'/'삭제하기' 선택 후 다중 선택 인터랙션은 PM/디자이너 확인 후 구현
-  const handleSelectEditMode = () => {
-    setEditModeSheetOpen(false)
+  // TODO: 다중 선택 인터랙션은 PM/디자이너 확인 후 구현. 개별 상품의 수정/삭제는 카드를 눌러서 진행합니다.
+  const handleClickEdit = () => {
     setToastMessage('선택 편집 기능은 준비 중이에요')
     setTimeout(() => setToastMessage(null), TOAST_DURATION_MS)
   }
@@ -36,8 +34,12 @@ export default function WishPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-32">
-      <header className="flex h-[50px] shrink-0 items-center px-[18px]">
+      <header className="flex h-[50px] shrink-0 items-center justify-between px-[18px]">
         <h1 className="text-h1-sb text-black">위시</h1>
+        {/* TODO: 검색 화면 구현 후 연결 */}
+        <button type="button" aria-label="검색" className="text-gray-900">
+          <SearchIcon />
+        </button>
       </header>
 
       <div className="mt-6 flex flex-col gap-3 px-[18px]">
@@ -66,7 +68,7 @@ export default function WishPage() {
               <span className="text-caption1-m text-black">최신순</span>
               <CaretDownIcon className="size-6 text-black" />
             </button>
-            <button type="button" onClick={() => setEditModeSheetOpen(true)} className="text-caption1-m text-black">
+            <button type="button" onClick={handleClickEdit} className="text-caption1-m text-black">
               편집
             </button>
           </div>
@@ -87,12 +89,6 @@ export default function WishPage() {
 
       <BottomNav active="gift" />
 
-      <WishEditModeSheet
-        open={editModeSheetOpen}
-        onClose={() => setEditModeSheetOpen(false)}
-        onSelectEdit={handleSelectEditMode}
-        onSelectDelete={handleSelectEditMode}
-      />
       <Toast open={toastMessage !== null} message={toastMessage ?? ''} />
     </div>
   )
