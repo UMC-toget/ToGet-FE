@@ -1,19 +1,17 @@
 import { useNavigate } from 'react-router-dom'
 import HomeIcon from '../icons/HomeIcon'
-import HomeIconBold from '../icons/HomeIconBold'
 import GiftIcon from '../icons/GiftIcon'
 import GiftIconBold from '../icons/GiftIconBold'
 import ProfileIcon from '../icons/ProfileIcon'
-import ProfileIconBold from '../icons/ProfileIconBold'
 import PlusIcon from '../icons/PlusIcon'
 
 type Tab = 'home' | 'gift' | 'my'
 
-// 선택된 탭은 채워진(bold) 아이콘, 선택 안 된 탭은 outline 아이콘을 씁니다 (피그마 기준).
-const TABS: { id: Tab; label: string; path: string | null; Icon: typeof HomeIcon; ActiveIcon: typeof HomeIcon }[] = [
-  { id: 'home', label: '홈', path: '/home', Icon: HomeIcon, ActiveIcon: HomeIconBold },
+// 선택된 탭은 어두운 배경 위에 놓이기 때문에, 흰색 배색이 고정된 bold 아이콘(ActiveIcon)이 있으면 그걸 우선 사용합니다.
+const TABS: { id: Tab; label: string; path: string | null; Icon: typeof HomeIcon; ActiveIcon?: typeof HomeIcon }[] = [
+  { id: 'home', label: '홈', path: '/home', Icon: HomeIcon },
   { id: 'gift', label: '위시', path: '/wish', Icon: GiftIcon, ActiveIcon: GiftIconBold },
-  { id: 'my', label: '마이', path: '/my', Icon: ProfileIcon, ActiveIcon: ProfileIconBold },
+  { id: 'my', label: '마이', path: '/my', Icon: ProfileIcon },
 ]
 
 interface BottomNavProps {
@@ -37,7 +35,7 @@ export default function BottomNav({ active, onFabClick }: BottomNavProps) {
         {TABS.map(({ id, label, path, Icon, ActiveIcon }) =>
           id === active ? (
             <div key={id} className="flex items-center gap-2 rounded-full bg-gray-900 px-[18px] py-3 text-white">
-              <ActiveIcon className="size-6" />
+              {ActiveIcon ? <ActiveIcon className="size-6" /> : <Icon className="size-6" />}
               <span className="text-sm font-semibold">{label}</span>
             </div>
           ) : (
