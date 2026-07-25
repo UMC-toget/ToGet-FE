@@ -23,10 +23,10 @@
 ## 🎁 프로젝트 소개
 
 ToGet은 생일·졸업·집들이 등 특별한 날의 선물을 **여러 사람이 함께 준비**할 수 있도록 돕는 선물 펀딩 서비스입니다.
-현재 저장소는 모바일 우선(Mobile-first) 반응형 웹으로 구현되었으며, 최대 너비 **402px** 기준의 모바일 레이아웃을 중심으로 설계되었습니다.
+받고 싶은 선물을 모아 선물 페이지(펀딩)를 만들고, 초대장을 공유해 친구들과 함께 금액을 모으고, 선물이 전달된 뒤에는 후기와 감사 인사를 남기는 흐름을 제공합니다.
 
-이번 단계에서 구현된 핵심 화면은 **스플래시 → 로그인 → 프로필 설정(회원가입) → 홈 → 마이페이지 → 내 정보 수정** 흐름이며,
-모든 데이터는 Mock 데이터를 기반으로 렌더링되고, 실제 API 연동 지점은 코드 내 `// TODO` 주석으로 표시되어 있습니다.
+현재 저장소는 모바일 우선(Mobile-first) 반응형 웹으로 구현되었으며, 최대 너비 **402px** 기준의 모바일 레이아웃을 중심으로 설계되었습니다.
+온보딩부터 선물 만들기·펀딩 참여·마이(계좌 관리)·선물 후기까지 전체 서비스 흐름의 화면이 구현되어 있으며, **프로필·계좌 등 일부 도메인은 실제 백엔드 API와 연동**되고 나머지는 Mock 데이터로 렌더링됩니다. 미연동 지점은 코드 내 `// TODO` 주석으로 표시되어 있습니다.
 
 <br />
 
@@ -61,6 +61,12 @@ ToGet은 생일·졸업·집들이 등 특별한 날의 선물을 **여러 사�
     <td align="center"><a href="https://github.com/HongYeonLee"><b>이홍연</b></a></td>
     <td align="center"><a href="https://github.com/sumin0423"><b>최수민</b></a></td>
   </tr>
+  <tr height="30px">
+    <td align="center">초대장 · 펀딩 상세/참여 · 메세지</td>
+    <td align="center">선물 만들기 진입 · 선물 후기</td>
+    <td align="center">온보딩 · 홈 · 위시 · 마이 · 공통/API</td>
+    <td align="center">선물 만들기 플로우(5단계)</td>
+  </tr>
 </table>
 
 <br />
@@ -76,14 +82,18 @@ ToGet은 생일·졸업·집들이 등 특별한 날의 선물을 **여러 사�
 | Routing | react-router-dom | `^7.18.1` |
 | Styling | Tailwind CSS | `^4.3.2` |
 | | @tailwindcss/vite | `^4.3.2` |
+| Server State | @tanstack/react-query | `^5.101.2` |
+| Client State | zustand | `^5.0.14` |
+| HTTP | axios | `^1.18.1` |
+| Icons | lucide-react (+ 자체 SVG 아이콘) | `^1.23.0` |
 | Build Tool | Vite | `^8.1.1` |
 | | @vitejs/plugin-react | `^6.0.3` |
 | Lint | ESLint / typescript-eslint | `^10.6.0` / `^8.62.0` |
 | Package Manager | pnpm | `pnpm-lock.yaml` 사용 |
 | Deploy | Vercel | GitHub Actions 연동 |
 
-**상태 관리**: React `Context API` + `useState` (전역 로그인 상태는 `AuthProvider`로 관리)
-**데이터**: 현재 전량 Mock 데이터 기반 — 별도 데이터 패칭/상태 라이브러리(TanStack Query, Zustand, axios 등)는 **미설치** 상태입니다.
+**상태 관리**: 인증은 React `Context API`(`AuthProvider`), 서버 상태는 `TanStack Query`, 클라이언트 전역 상태는 `Zustand`로 분리해 관리합니다.
+**데이터**: 프로필·계좌·토큰 갱신은 `axios` 기반으로 **실제 API 연동**, 상품·펀딩·후기 등은 Mock 데이터를 사용합니다.
 
 <br />
 
@@ -115,8 +125,8 @@ pnpm preview
 pnpm lint
 ```
 
-> ℹ️ 현재 API 연동 전 단계로 별도의 환경 변수(`.env`)는 필요하지 않습니다.
-> 소셜 로그인/회원/상품 API 연동 시 `VITE_` 접두사 환경 변수를 추가하고 이 항목을 갱신해 주세요.
+> ℹ️ 백엔드 주소는 `VITE_API_BASE_URL` 환경 변수로 주입합니다. (미설정 시 기본값 `http://43.201.153.143:8080`)
+> 로컬에서 다른 백엔드를 바라보려면 `.env`에 `VITE_API_BASE_URL`을 지정하세요.
 
 <br />
 
@@ -125,41 +135,47 @@ pnpm lint
 ```
 src/
 ├── App.tsx                     # 라우트 정의 (Routes/Route)
-├── main.tsx                    # 진입점 (BrowserRouter + AuthProvider)
+├── main.tsx                    # 진입점 (QueryClientProvider + BrowserRouter + AuthProvider)
 ├── index.css                   # Tailwind + 디자인 토큰(@theme: 색상/타이포)
 │
-├── assets/                     # 로고, 캐릭터 SVG, 소셜 아이콘
-│   └── mock/                   # 상품 목업 이미지 (product-*.png)
+├── api/                        # 백엔드 API 모듈 (axios)
+│   ├── auth.ts                  # 소셜 로그인
+│   ├── users.ts                 # 프로필 조회/수정/탈퇴, 내 펀딩 목록
+│   └── userAccounts.ts          # 등록 계좌 CRUD + 은행 코드/라벨
+│
+├── lib/                        # 통신 인프라
+│   ├── apiClient.ts             # axios 인스턴스 + 토큰 주입/401 자동 갱신 인터셉터
+│   ├── queryClient.ts           # TanStack Query 클라이언트
+│   └── tokenStorage.ts          # access/refresh 토큰 localStorage 관리
+│
+├── store/                      # Zustand 스토어
+│   ├── fundingCreateStore.ts    # 선물 만들기 5단계 입력값 + 수정 스냅샷
+│   └── wishStore.ts             # 위시 등록/해제 상태
+│
+├── contexts/                   # AuthProvider (로그인 상태 Context)
+├── hooks/                      # useAuth, useMyProfile, useUserAccounts (Query 훅)
+├── types/                      # funding.ts 등 공용 타입
 │
 ├── components/
-│   ├── common/                 # 공통 UI 컴포넌트
-│   │   ├── Button.tsx           # 하단 CTA 버튼 (h52, radius12)
-│   │   ├── TextField.tsx        # 라벨 + 글자수 카운터 입력창
-│   │   ├── Header.tsx           # 상단 네비게이션 바 (뒤로가기/타이틀)
-│   │   ├── BottomSheet.tsx      # 하단에서 올라오는 시트 (딤 + 그래버)
-│   │   ├── BottomNav.tsx        # 하단 탭 네비 + 플로팅(+) 버튼
-│   │   ├── MenuRow.tsx          # 메뉴 리스트 행
-│   │   ├── ConfirmModal.tsx     # 확인 모달 (동의 체크박스 옵션)
-│   │   └── Toast.tsx            # 하단 스낵바 토스트
-│   └── icons/                  # SVG 아이콘 컴포넌트 (Home/Gift/Profile/Check 등)
-│
-├── contexts/
-│   ├── auth.ts                 # AuthContext 정의
-│   └── AuthProvider.tsx        # 로그인 상태 Provider
-│
-├── hooks/
-│   └── useAuth.ts              # 로그인 상태/login/logout 훅
+│   ├── common/                 # 공통 UI (Button/TextField/Header/BottomSheet/BottomNav/
+│   │                           #  MenuRow/ConfirmModal/Toast/LetterCard/DefaultAvatar)
+│   ├── create/                 # 선물 만들기 5단계 + 이미지 등록/크롭 (Step1~5, PhotoActionSheet, ImageCropper)
+│   └── icons/                  # SVG 아이콘 컴포넌트
 │
 ├── pages/
-│   ├── splash/                 # SplashPage (진입 스플래시)
-│   ├── login/                  # LoginPage (카카오/구글 소셜 로그인)
-│   ├── signup/                 # ProfileSetupPage + TermsBottomSheet + ProfileAvatar
-│   ├── home/                   # HomePage + HomeBanner + GiftBrowseSection
-│   │                           #  + ProductCard + PriceFilterSheet + products.ts(Mock)
-│   └── my/                     # MyPage + ProfileEditPage + mockUser.ts(Mock)
+│   ├── splash/ login/ signup/  # 온보딩 (스플래시/소셜 로그인/프로필 설정)
+│   ├── home/ wish/             # 홈(둘러보기·내 펀딩) / 위시
+│   ├── my/                     # 마이페이지·내 정보 수정·계좌 목록/등록/수정
+│   ├── gift-about/             # 선물 페이지 이용 방법
+│   ├── gift-create/            # 선물 만들기 진입 시트 (+ 임시 진입 페이지)
+│   ├── FundingCreatePage.tsx   # 선물 만들기 5단계 플로우
+│   ├── funding/                # 펀딩 상세·수정·메세지
+│   ├── invitation/             # 펀딩 초대장
+│   ├── participate/            # 펀딩 참여(4단계)·완료
+│   └── gift-review/            # 선물 후기 작성/완료/조회
 │
-└── utils/
-    └── formatDate.ts           # 날짜 포맷 유틸 (YYYY.MM.DD)
+├── assets/                     # 로고/캐릭터/은행 로고 등 (+ mock 이미지)
+└── utils/                      # formatDate, cropImage, recommendAmounts 등 유틸
 ```
 
 <br />
@@ -170,20 +186,21 @@ src/
 [/] SplashPage
    │  2초 후 자동 이동 (replace)
    ▼
-[/login] LoginPage ──── 카카오/구글 로그인 ────▶ [/signup/profile] ProfileSetupPage
-                                                          │  약관 동의 후 "동의하고 시작하기"
-                                                          ▼
-                                                   [/home] HomePage ◀──┐
-                                                          │            │ BottomNav
-                                                          ▼            │
-                                                   [/my] MyPage ───────┘
-                                                          │  프로필 클릭
-                                                          │  (로그인 시)          (비로그인 시 → /login)
-                                                          ▼
-                                            [/my/profile] ProfileEditPage
-                                                          │  로그아웃 / 계정 삭제
-                                                          ▼
-                                            [/my] MyPage (Toast 노출)
+[/login] LoginPage ── 카카오/구글 ──▶ [/signup/profile] (신규 가입자) ──▶ [/home] HomePage
+                                                                              │
+        ┌─────────────────────────────────────────────────────────────────┤ BottomNav
+        ▼                        ▼                         ▼                 ▼
+   [/wish]               [/funding/create]           [/my]           [/gift/about]
+   위시 조회              선물 만들기 5단계            마이페이지          이용 방법
+                              │ 완료                     │
+                              ▼                          ▼
+                     [/funding/:id] ◀──────────  [/my/accounts] 계좌 관리 (API)
+                     펀딩 상세(개설자/참여자)          [/my/profile] 내 정보 수정 (API)
+                              │
+              ┌───────────────┼────────────────┐
+              ▼               ▼                 ▼
+      [/participate]   [/messages]        [/gift/review/write/:type]
+      펀딩 참여 4단계   메세지 전체보기      선물 후기 작성 → 완료 → 조회
 ```
 
 전체 화면 목록, 진입 경로, 라우팅 표, 담당자, 공통 컴포넌트 사용 방식 등 상세 내용은
@@ -195,11 +212,25 @@ src/
 
 | 항목 | 방식 |
 | --- | --- |
-| 전역 상태 | `AuthProvider` (Context) — `isLoggedIn`, `login()`, `logout()` |
-| 로컬 상태 | 각 페이지/컴포넌트의 `useState` (닉네임 입력, 시트 열림, 필터 선택 등) |
-| 화면 간 전달 | `react-router-dom`의 `navigate(state)` (예: 마이페이지 토스트 메시지) |
-| 데이터 소스 | Mock — `products.ts`, `mockUser.ts`, `HomeBanner`의 닉네임 상수 |
-| API 연동 | 미연동. 연동 지점은 코드 내 `// TODO` 주석으로 표시 |
+| 인증(로그인) 상태 | `AuthProvider` (Context) — `isLoggedIn`, `login()`, `logout()` |
+| 서버 상태 | `TanStack Query` — `useMyProfile`, `useUserAccounts` (`useQuery`) |
+| 클라이언트 전역 상태 | `Zustand` — `fundingCreateStore`(만들기 플로우), `wishStore`(위시 토글) |
+| 로컬 상태 | 각 페이지/컴포넌트의 `useState` (시트 열림, 스텝, 필터 등) |
+| 화면 간 전달 | `react-router-dom`의 `navigate(state)` (후기 데이터, 토스트 메시지 등) |
+| 토큰 저장 | `localStorage` (`toget_access_token` / `toget_refresh_token`) |
+
+**API 연동 현황**
+
+| 도메인 | 상태 |
+| --- | --- |
+| 프로필 조회/수정/탈퇴 (`/api/v1/users/me`) | ✅ 연동 |
+| 계좌 CRUD (`/api/v1/user-accounts`) | ✅ 연동 |
+| 토큰 자동 갱신 (`/api/v1/auth/tokens/refresh`) | ✅ 연동 |
+| 소셜 로그인 (`/api/v1/auth/tokens/{provider}`) | 🟡 API 정의 / 클라이언트 SDK 미연동 |
+| 상품·위시·펀딩·후기 | ❌ Mock (연동 예정) |
+
+> 모든 API 응답은 `ApiEnvelope<T>`(`{ isSuccess, code, message, result }`) 형태이며, `apiClient`의 `unwrap()`이 `result`만 반환하고 실패 시 `ApiError`를 던집니다.
+> `apiClient`는 요청에 access token을 주입하고, 401 응답 시 refresh token으로 자동 재발급 후 원요청을 재시도합니다.
 
 <br />
 
@@ -212,7 +243,7 @@ src/
 | `main` | 배포용 고정 브랜치 (직접 push 금지) |
 | `dev` | 통합 개발 브랜치 (feature 브랜치의 병합 대상) |
 | `feat/#<이슈번호>-<slug>` | 기능 개발 (예: `feat/#10-home-page`) |
-| `fix/#<이슈번호>-<slug>` | 버그 수정 (예: `fix/#14-profile-icon`) |
+| `fix/#<이슈번호>-<slug>` | 버그 수정 |
 | `chore/#<이슈번호>-<slug>` | 설정·문서·리팩토링 |
 
 > ⚠️ 고정 브랜치명은 `main`으로 통일합니다. (`master` 사용 금지)
@@ -246,7 +277,8 @@ prefix: `feat` · `fix` · `chore` · `docs` · `refactor` · `style`
   - `deploy.yml` — `main` push 시 배포 파이프라인 실행
 - **배포 주소**: `https://…` *(운영 URL 확정 후 기입 예정)*
 
-> 환경 변수(`VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`)는 저장소 Secrets로 관리됩니다.
+> 환경 변수: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`(저장소 Secrets), `VITE_API_BASE_URL`(백엔드 주소).
+> ⚠️ 배포 프론트(HTTPS)에서 HTTP 백엔드를 호출할 경우 브라우저 mixed-content 정책에 막힐 수 있어, 백엔드 HTTPS 적용 또는 프록시 설정이 필요합니다.
 
 <br />
 
