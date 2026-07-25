@@ -5,6 +5,7 @@ import TextField from '../../components/common/TextField'
 import Button from '../../components/common/Button'
 import CloseIcon from '../../components/icons/CloseIcon'
 import { MOCK_PRODUCTS } from '../home/products'
+import { useWishStore } from '../../store/wishStore'
 import type { WishType } from '../../store/wishStore'
 
 const WISH_TYPE_OPTIONS: { type: WishType; label: string }[] = [
@@ -22,17 +23,32 @@ export default function WishEditPage() {
   const navigate = useNavigate()
   const { id } = useParams()
   const product = MOCK_PRODUCTS.find((p) => p.id === Number(id))
+  // TODO: 위시 등록 자체가 아직 API 연동 전이라(useWishStore 참고) 여기서 읽어오는 위시 유형도 로컬 상태 기준입니다.
+  const { wishes } = useWishStore()
 
-  const [wishType, setWishType] = useState<WishType>('receive')
-  const [name, setName] = useState(product?.name ?? '')
-  const [price, setPrice] = useState(product ? String(product.price) : '')
-  const [purchaseUrl, setPurchaseUrl] = useState('')
-  const [image, setImage] = useState<string | null>(product?.image ?? null)
+  const initialWishType = wishes[Number(id)] ?? 'receive'
+  const initialName = product?.name ?? ''
+  const initialPrice = product ? String(product.price) : ''
+  const initialPurchaseUrl = ''
+  const initialImage = product?.image ?? null
 
-  const isValid = name.length > 0 && price.length > 0
+  const [wishType, setWishType] = useState<WishType>(initialWishType)
+  const [name, setName] = useState(initialName)
+  const [price, setPrice] = useState(initialPrice)
+  const [purchaseUrl, setPurchaseUrl] = useState(initialPurchaseUrl)
+  const [image, setImage] = useState<string | null>(initialImage)
+
+  // 피그마 기준: 필수값이 채워져 있어도 실제로 바뀐 내용이 없으면 "수정 완료"는 비활성 상태를 유지합니다.
+  const hasChanges =
+    wishType !== initialWishType ||
+    name !== initialName ||
+    price !== initialPrice ||
+    purchaseUrl !== initialPurchaseUrl ||
+    image !== initialImage
+  const isValid = name.length > 0 && price.length > 0 && hasChanges
 
   const handleSubmit = () => {
-    // TODO: 위시 수정 API 연동 후 실제 저장 요청으로 교체
+    // TODO: 위시 수정 API 연동 후 실제 저장 요청으로 교체 (wishType 변경분은 위시 등록 API와도 함께 연동 필요)
     navigate(-1)
   }
 
