@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PlusIcon from '../../components/icons/PlusIcon'
+import MoreVerticalIcon from '../../components/icons/MoreVerticalIcon'
 import WishEditModeSheet from './WishEditModeSheet'
 import type { Product } from '../home/products'
 
@@ -30,11 +31,14 @@ export default function WishProductCard({ product, onRemoveWish }: WishProductCa
           // TODO: 선물 페이지 만들기 플로우와 연결 후 실제 동작 구현
           className="absolute right-3 top-3 flex size-6 items-center justify-center rounded-full bg-gray-900 text-white"
         >
-          <PlusIcon className="size-2" />
+          <PlusIcon className="size-3.5" />
         </button>
       </div>
       <button type="button" onClick={() => setSheetOpen(true)} className="flex flex-col gap-1 text-left">
-        <span className="text-caption1-r text-gray-700">{product.brand}</span>
+        <div className="flex items-center justify-between">
+          <span className="text-caption1-r text-gray-700">{product.brand}</span>
+          <MoreVerticalIcon className="size-5 text-gray-700" />
+        </div>
         <p className="text-b2-m leading-normal text-black">{product.name}</p>
       </button>
       <p className="text-b2-m text-black">
