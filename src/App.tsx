@@ -3,8 +3,12 @@ import SplashPage from './pages/splash/SplashPage'
 import LoginPage from './pages/login/LoginPage'
 import ProfileSetupPage from './pages/signup/ProfileSetupPage'
 import HomePage from './pages/home/HomePage'
+import WishPage from './pages/wish/WishPage'
+import WishEditPage from './pages/wish/WishEditPage'
 import MyPage from './pages/my/MyPage'
 import ProfileEditPage from './pages/my/ProfileEditPage'
+import AccountListPage from './pages/my/AccountListPage'
+import AccountFormPage from './pages/my/AccountFormPage'
 import FundingCreatePage from './pages/FundingCreatePage';
 import GiftAboutPage from './pages/gift-about/GiftAboutPage'
 import GiftCreateMyPage from './pages/gift-create/GiftCreateMyPage'
@@ -18,6 +22,7 @@ import ParticipatePage from './pages/participate/ParticipatePage'
 import CompletePage from './pages/participate/CompletePage'
 import ReviewWritePage from './pages/gift-review/ReviewWritePage'
 import ReviewCompletePage from './pages/gift-review/ReviewCompletePage'
+import GiftReviewDetailPage from './pages/gift-review/GiftReviewDetailPage'
 
 function App() {
   return (
@@ -26,8 +31,13 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup/profile" element={<ProfileSetupPage />} />
       <Route path="/home" element={<HomePage />} />
+      <Route path="/wish" element={<WishPage />} />
+      <Route path="/wish/:id/edit" element={<WishEditPage />} />
       <Route path="/my" element={<MyPage />} />
       <Route path="/my/profile" element={<ProfileEditPage />} />
+      <Route path="/my/accounts" element={<AccountListPage />} />
+      <Route path="/my/accounts/new" element={<AccountFormPage />} />
+      <Route path="/my/accounts/:id/edit" element={<AccountFormPage />} />
       <Route path="/funding/create" element={<FundingCreatePage />} />
       <Route path="/gift/about" element={<GiftAboutPage />} />
       <Route path="/gift/create/my" element={<GiftCreateMyPage />} />
@@ -41,6 +51,7 @@ function App() {
       <Route path="/funding/:id/complete" element={<CompletePage />} />
       <Route path="/gift/review/write/:type" element={<ReviewWritePage />} />
       <Route path="/gift/review/complete/:type" element={<ReviewCompletePage />} />
+      <Route path="/gift/review/:id" element={<GiftReviewDetailPage />} />
     </Routes>
   )
 }

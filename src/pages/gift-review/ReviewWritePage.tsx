@@ -1,18 +1,30 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
 import TextField from '../../components/common/TextField'
 import ConfirmModal from '../../components/common/ConfirmModal'
+import PhotoActionSheet from '../../components/create/PhotoActionSheet'
 import ChevronLeftIcon from '../../components/icons/ChevronLeftIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import ExpandIcon from '../../components/icons/ExpandIcon'
 import CloseIcon from '../../components/icons/CloseIcon'
+import PlusIcon from '../../components/icons/PlusIcon'
 import { LETTER_COLORS } from '../../components/common/letterPalette'
 import { REVIEW_CHARACTERS } from './reviewCharacters'
 import { REVIEW_WRITE_TYPES, REVIEW_TITLE_MAX_LENGTH, REVIEW_CONTENT_MAX_LENGTH } from './reviewTypes'
-import type { ReviewWriteType } from './reviewTypes'
+import type { ReviewWriteType, ReviewPreviewData } from './reviewTypes'
 import { MOCK_USER } from '../my/mockUser'
+
+/** File을 base64 data URL로 변환 (blob URL과 달리 페이지 이동 후에도 값이 유지됨) */
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
 
 type ReviewTab = 'message' | 'color' | 'character'
 
@@ -113,8 +125,16 @@ export default function ReviewWritePage() {
   const [content, setContent] = useState('')
   const [colorId, setColorId] = useState(LETTER_COLORS[7].id) // 기본 화이트
   const [characterIndex, setCharacterIndex] = useState(0) // 기본 No.01
+  const [images, setImages] = useState<File[]>([])
+  const [showPhotoSheet, setShowPhotoSheet] = useState(false)
   const [showExitModal, setShowExitModal] = useState(false)
   const [showExpandModal, setShowExpandModal] = useState(false)
+
+  // images가 바뀔 때만 새로 생성하고, 이전 URL은 해제해서 blob 메모리가 쌓이지 않게 함
+  const imageUrls = useMemo(() => images.map((file) => URL.createObjectURL(file)), [images])
+  useEffect(() => {
+    return () => imageUrls.forEach((url) => URL.revokeObjectURL(url))
+  }, [imageUrls])
 
   const config = type && type in REVIEW_WRITE_TYPES ? REVIEW_WRITE_TYPES[type as ReviewWriteType] : null
   if (!config) return <Navigate to="/home" replace />
@@ -133,11 +153,21 @@ export default function ReviewWritePage() {
     setCharacterIndex((prev) => (prev + delta + count) % count)
   }
 
+  const removeImage = (index: number) => setImages((prev) => prev.filter((_, i) => i !== index))
+
   const handleExit = () => setShowExitModal(true)
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // TODO: BE 연동 시 작성 데이터 전송 (colorId, characterIndex 포함)
-    navigate(config.completePath)
+    const imageDataUrls = await Promise.all(images.map(fileToDataUrl))
+    const previewData: ReviewPreviewData = {
+      senderName: MOCK_USER.name,
+      title,
+      content,
+      colorId,
+      images: imageDataUrls,
+    }
+    navigate(config.completePath, { state: previewData })
   }
 
   return (
@@ -217,6 +247,37 @@ export default function ReviewWritePage() {
               maxLength={REVIEW_CONTENT_MAX_LENGTH}
               onChange={(e) => setContent(e.target.value)}
             />
+
+            <div className="flex flex-col gap-3">
+              <p className="text-b1-m text-black">{config.imageLabel}</p>
+              <div className="flex items-center gap-3 overflow-x-auto pb-1">
+                {images.map((_, i) => (
+                  <div key={i} className="relative size-[123px] shrink-0 overflow-hidden rounded-2xl">
+                    <img src={imageUrls[i]} alt={`${config.imageLabel} ${i + 1}`} className="size-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(i)}
+                      aria-label={`${config.imageLabel} 삭제`}
+                      className="absolute right-1.5 top-1.5 flex size-6 items-center justify-center rounded-full bg-black/50 text-white"
+                    >
+                      <CloseIcon className="size-3.5" />
+                    </button>
+                  </div>
+                ))}
+                {images.length < config.maxImages && (
+                  <button
+                    type="button"
+                    onClick={() => setShowPhotoSheet(true)}
+                    aria-label={`${config.imageLabel} 추가`}
+                    className="flex size-[123px] shrink-0 items-center justify-center rounded-2xl bg-background"
+                  >
+                    <span className="flex size-8 items-center justify-center rounded-full bg-gray-100">
+                      <PlusIcon className="size-5 text-gray-600" />
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -281,6 +342,14 @@ export default function ReviewWritePage() {
           저장
         </Button>
       </div>
+
+      {showPhotoSheet && (
+        <PhotoActionSheet
+          aspectRatio={1}
+          onClose={() => setShowPhotoSheet(false)}
+          onSelect={(file) => setImages((prev) => [...prev, file])}
+        />
+      )}
 
       {/* 피그마 상 좌측이 나가기, 우측이 이어서 작성하기라 cancel/confirm이 평소와 반대로 매핑됨 (참여 흐름과 동일한 관례) */}
       <ConfirmModal

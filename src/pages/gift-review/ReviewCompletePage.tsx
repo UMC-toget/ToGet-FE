@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import Button from '../../components/common/Button'
 import Toast from '../../components/common/Toast'
 import CloseIcon from '../../components/icons/CloseIcon'
 import ShareIcon from '../../components/icons/ShareIcon'
 import reviewCompleteHero from '../../assets/review-complete-hero.png'
 import { REVIEW_COMPLETE_TYPES } from './reviewTypes'
-import type { ReviewWriteType } from './reviewTypes'
+import type { ReviewWriteType, ReviewPreviewData } from './reviewTypes'
 
 const TOAST_DURATION_MS = 2000
 
@@ -14,6 +14,8 @@ const TOAST_DURATION_MS = 2000
 export default function ReviewCompletePage() {
   const { type } = useParams<{ type: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+  const previewData = location.state as ReviewPreviewData | null
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -56,8 +58,9 @@ export default function ReviewCompletePage() {
     await copyLink()
   }
 
-  // TODO: 조회 화면(#86 등)이 머지되기 전까지는 목 id로 이동함
-  const handlePreview = () => navigate(`/gift/review/${config.key}-mock`)
+  // TODO: BE 연동 후 실제 발급된 id로 교체. 작성 데이터(previewData)가 있으면 그대로 들고 가고,
+  // 없으면(새로고침 등으로 유실된 경우) 조회 화면이 mockReview로 대체한다.
+  const handlePreview = () => navigate(`/gift/review/${config.key}-mock`, { state: previewData })
 
   return (
     <div className="relative mx-auto flex min-h-dvh w-full max-w-[402px] flex-col overflow-hidden bg-white pb-[140px] antialiased">
