@@ -23,6 +23,7 @@ import CompletePage from './pages/participate/CompletePage'
 import GroupPage from './pages/group/GroupPage'
 import CandidatesPage from './pages/group/CandidatesPage'
 import ParticipantsPage from './pages/group/ParticipantsPage'
+import LetterPage from './pages/group/LetterPage'
 import ReviewWritePage from './pages/gift-review/ReviewWritePage'
 import ReviewCompletePage from './pages/gift-review/ReviewCompletePage'
 import GiftReviewDetailPage from './pages/gift-review/GiftReviewDetailPage'
@@ -56,6 +57,7 @@ function App() {
       <Route path="/group/:id" element={<GroupPage />} />
       <Route path="/group/:id/candidates" element={<CandidatesPage />} />
       <Route path="/group/:id/participants" element={<ParticipantsPage />} />
+      <Route path="/group/:id/letter" element={<LetterPage />} />
       <Route path="/gift/review/write/:type" element={<ReviewWritePage />} />
       <Route path="/gift/review/complete/:type" element={<ReviewCompletePage />} />
       <Route path="/gift/review/:id" element={<GiftReviewDetailPage />} />
