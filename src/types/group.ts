@@ -6,6 +6,7 @@ export interface GroupParticipant {
   id: string
   name: string
   role: ParticipantRole
+  isMe?: boolean
 }
 
 export interface GroupCandidate {
