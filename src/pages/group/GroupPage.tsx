@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
+import Toast from '../../components/common/Toast'
 import DefaultAvatar from '../../components/common/DefaultAvatar'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import LinkIcon from '../../components/icons/LinkIcon'
@@ -24,6 +25,32 @@ export default function GroupPage() {
 
   const [group, setGroup] = useState<TogetherGiftDashboard | null>(null)
   const [loading, setLoading] = useState(true)
+  const [toastOpen, setToastOpen] = useState(false)
+
+  const handleShareLink = async () => {
+    const url = window.location.href
+    if (navigator.share) {
+      try {
+        await navigator.share({ url })
+        return
+      } catch {
+        // 사용자가 공유 취소한 경우 — 토스트 없이 종료
+        return
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      const el = document.createElement('textarea')
+      el.value = url
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+    }
+    setToastOpen(true)
+    setTimeout(() => setToastOpen(false), 2000)
+  }
 
   useEffect(() => {
     if (!id) return
@@ -135,6 +162,7 @@ export default function GroupPage() {
                 {/* 초대장 공유 */}
                 <button
                   type="button"
+                  onClick={handleShareLink}
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-100 py-2"
                 >
                   <LinkIcon className="size-5 text-black" />
@@ -182,6 +210,8 @@ export default function GroupPage() {
           함께 선물 참여하기
         </Button>
       </div>
+
+      <Toast open={toastOpen} message="초대장 링크가 복사되었어요" />
     </div>
   )
 }
