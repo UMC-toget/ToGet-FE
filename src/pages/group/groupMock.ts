@@ -1,5 +1,21 @@
 import type { GroupFunding } from '../../types/group'
 
+export interface SettlementGiftItem {
+  id: string
+  name: string
+  price: number
+}
+
+export interface Settlement {
+  giftItems: SettlementGiftItem[]
+  totalAmount: number
+  participantCount: number
+  myShare: number
+  bankName: string
+  accountNumber: string
+  accountHolder: string
+}
+
 export const MOCK_GROUP: GroupFunding = {
   id: '1',
   title: '예원이 졸업 선물',
@@ -46,4 +62,17 @@ export const MOCK_GROUP: GroupFunding = {
       isVotedByMe: false,
     },
   ],
+}
+
+export const MOCK_SETTLEMENT: Settlement = {
+  giftItems: [
+    { id: '1', name: '무선 이어폰', price: 120000 },
+    { id: '2', name: '르쿠르제 텀블러', price: 30000 },
+  ],
+  totalAmount: 150000,
+  participantCount: 3,
+  myShare: 40000,
+  bankName: '카카오뱅크',
+  accountNumber: '3333-22-1234567',
+  accountHolder: '홍길동',
 }
