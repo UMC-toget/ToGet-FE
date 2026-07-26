@@ -16,7 +16,9 @@ export const MOCK_GROUP: GroupFunding = {
   participants: [
     { id: '1', name: '홍길동', role: 'HOST' },
     { id: '2', name: '김철수', role: 'CO_HOST' },
-    { id: '3', name: '이영희', role: 'MEMBER' },
+    { id: '3', name: '장하영', role: 'MEMBER', isMe: true },
+    { id: '4', name: '이영희', role: 'MEMBER' },
+    { id: '5', name: '박지수', role: 'MEMBER' },
   ],
   candidates: [
     {
