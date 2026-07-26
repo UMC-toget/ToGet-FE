@@ -1,5 +1,3 @@
-import type { GroupCandidate } from '../../types/group'
-
 const RANK_COLORS: Record<number, string> = {
   1: 'bg-pink-500 text-white',
   2: 'bg-gray-900 text-white',
@@ -7,7 +5,12 @@ const RANK_COLORS: Record<number, string> = {
 }
 
 interface CandidateCardProps {
-  candidate: GroupCandidate
+  candidate: {
+    giftName: string
+    giftPrice: number
+    giftImageUrl: string | null
+    voteCount: number
+  }
   rank: number
 }
 

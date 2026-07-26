@@ -7,6 +7,7 @@ import TextField from '../../components/common/TextField'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import PlusIcon from '../../components/icons/PlusIcon'
 import CloseIcon from '../../components/icons/CloseIcon'
+import { postGiftCandidate } from '../../api/groupFundings'
 
 const MEMO_MAX_LENGTH = 60
 
@@ -28,6 +29,7 @@ export default function CandidateNewPage() {
 
   const [inputName, setInputName] = useState('')
   const [inputPrice, setInputPrice] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const hasChanges = selectedGift !== null || memo.trim().length > 0
   const canSubmit = selectedGift !== null && memo.trim().length > 0
@@ -54,9 +56,21 @@ export default function CandidateNewPage() {
     setShowInputSheet(false)
   }
 
-  const handleSubmit = () => {
-    // TODO: API 연동
-    navigate(`/group/${id}/candidates`)
+  const handleSubmit = async () => {
+    if (!selectedGift || submitting) return
+    setSubmitting(true)
+    try {
+      await postGiftCandidate(id!, {
+        giftName: selectedGift.name,
+        giftPrice: selectedGift.price,
+        note: memo.trim(),
+      })
+      navigate(`/group/${id}/candidates`)
+    } catch (e) {
+      console.error('후보 등록 실패', e)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -130,7 +144,7 @@ export default function CandidateNewPage() {
       </div>
 
       <div className="pointer-events-none fixed bottom-0 left-1/2 w-full max-w-[402px] -translate-x-1/2 bg-gradient-to-b from-white/0 to-white/80 px-[18px] pb-[34px] pt-10">
-        <Button className="pointer-events-auto" disabled={!canSubmit} onClick={handleSubmit}>
+        <Button className="pointer-events-auto" disabled={!canSubmit || submitting} onClick={handleSubmit}>
           후보 등록하기
         </Button>
       </div>
