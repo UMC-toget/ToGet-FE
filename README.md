@@ -265,7 +265,7 @@ prefix: `feat` · `fix` · `chore` · `docs` · `refactor` · `style`
 - **자동화**: GitHub Actions
   - `preview.yaml` — `main`/`dev` 대상 PR 생성 시 Vercel Preview 배포 후 PR에 미리보기 URL 코멘트
   - `deploy.yml` — `main` push 시 배포 파이프라인 실행
-- **배포 주소**: `https://to-get-fe.vercel.app/`
+- **배포 주소**: https://to-get-fe.vercel.app
 
 > 환경 변수: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`(저장소 Secrets), `VITE_API_BASE_URL`(백엔드 주소). <br>
 
