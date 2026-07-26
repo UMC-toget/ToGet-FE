@@ -122,8 +122,9 @@ pnpm preview
 pnpm lint
 ```
 
-> ℹ️ 백엔드 주소는 `VITE_API_BASE_URL` 환경 변수로 주입합니다. (미설정 시 기본값 `http://43.201.153.143:8080`, `src/lib/apiClient.ts` 참고)
+> ℹ️ 백엔드 주소는 `VITE_API_BASE_URL` 환경 변수로 주입합니다. (미설정 시 기본값 `https://dev.api.toget.kr`, `src/lib/apiClient.ts` 참고)
 > 로컬에서 다른 백엔드를 바라보려면 `.env.local`에 `VITE_API_BASE_URL`을 지정하세요.
+> Swagger 문서: [dev.api.toget.kr/swagger-ui](https://dev.api.toget.kr/swagger-ui/index.html)
 
 ## 📁 프로젝트 구조
 
@@ -276,3 +277,4 @@ prefix: `feat` · `fix` · `chore` · `docs` · `refactor` · `style`
 - [PR 템플릿](./.github/PULL_REQUEST_TEMPLATE.md)
 - [이슈 템플릿](./.github/ISSUE_TEMPLATE)
 - [디자인 (Figma)](https://www.figma.com/design/RUHJugPsPKg5TRpbYn7VdG)
+- [백엔드 Swagger 문서](https://dev.api.toget.kr/swagger-ui/index.html)
