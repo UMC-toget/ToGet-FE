@@ -25,6 +25,7 @@ import CandidatesPage from './pages/group/CandidatesPage'
 import ParticipantsPage from './pages/group/ParticipantsPage'
 import LetterPage from './pages/group/LetterPage'
 import SettlePage from './pages/group/SettlePage'
+import CandidateNewPage from './pages/group/CandidateNewPage'
 import ReviewWritePage from './pages/gift-review/ReviewWritePage'
 import ReviewCompletePage from './pages/gift-review/ReviewCompletePage'
 import GiftReviewDetailPage from './pages/gift-review/GiftReviewDetailPage'
@@ -57,6 +58,7 @@ function App() {
       {/* H 섹션: 함께 선물 참여 */}
       <Route path="/group/:id" element={<GroupPage />} />
       <Route path="/group/:id/candidates" element={<CandidatesPage />} />
+      <Route path="/group/:id/candidates/new" element={<CandidateNewPage />} />
       <Route path="/group/:id/participants" element={<ParticipantsPage />} />
       <Route path="/group/:id/letter" element={<LetterPage />} />
       <Route path="/group/:id/settle" element={<SettlePage />} />
