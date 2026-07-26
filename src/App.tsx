@@ -21,6 +21,7 @@ import MessagesPage from './pages/funding/MessagesPage'
 import ParticipatePage from './pages/participate/ParticipatePage'
 import CompletePage from './pages/participate/CompletePage'
 import GroupPage from './pages/group/GroupPage'
+import CandidatesPage from './pages/group/CandidatesPage'
 import ReviewWritePage from './pages/gift-review/ReviewWritePage'
 import ReviewCompletePage from './pages/gift-review/ReviewCompletePage'
 import GiftReviewDetailPage from './pages/gift-review/GiftReviewDetailPage'
@@ -52,6 +53,7 @@ function App() {
       <Route path="/funding/:id/complete" element={<CompletePage />} />
       {/* H 섹션: 함께 선물 참여 */}
       <Route path="/group/:id" element={<GroupPage />} />
+      <Route path="/group/:id/candidates" element={<CandidatesPage />} />
       <Route path="/gift/review/write/:type" element={<ReviewWritePage />} />
       <Route path="/gift/review/complete/:type" element={<ReviewCompletePage />} />
       <Route path="/gift/review/:id" element={<GiftReviewDetailPage />} />
