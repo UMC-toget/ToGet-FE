@@ -3,8 +3,6 @@ import { LETTER_COLORS } from '../../components/common/letterPalette'
 import LetterCard from '../../components/common/LetterCard'
 import CheckOption from './CheckOption'
 
-const LETTER_MAX_LENGTH = 234
-
 interface LetterStepProps {
   hostName: string
   letter: string
@@ -53,7 +51,6 @@ export default function LetterStep({
           title={`${hostName}에게`}
           content={letter}
           onContentChange={onLetterChange}
-          maxLength={LETTER_MAX_LENGTH}
         />
 
         <CheckOption label="메세지 내용 비공개 설정" checked={isPrivate} onChange={onPrivateChange} />

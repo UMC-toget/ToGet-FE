@@ -1,4 +1,4 @@
-import type { CSSProperties, KeyboardEvent } from 'react'
+import type { CSSProperties } from 'react'
 import CaretDownIcon from '../icons/CaretDownIcon'
 import type { LetterColor } from './letterPalette'
 
@@ -20,8 +20,6 @@ interface LetterCardProps {
   contentPlaceholder?: string
   /** preInput 상태에서 textarea 입력을 받기 위한 핸들러 */
   onContentChange?: (value: string) => void
-  /** preInput 상태 최대 글자수. 초과 시 슬라이스 + 물리 키보드 차단 */
-  maxLength?: number
   /** true면 열림 상태에서 우측 하단에 from. 표기 (마음 전하기는 미노출) */
   showFrom?: boolean
   fromLabel?: string
@@ -43,7 +41,6 @@ export default function LetterCard({
   content,
   contentPlaceholder = '내용을 입력해주세요',
   onContentChange,
-  maxLength,
   showFrom = false,
   fromLabel = 'from.',
   onToggle,
@@ -53,26 +50,13 @@ export default function LetterCard({
   const lineStyle = ruledLineStyle(color.border)
 
   if (state === 'preInput') {
-    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      const val = maxLength && e.target.value.length > maxLength
-        ? e.target.value.slice(0, maxLength)
-        : e.target.value
-      onContentChange?.(val)
-    }
-    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-      if (maxLength && content.length >= maxLength && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        e.preventDefault()
-      }
-    }
     return (
       <div className={`rounded-xl border px-4 py-3 ${className}`} style={cardStyle}>
         <p className="flex h-6 items-center text-b1-m text-black">{title}</p>
         <textarea
           value={content}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
+          onChange={(e) => onContentChange?.(e.target.value)}
           placeholder={contentPlaceholder}
-          maxLength={maxLength}
           rows={10}
           className="mt-[13px] w-full resize-none bg-transparent text-b2-r leading-[28px] text-gray-800 outline-none placeholder:text-[var(--ph-color)]"
           style={{ '--ph-color': color.placeholder, ...lineStyle } as CSSProperties}

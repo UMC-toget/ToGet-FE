@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
 import Header from '../../components/common/Header'
 import TextField from '../../components/common/TextField'
 import Button from '../../components/common/Button'
@@ -8,45 +7,24 @@ import ProfileAvatar from './ProfileAvatar'
 import TermsBottomSheet from './TermsBottomSheet'
 import { useAuth } from '../../hooks/useAuth'
 import { replayShake } from '../../utils/shake'
-import { updateMyProfile } from '../../api/users'
-import { uploadImage } from '../../utils/uploadImage'
-import { ApiError } from '../../lib/apiClient'
 
 const NICKNAME_MAX_LENGTH = 6
-const PROFILE_IMAGE_PREFIX = 'profiles'
 // 화면 전체 흔들림은 입력창 자체보다 훨씬 은은하게 느껴지도록 진폭을 크게 줄입니다.
 const PAGE_SHAKE_AMPLITUDE = '0.4px'
 
 /** 회원가입 마지막 단계: 프로필(닉네임/사진) 설정 페이지 */
 export default function ProfileSetupPage() {
   const [nickname, setNickname] = useState('')
-  const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [termsOpen, setTermsOpen] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const navigate = useNavigate()
   const { login } = useAuth()
   const pageRef = useRef<HTMLDivElement>(null)
 
-  const updateProfileMutation = useMutation({
-    mutationFn: async () => {
-      const profileImageUrl = photoFile ? await uploadImage(PROFILE_IMAGE_PREFIX, photoFile) : undefined
-      return updateMyProfile({ nickname, profileImageUrl })
-    },
-    onSuccess: () => {
-      login()
-      setTermsOpen(false)
-      navigate('/home')
-    },
-    onError: (error) => {
-      setTermsOpen(false)
-      setErrorMessage(error instanceof ApiError ? error.message : '닉네임 저장에 실패했어요. 다시 시도해 주세요.')
-      replayShake(pageRef.current)
-    },
-  })
-
   const handleConfirm = () => {
-    setErrorMessage(null)
-    updateProfileMutation.mutate()
+    // TODO: 가입 API 연동 (닉네임, ProfileAvatar의 onSelect로 받은 프로필 사진 File 함께 전송)
+    login()
+    setTermsOpen(false)
+    navigate('/home')
   }
 
   return (
@@ -63,7 +41,8 @@ export default function ProfileSetupPage() {
       </div>
 
       <div className="mt-[69px] flex flex-col items-center gap-2">
-        <ProfileAvatar onSelect={setPhotoFile} />
+        {/* TODO: onSelect로 크롭된 프로필 사진 File을 받아 가입 요청에 포함해야 함 */}
+        <ProfileAvatar />
         <p className="text-h3-sb text-black">{nickname || '닉네임'}</p>
       </div>
 
@@ -76,11 +55,7 @@ export default function ProfileSetupPage() {
           onChange={(e) => setNickname(e.target.value)}
           onOverflow={() => replayShake(pageRef.current)}
         />
-        {errorMessage && <p className="text-caption1-r text-pink-500">{errorMessage}</p>}
-        <Button
-          disabled={nickname.length === 0 || updateProfileMutation.isPending}
-          onClick={() => setTermsOpen(true)}
-        >
+        <Button disabled={nickname.length === 0} onClick={() => setTermsOpen(true)}>
           가입
         </Button>
       </div>

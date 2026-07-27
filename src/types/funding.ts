@@ -55,9 +55,9 @@ export interface FundingDetail {
   hostFullName: string
   /** 카테고리 칩 라벨 (예: '생일') */
   category: string
-  /** 기념일 날짜 — 추천 금액 계산(월×1000 + 일×10) 기준 */
+  /** 기념일 (D-day 계산 기준) */
   anniversaryDate: string
-  /** 펀딩 마감일 — D-day 계산 기준 */
+  /** 펀딩 마감일 */
   deadline: string
   /** 개설자 인사말 */
   greeting: string
