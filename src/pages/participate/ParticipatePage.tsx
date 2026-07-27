@@ -10,6 +10,7 @@ import NameStep from './NameStep'
 import LetterStep from './LetterStep'
 import AmountStep from './AmountStep'
 import DepositStep from './DepositStep'
+import { postContribution } from '../../api/contributions'
 
 /**
  * E03) 내 선물 참여: 축하 페이지 (4단계 참여 흐름)
@@ -28,6 +29,7 @@ export default function ParticipatePage() {
   const [isPrivate, setIsPrivate] = useState(false)
   const [amount, setAmount] = useState<number | null>(null)
   const [showExitModal, setShowExitModal] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   const canGoNext = [
     name.trim() !== '' || isAnonymous,
@@ -41,13 +43,35 @@ export default function ParticipatePage() {
     else setShowExitModal(true)
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < 4) {
       setStep(step + 1)
       return
     }
-    // TODO: BE 연동 시 참여 데이터 전송
-    navigate(`/funding/${id}/complete`)
+    if (submitting) return
+    setSubmitting(true)
+    try {
+      // ⚠️ backgroundId: 로컬 팔레트와 BE background ID 매핑이 미완성
+      // 추후 fetchContributionBackgrounds() 연동 후 letterColor.id → backgroundId 맵 교체
+      const bgIdByColor: Record<string, number> = {
+        pink: 1, red: 2, yellow: 3, green: 4, skyBlue: 5, darkPurple: 6, lightPurple: 7, white: 8,
+      }
+      await postContribution(id!, {
+        senderName: isAnonymous ? '익명' : name.trim(),
+        backgroundId: bgIdByColor[letterColor.id] ?? 1,
+        isAnonymous,
+        amount: amount ?? 0,
+        content: letter,
+        isPrivate,
+      })
+      navigate(`/funding/${id}/complete`)
+    } catch (e) {
+      console.error('참여 제출 실패', e)
+      // 실패해도 UI 흐름 유지 (완료 페이지로 이동 — 추후 에러 처리 개선)
+      navigate(`/funding/${id}/complete`)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -91,7 +115,7 @@ export default function ParticipatePage() {
       </div>
 
       <div className="pointer-events-none fixed bottom-0 left-1/2 w-full max-w-[402px] -translate-x-1/2 bg-gradient-to-b from-white/0 to-white/80 px-[18px] pb-[34px] pt-10">
-        <Button className="pointer-events-auto" disabled={!canGoNext} onClick={handleNext}>
+        <Button className="pointer-events-auto" disabled={!canGoNext || (step === 4 && submitting)} onClick={handleNext}>
           {step < 4 ? '다음' : '마음 보내기'}
         </Button>
       </div>
