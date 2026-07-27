@@ -11,7 +11,8 @@ import ProfileAvatar from '../signup/ProfileAvatar'
 import { useAuth } from '../../hooks/useAuth'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import { updateMyProfile, withdrawMe, deleteMyProfileImage } from '../../api/users'
-import { clearTokens } from '../../lib/tokenStorage'
+import { logoutRequest } from '../../api/auth'
+import { clearTokens, clearLastLoginProvider } from '../../lib/tokenStorage'
 import { replayShake } from '../../utils/shake'
 
 const NICKNAME_MAX_LENGTH = 6
@@ -48,10 +49,21 @@ export default function ProfileEditPage() {
     onError: () => setDeletePhotoModalOpen(false),
   })
 
+  const logoutMutation = useMutation({
+    mutationFn: logoutRequest,
+    // 서버 로그아웃 요청이 실패해도(네트워크 오류 등) 클라이언트는 항상 로그아웃 처리합니다.
+    onSettled: () => {
+      clearTokens()
+      logout()
+      navigate('/my', { state: { toast: '로그아웃이 완료 되었습니다' } })
+    },
+  })
+
   const withdrawMutation = useMutation({
     mutationFn: withdrawMe,
     onSuccess: () => {
       clearTokens()
+      clearLastLoginProvider()
       logout()
       navigate('/my', { state: { toast: '계정 삭제가 완료 되었습니다' } })
     },
@@ -63,10 +75,7 @@ export default function ProfileEditPage() {
   }
 
   const handleLogout = () => {
-    // TODO: 서버 측 로그아웃(리프레시 토큰 폐기) API가 명세에 없어 클라이언트 토큰만 정리합니다.
-    clearTokens()
-    logout()
-    navigate('/my', { state: { toast: '로그아웃이 완료 되었습니다' } })
+    logoutMutation.mutate()
   }
 
   const handleDeleteAccount = () => {

@@ -26,6 +26,7 @@ export default function GiftBrowseSection() {
   // 비로그인 상태에서 상품 카드/위시 등록 버튼을 선택하면 로그인 화면으로 보냅니다 (피그마 B01 기준).
   const handleLoginRequired = () => navigate('/login')
 
+  // TODO: 위시 등록/해제 API 연동 후 addWish/removeWish 호출을 실제 서버 요청으로 교체 (useWishStore 참고)
   const handleSelectWishType = (type: WishType | null) => {
     if (wishSheetProductId != null) {
       if (type === null) {

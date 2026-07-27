@@ -2,9 +2,7 @@ import axios, { AxiosError } from 'axios'
 import type { InternalAxiosRequestConfig } from 'axios'
 import { clearTokens, getAccessToken, getRefreshToken, setTokens } from './tokenStorage'
 
-// TODO: 배포된 프론트(HTTPS)에서 이 백엔드(HTTP)를 호출하면 브라우저 mixed-content 정책에
-// 막힐 수 있음 (로컬 개발 환경에서는 문제 없음). 백엔드에 HTTPS가 적용되면 그대로 동작합니다.
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://43.201.153.143:8080'
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'https://dev.api.toget.kr'
 
 export interface ApiEnvelope<T> {
   isSuccess: boolean

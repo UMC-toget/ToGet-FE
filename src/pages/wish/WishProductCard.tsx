@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import MoreVerticalIcon from '../../components/icons/MoreVerticalIcon'
+import { useNavigate } from 'react-router-dom'
 import PlusIcon from '../../components/icons/PlusIcon'
+import MoreVerticalIcon from '../../components/icons/MoreVerticalIcon'
+import WishEditModeSheet from './WishEditModeSheet'
 import type { Product } from '../home/products'
 
 interface WishProductCardProps {
@@ -8,64 +10,75 @@ interface WishProductCardProps {
   onRemoveWish: () => void
 }
 
-/** 위시 페이지 상품 카드. 좌상단 "+"로 펀딩에 추가, 우측 "⋮"로 위시 해제 (피그마 기준) */
+/** 위시 페이지 상품 카드. 카드를 누르면 구매처 외부 링크로 이동, "⋮"를 누르면 수정하기/삭제하기 시트가 뜹니다 (피그마 기준) */
 export default function WishProductCard({ product, onRemoveWish }: WishProductCardProps) {
-  const [menuOpen, setMenuOpen] = useState(false)
+  const navigate = useNavigate()
+  const [sheetOpen, setSheetOpen] = useState(false)
+
+  const handleCardClick = () => {
+    if (product.link) window.open(product.link, '_blank', 'noopener,noreferrer')
+    // TODO: 목업 상품에는 구매처 링크가 없어 현재는 이동하지 않습니다. 상품 API 연동 후 product.link로 교체
+  }
+
+  const handleMoreClick = (e: { stopPropagation: () => void }) => {
+    e.stopPropagation()
+    setSheetOpen(true)
+  }
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="relative flex size-[175px] items-center justify-center rounded-xl bg-background p-3">
-        <img src={product.image} alt={product.name} className="max-h-[75%] max-w-[80%] object-contain" />
-        <button
-          type="button"
-          aria-label="펀딩에 추가"
-          // TODO: 선물 페이지 만들기 플로우와 연결 후 실제 동작 구현
-          className="absolute right-3 top-3 flex size-6 items-center justify-center rounded-full bg-gray-900 text-white"
-        >
-          <PlusIcon className="size-3" />
-        </button>
-      </div>
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center justify-between">
-          <span className="text-caption1-r text-gray-700">{product.brand}</span>
-          <div className="relative">
-            <button
-              type="button"
+      <button type="button" onClick={handleCardClick} className="flex flex-col gap-2 text-left">
+        <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-background p-3">
+          <img src={product.image} alt={product.name} className="max-h-[75%] max-w-[80%] object-contain" />
+          <span
+            role="button"
+            tabIndex={0}
+            aria-label="펀딩에 추가"
+            // TODO: 선물 페이지 만들기 플로우와 연결 후 실제 동작 구현
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            className="absolute right-3 top-3 flex size-6 items-center justify-center rounded-full bg-gray-900 text-white"
+          >
+            <PlusIcon className="size-4" />
+          </span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center justify-between">
+            <span className="text-caption1-r text-gray-700">{product.brand}</span>
+            <span
+              role="button"
+              tabIndex={0}
               aria-label="더보기"
-              onClick={() => setMenuOpen((prev) => !prev)}
+              onClick={handleMoreClick}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return
+                e.preventDefault()
+                handleMoreClick(e)
+              }}
               className="flex size-5 items-center justify-center text-gray-700"
             >
               <MoreVerticalIcon className="size-5" />
-            </button>
-            {menuOpen && (
-              <>
-                <button
-                  type="button"
-                  aria-label="메뉴 닫기"
-                  onClick={() => setMenuOpen(false)}
-                  className="fixed inset-0 z-10"
-                />
-                <div className="absolute right-0 top-full z-20 mt-1 w-24 rounded-lg border border-gray-100 bg-white py-1 shadow-md">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false)
-                      onRemoveWish()
-                    }}
-                    className="w-full px-3 py-2 text-left text-caption1-m text-black"
-                  >
-                    위시 해제
-                  </button>
-                </div>
-              </>
-            )}
+            </span>
           </div>
+          <p className="text-b2-m leading-normal text-black">{product.name}</p>
         </div>
-        <p className="text-b2-m leading-normal text-black">{product.name}</p>
-      </div>
-      <p className="text-b2-m text-black">
-        <span className="font-semibold">{product.price.toLocaleString()}</span>원
-      </p>
+        <p className="text-b2-m text-black">
+          <span className="font-semibold">{product.price.toLocaleString()}</span>원
+        </p>
+      </button>
+
+      <WishEditModeSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        onSelectEdit={() => {
+          setSheetOpen(false)
+          navigate(`/wish/${product.id}/edit`)
+        }}
+        onSelectDelete={() => {
+          setSheetOpen(false)
+          onRemoveWish()
+        }}
+      />
     </div>
   )
 }
