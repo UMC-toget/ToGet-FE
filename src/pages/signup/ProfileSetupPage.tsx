@@ -9,24 +9,29 @@ import TermsBottomSheet from './TermsBottomSheet'
 import { useAuth } from '../../hooks/useAuth'
 import { replayShake } from '../../utils/shake'
 import { updateMyProfile } from '../../api/users'
+import { uploadImage } from '../../api/images'
 import { ApiError } from '../../lib/apiClient'
 
 const NICKNAME_MAX_LENGTH = 6
+const PROFILE_IMAGE_PREFIX = 'profiles'
 // 화면 전체 흔들림은 입력창 자체보다 훨씬 은은하게 느껴지도록 진폭을 크게 줄입니다.
 const PAGE_SHAKE_AMPLITUDE = '0.4px'
 
 /** 회원가입 마지막 단계: 프로필(닉네임/사진) 설정 페이지 */
 export default function ProfileSetupPage() {
   const [nickname, setNickname] = useState('')
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [termsOpen, setTermsOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const navigate = useNavigate()
   const { login } = useAuth()
   const pageRef = useRef<HTMLDivElement>(null)
 
-  // TODO: ProfileAvatar의 onSelect로 받은 프로필 사진 File 업로드 연동 (백엔드 업로드 API 없음)
   const updateProfileMutation = useMutation({
-    mutationFn: () => updateMyProfile({ nickname }),
+    mutationFn: async () => {
+      const profileImageUrl = photoFile ? await uploadImage(PROFILE_IMAGE_PREFIX, photoFile) : undefined
+      return updateMyProfile({ nickname, profileImageUrl })
+    },
     onSuccess: () => {
       login()
       setTermsOpen(false)
@@ -58,8 +63,7 @@ export default function ProfileSetupPage() {
       </div>
 
       <div className="mt-[69px] flex flex-col items-center gap-2">
-        {/* TODO: onSelect로 크롭된 프로필 사진 File을 받아 가입 요청에 포함해야 함 */}
-        <ProfileAvatar />
+        <ProfileAvatar onSelect={setPhotoFile} />
         <p className="text-h3-sb text-black">{nickname || '닉네임'}</p>
       </div>
 
