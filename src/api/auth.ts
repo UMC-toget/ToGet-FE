@@ -22,8 +22,3 @@ export function postSocialLogin(provider: SocialLoginProvider, identityToken: st
     apiClient.post(`/api/v1/auth/tokens/${provider}`, { identityToken }),
   )
 }
-
-/** 로그아웃. 서버에 저장된 refresh token을 무효화합니다 */
-export function logoutRequest() {
-  return unwrap<void>(apiClient.delete('/api/v1/auth/tokens/me'))
-}

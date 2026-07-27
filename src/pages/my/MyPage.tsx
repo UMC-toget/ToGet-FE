@@ -63,15 +63,7 @@ export default function MyPage() {
         className="flex w-full items-center justify-between px-[18px] py-6"
       >
         <div className="flex items-center gap-3">
-          {isLoggedIn && profile?.profileImageUrl ? (
-            <img
-              src={profile.profileImageUrl}
-              alt=""
-              className="size-[52px] rounded-full object-cover"
-            />
-          ) : (
-            <DefaultAvatar className="size-[52px]" />
-          )}
+          <DefaultAvatar className="size-[52px]" />
           <span className="flex flex-col items-start gap-1 text-left">
             <span className="text-b1-m text-black">
               {isLoggedIn ? (profile?.nickname ?? '회원') : '로그인 및 회원가입'}

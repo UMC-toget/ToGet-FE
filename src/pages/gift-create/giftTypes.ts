@@ -21,3 +21,9 @@ export const GIFT_CREATE_CARDS: GiftCreateCardInfo[] = [
     tags: ['함께 준비', '후보 고르기', '공유하기'],
   },
 ]
+
+// TODO: 실제 API 연동 전까지 작성 중인 선물 페이지 여부를 mock으로 처리
+export const MOCK_HAS_DRAFT: Record<GiftPageType, boolean> = {
+  my: false,
+  together: false,
+}
