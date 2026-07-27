@@ -11,11 +11,13 @@ import ProfileAvatar from '../signup/ProfileAvatar'
 import { useAuth } from '../../hooks/useAuth'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import { updateMyProfile, withdrawMe, deleteMyProfileImage } from '../../api/users'
+import { uploadImage } from '../../api/images'
 import { logoutRequest } from '../../api/auth'
 import { clearTokens, clearLastLoginProvider } from '../../lib/tokenStorage'
 import { replayShake } from '../../utils/shake'
 
 const NICKNAME_MAX_LENGTH = 6
+const PROFILE_IMAGE_PREFIX = 'profiles'
 // 화면 전체 흔들림은 입력창 자체보다 훨씬 은은하게 느껴지도록 진폭을 크게 줄입니다.
 const PAGE_SHAKE_AMPLITUDE = '0.4px'
 
@@ -36,6 +38,17 @@ export default function ProfileEditPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myProfile'] })
       setNickname('')
+    },
+    onError: () => replayShake(pageRef.current),
+  })
+
+  const uploadPhotoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const imageUrl = await uploadImage(PROFILE_IMAGE_PREFIX, file)
+      return updateMyProfile({ profileImageUrl: imageUrl })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myProfile'] })
     },
     onError: () => replayShake(pageRef.current),
   })
@@ -91,8 +104,7 @@ export default function ProfileEditPage() {
       <Header title="내 정보" />
 
       <div className="mt-6 flex flex-col items-center gap-2">
-        {/* TODO: 프로필 사진 업로드 API가 아직 명세에 없어 onSelect로 받은 File은 전송하지 않습니다 */}
-        <ProfileAvatar imageUrl={profile?.profileImageUrl} />
+        <ProfileAvatar imageUrl={profile?.profileImageUrl} onSelect={(file) => uploadPhotoMutation.mutate(file)} />
         <p className="text-h3-sb text-black">{profile?.nickname ?? '회원'}</p>
         {profile?.profileImageUrl && (
           <button
@@ -102,6 +114,9 @@ export default function ProfileEditPage() {
           >
             사진 삭제
           </button>
+        )}
+        {uploadPhotoMutation.isError && (
+          <p className="text-caption1-r text-pink-500">사진 변경에 실패했어요. 다시 시도해 주세요.</p>
         )}
       </div>
 

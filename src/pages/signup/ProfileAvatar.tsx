@@ -8,17 +8,17 @@ import plusIcon from '../../assets/icon-plus.svg'
 const ERROR_TOAST_DURATION_MS = 2500
 
 interface ProfileAvatarProps {
+  /** 이미 저장된 프로필 이미지 URL (있으면 초기 아바타로 표시) */
+  imageUrl?: string | null
   /** 크롭 완료 후 File 객체 전달 */
   onSelect?: (file: File) => void
-  /** 서버에 저장된 현재 프로필 사진 URL (있으면 기본 아바타 대신 표시) */
-  imageUrl?: string | null
 }
 
 /**
  * 프로필 사진 선택 아바타. 클릭하면 사진 등록 방식을 고르는 바텀시트가 열리고,
  * 사진을 고르면 원형 자르기 화면으로 이동합니다. 자르기를 완료하면 즉시 미리보기로 반영됩니다.
  */
-export default function ProfileAvatar({ onSelect, imageUrl }: ProfileAvatarProps) {
+export default function ProfileAvatar({ imageUrl, onSelect }: ProfileAvatarProps) {
   const libraryInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -54,6 +54,8 @@ export default function ProfileAvatar({ onSelect, imageUrl }: ProfileAvatarProps
     showError()
   }
 
+  const displayUrl = previewUrl ?? imageUrl
+
   return (
     <>
       <button
@@ -62,12 +64,8 @@ export default function ProfileAvatar({ onSelect, imageUrl }: ProfileAvatarProps
         onClick={() => setSheetOpen(true)}
         className="relative size-[90px]"
       >
-        {previewUrl || imageUrl ? (
-          <img
-            src={previewUrl ?? imageUrl!}
-            alt="프로필 사진 미리보기"
-            className="size-full rounded-full object-cover"
-          />
+        {displayUrl ? (
+          <img src={displayUrl} alt="프로필 사진 미리보기" className="size-full rounded-full object-cover" />
         ) : (
           <DefaultAvatar className="size-[90px]" />
         )}
