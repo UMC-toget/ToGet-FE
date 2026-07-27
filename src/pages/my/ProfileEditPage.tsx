@@ -7,6 +7,7 @@ import Button from '../../components/common/Button'
 import MenuRow from '../../components/common/MenuRow'
 import BottomNav from '../../components/common/BottomNav'
 import ConfirmModal from '../../components/common/ConfirmModal'
+import Toast from '../../components/common/Toast'
 import ProfileAvatar from '../signup/ProfileAvatar'
 import { useAuth } from '../../hooks/useAuth'
 import { useMyProfile } from '../../hooks/useMyProfile'
@@ -20,6 +21,7 @@ const NICKNAME_MAX_LENGTH = 6
 const PROFILE_IMAGE_PREFIX = 'profiles'
 // 화면 전체 흔들림은 입력창 자체보다 훨씬 은은하게 느껴지도록 진폭을 크게 줄입니다.
 const PAGE_SHAKE_AMPLITUDE = '0.4px'
+const PHOTO_TOAST_DURATION_MS = 2000
 
 /** 내 정보 페이지: 닉네임/프로필 사진 변경, 로그아웃/계정 삭제 */
 export default function ProfileEditPage() {
@@ -34,20 +36,50 @@ export default function ProfileEditPage() {
   const pageRef = useRef<HTMLDivElement>(null)
   const queryClient = useQueryClient()
 
+  const [photoToastOpen, setPhotoToastOpen] = useState(false)
+  // 사진 저장 직전의 profileImageUrl — "실행취소" 시 되돌릴 대상
+  const previousImageUrlRef = useRef<string | null>(null)
+  const photoToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const showPhotoToast = () => {
+    if (photoToastTimerRef.current) clearTimeout(photoToastTimerRef.current)
+    setPhotoToastOpen(true)
+    photoToastTimerRef.current = setTimeout(() => setPhotoToastOpen(false), PHOTO_TOAST_DURATION_MS)
+  }
+
   const updateProfileMutation = useMutation({
     mutationFn: async () => {
+      const photoChanged = photoFile !== null
       const profileImageUrl = photoFile ? await uploadImage(PROFILE_IMAGE_PREFIX, photoFile) : undefined
-      return updateMyProfile({
+      await updateMyProfile({
         nickname: nickname.length > 0 ? nickname : undefined,
         profileImageUrl,
       })
+      return { photoChanged }
     },
-    onSuccess: () => {
+    onSuccess: ({ photoChanged }) => {
       queryClient.invalidateQueries({ queryKey: ['myProfile'] })
       setNickname('')
       setPhotoFile(null)
+      if (photoChanged) showPhotoToast()
     },
     onError: () => replayShake(pageRef.current),
+  })
+
+  const undoPhotoMutation = useMutation({
+    mutationFn: async () => {
+      const previousImageUrl = previousImageUrlRef.current
+      if (previousImageUrl) {
+        await updateMyProfile({ profileImageUrl: previousImageUrl })
+      } else {
+        await deleteMyProfileImage()
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myProfile'] })
+      if (photoToastTimerRef.current) clearTimeout(photoToastTimerRef.current)
+      setPhotoToastOpen(false)
+    },
   })
 
   const deletePhotoMutation = useMutation({
@@ -83,6 +115,7 @@ export default function ProfileEditPage() {
   const hasChanges = nickname.length > 0 || photoFile !== null
 
   const handleSave = () => {
+    previousImageUrlRef.current = profile?.profileImageUrl ?? null
     updateProfileMutation.mutate()
   }
 
@@ -166,6 +199,13 @@ export default function ProfileEditPage() {
       />
 
       <BottomNav active="my" />
+
+      <Toast
+        open={photoToastOpen}
+        message="프로필 사진 수정이 완료 되었습니다"
+        actionLabel="실행취소"
+        onAction={() => undoPhotoMutation.mutate()}
+      />
     </div>
   )
 }
