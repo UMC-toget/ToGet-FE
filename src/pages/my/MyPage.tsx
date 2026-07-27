@@ -11,11 +11,12 @@ import { useMyProfile } from '../../hooks/useMyProfile'
 import { OAUTH_PROVIDER_LABELS } from '../../api/users'
 
 const TOAST_DURATION_MS = 2500
+const IN_DEVELOPMENT_MESSAGE = '아직 개발 중인 기능이에요'
 
 const MENU_SECTIONS: { title: string; items: { label: string; path?: string }[] }[] = [
   {
     title: '선물 페이지',
-    items: [{ label: '내 선물 페이지', path: '/funding/create' }, { label: '함께 선물 페이지' }],
+    items: [{ label: '내 선물 페이지' }, { label: '함께 선물 페이지' }],
   },
   { title: '계좌', items: [{ label: '등록된 나의 계좌', path: '/my/accounts' }] },
   {
@@ -46,6 +47,14 @@ export default function MyPage() {
   }, [toastMessage, location.pathname, navigate])
 
   const sections = isLoggedIn ? MENU_SECTIONS : GUEST_MENU_SECTIONS
+
+  const handleMenuClick = (path?: string) => {
+    if (path) {
+      navigate(path)
+      return
+    }
+    setToastMessage(IN_DEVELOPMENT_MESSAGE)
+  }
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-32">
@@ -86,11 +95,7 @@ export default function MyPage() {
             <h2 className="text-h3-sb text-black">{section.title}</h2>
             <div className="flex flex-col gap-3">
               {section.items.map((item) => (
-                <MenuRow
-                  key={item.label}
-                  label={item.label}
-                  onClick={item.path ? () => navigate(item.path!) : undefined}
-                />
+                <MenuRow key={item.label} label={item.label} onClick={() => handleMenuClick(item.path)} />
               ))}
             </div>
           </section>

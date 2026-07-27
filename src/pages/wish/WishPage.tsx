@@ -4,7 +4,7 @@ import Toast from '../../components/common/Toast'
 import CaretDownIcon from '../../components/icons/CaretDownIcon'
 import SearchIcon from '../../components/icons/SearchIcon'
 import WishProductCard from './WishProductCard'
-import { MOCK_PRODUCTS } from '../home/products'
+import { useProducts } from '../home/useProducts'
 import { useWishStore } from '../../store/wishStore'
 import type { WishType } from '../../store/wishStore'
 
@@ -19,6 +19,7 @@ const TABS: { id: WishType | 'all'; label: string }[] = [
 /** 위시 페이지: 위시 등록한 상품을 유형별로 모아 봅니다 (피그마 기준) */
 export default function WishPage() {
   const { wishes, removeWish } = useWishStore()
+  const { products } = useProducts()
   const [tab, setTab] = useState<WishType | 'all'>('all')
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
@@ -28,7 +29,7 @@ export default function WishPage() {
     setTimeout(() => setToastMessage(null), TOAST_DURATION_MS)
   }
 
-  const wishedProducts = MOCK_PRODUCTS.filter(
+  const wishedProducts = products.filter(
     (product) => product.id in wishes && (tab === 'all' || wishes[product.id] === tab),
   )
 

@@ -38,7 +38,18 @@ export const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+/**
+ * 소셜 로그인(`/api/v1/auth/tokens/{provider}`)은 아직 세션이 없는 상태에서 보내는 요청이라
+ * Authorization 헤더 주입도, 401 응답 시 "토큰 재발급 후 재시도"도 대상이 아닙니다. 로컬에 이전
+ * 세션의 refresh token이 남아있으면 로그인 요청의 401이 엉뚱하게 재발급 시도로 이어지고, 그
+ * 재발급 실패(만료된 refresh token)가 진짜 원인인 것처럼 로그인 실패를 가리는 문제가 있었습니다.
+ */
+function isSocialLoginRequest(url?: string): boolean {
+  return /^\/api\/v1\/auth\/tokens\/(kakao|google)$/.test(url ?? '')
+}
+
 apiClient.interceptors.request.use((config) => {
+  if (isSocialLoginRequest(config.url)) return config
   const accessToken = getAccessToken()
   if (accessToken) config.headers.set('Authorization', `Bearer ${accessToken}`)
   return config
@@ -67,7 +78,13 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const original = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined
 
-    if (error.response?.status === 401 && original && !original._retry && getRefreshToken()) {
+    if (
+      error.response?.status === 401 &&
+      original &&
+      !original._retry &&
+      !isSocialLoginRequest(original.url) &&
+      getRefreshToken()
+    ) {
       original._retry = true
       try {
         refreshPromise ??= refreshAccessToken().finally(() => {
