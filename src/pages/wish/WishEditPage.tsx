@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import Header from '../../components/common/Header'
 import TextField from '../../components/common/TextField'
 import Button from '../../components/common/Button'
 import CloseIcon from '../../components/icons/CloseIcon'
-import { MOCK_PRODUCTS } from '../home/products'
+import { getProduct } from '../../api/products'
+import type { ApiProduct } from '../../api/products'
 import { useWishStore } from '../../store/wishStore'
 import type { WishType } from '../../store/wishStore'
 
@@ -15,22 +17,22 @@ const WISH_TYPE_OPTIONS: { type: WishType; label: string }[] = [
 
 const NAME_MAX_LENGTH = 20
 
-/**
- * 위시 수정하기 (피그마 기준). 지금은 API 연동 전이라 mock 상품 데이터로 초기값을 채우고,
- * "수정 완료"를 눌러도 실제로 저장되지는 않습니다 (TODO: API 연동 후 실제 수정 요청으로 교체).
- */
-export default function WishEditPage() {
+interface WishEditFormProps {
+  productId: number
+  product?: ApiProduct
+}
+
+/** 위시 수정 폼. product가 로딩된 뒤에만 마운트되어, 초기값이 정확히 채워집니다 */
+function WishEditForm({ productId, product }: WishEditFormProps) {
   const navigate = useNavigate()
-  const { id } = useParams()
-  const product = MOCK_PRODUCTS.find((p) => p.id === Number(id))
   // TODO: 위시 등록 자체가 아직 API 연동 전이라(useWishStore 참고) 여기서 읽어오는 위시 유형도 로컬 상태 기준입니다.
   const { wishes } = useWishStore()
 
-  const initialWishType = wishes[Number(id)] ?? 'receive'
+  const initialWishType = wishes[productId] ?? 'receive'
   const initialName = product?.name ?? ''
   const initialPrice = product ? String(product.price) : ''
-  const initialPurchaseUrl = ''
-  const initialImage = product?.image ?? null
+  const initialPurchaseUrl = product?.purchaseUrl ?? ''
+  const initialImage = product?.imageUrl ?? null
 
   const [wishType, setWishType] = useState<WishType>(initialWishType)
   const [name, setName] = useState(initialName)
@@ -141,4 +143,19 @@ export default function WishEditPage() {
       </div>
     </div>
   )
+}
+
+/** 위시 수정하기 (피그마 기준). "수정 완료"를 눌러도 아직 실제로 저장되지는 않습니다 (TODO: 위시 수정 API 연동). */
+export default function WishEditPage() {
+  const { id } = useParams()
+  const productId = Number(id)
+  const { data: product, isLoading } = useQuery({
+    queryKey: ['product', productId],
+    queryFn: () => getProduct(productId),
+    enabled: Number.isFinite(productId),
+  })
+
+  if (isLoading) return null
+
+  return <WishEditForm productId={productId} product={product} />
 }
