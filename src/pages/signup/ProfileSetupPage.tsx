@@ -9,7 +9,7 @@ import TermsBottomSheet from './TermsBottomSheet'
 import { useAuth } from '../../hooks/useAuth'
 import { replayShake } from '../../utils/shake'
 import { updateMyProfile } from '../../api/users'
-import { uploadImage } from '../../api/images'
+import { uploadImage } from '../../utils/uploadImage'
 import { ApiError } from '../../lib/apiClient'
 
 const NICKNAME_MAX_LENGTH = 6
