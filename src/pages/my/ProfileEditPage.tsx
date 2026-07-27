@@ -21,6 +21,9 @@ const PROFILE_IMAGE_PREFIX = 'profiles'
 // 화면 전체 흔들림은 입력창 자체보다 훨씬 은은하게 느껴지도록 진폭을 크게 줄입니다.
 const PAGE_SHAKE_AMPLITUDE = '0.4px'
 
+/** uploadImage() 실패를 updateMyProfile() 실패와 구분해 정확한 에러 메시지를 보여주기 위한 태그용 에러 */
+class ProfileImageUploadError extends Error {}
+
 /** 내 정보 페이지: 닉네임/프로필 사진 변경, 로그아웃/계정 삭제 */
 export default function ProfileEditPage() {
   const { data: profile } = useMyProfile()
@@ -34,9 +37,18 @@ export default function ProfileEditPage() {
   const pageRef = useRef<HTMLDivElement>(null)
   const queryClient = useQueryClient()
 
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null)
+
   const updateProfileMutation = useMutation({
     mutationFn: async () => {
-      const profileImageUrl = photoFile ? await uploadImage(PROFILE_IMAGE_PREFIX, photoFile) : undefined
+      let profileImageUrl: string | undefined
+      if (photoFile) {
+        try {
+          profileImageUrl = await uploadImage(PROFILE_IMAGE_PREFIX, photoFile)
+        } catch {
+          throw new ProfileImageUploadError()
+        }
+      }
       return updateMyProfile({
         nickname: nickname.length > 0 ? nickname : undefined,
         profileImageUrl,
@@ -46,8 +58,16 @@ export default function ProfileEditPage() {
       queryClient.invalidateQueries({ queryKey: ['myProfile'] })
       setNickname('')
       setPhotoFile(null)
+      setSaveErrorMessage(null)
     },
-    onError: () => replayShake(pageRef.current),
+    onError: (error) => {
+      setSaveErrorMessage(
+        error instanceof ProfileImageUploadError
+          ? '프로필 사진 업로드에 실패했어요. 다시 시도해 주세요.'
+          : '프로필 저장에 실패했어요. 다시 시도해 주세요.',
+      )
+      replayShake(pageRef.current)
+    },
   })
 
   const deletePhotoMutation = useMutation({
@@ -128,9 +148,7 @@ export default function ProfileEditPage() {
         <Button disabled={!hasChanges || updateProfileMutation.isPending} onClick={handleSave}>
           저장
         </Button>
-        {updateProfileMutation.isError && (
-          <p className="text-caption1-r text-pink-500">프로필 저장에 실패했어요. 다시 시도해 주세요.</p>
-        )}
+        {saveErrorMessage && <p className="text-caption1-r text-pink-500">{saveErrorMessage}</p>}
       </div>
 
       <div className="mt-7 h-3 w-full shrink-0 bg-background" />
