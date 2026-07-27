@@ -1,13 +1,11 @@
 import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { AuthContext } from './auth'
+import { getAccessToken } from '../lib/tokenStorage'
 
-/**
- * 로그인 상태 관리 Provider
- * TODO: 인증 API 연동 시 토큰 저장/갱신 로직으로 교체 (초기값도 false로 변경)
- */
+/** 로그인 상태 관리 Provider. 초기값은 로컬에 저장된 access token 존재 여부로 판단합니다 */
 export default function AuthProvider({ children }: { children: ReactNode }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(true)
+  const [isLoggedIn, setIsLoggedIn] = useState(() => getAccessToken() !== null)
 
   const value = useMemo(
     () => ({
