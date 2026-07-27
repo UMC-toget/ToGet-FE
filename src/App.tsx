@@ -62,9 +62,9 @@ function App() {
       <Route path="/group/:id/participants" element={<ParticipantsPage />} />
       <Route path="/group/:id/letter" element={<LetterPage />} />
       <Route path="/group/:id/settle" element={<SettlePage />} />
-      <Route path="/gift/review/write/:type" element={<ReviewWritePage />} />
+      <Route path="/gift/review/write/:type/:fundingId?" element={<ReviewWritePage />} />
       <Route path="/gift/review/complete/:type" element={<ReviewCompletePage />} />
-      <Route path="/gift/review/:id" element={<GiftReviewDetailPage />} />
+      <Route path="/gift/review/:id/:fundingId?" element={<GiftReviewDetailPage />} />
     </Routes>
   )
 }
