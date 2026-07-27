@@ -4,9 +4,10 @@ import BottomSheet from '../../components/common/BottomSheet'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import bannerCat from '../../assets/banner-cat.svg'
 import togetherCat from '../../assets/together-cat.svg'
-import { GIFT_CREATE_CARDS, MOCK_HAS_DRAFT } from './giftTypes'
+import { GIFT_CREATE_CARDS } from './giftTypes'
 import type { GiftPageType } from './giftTypes'
 import { useIndividualDraft } from './useIndividualDraft'
+import { useTogetherDraft } from './useTogetherDraft'
 
 const CARD_ICONS: Record<GiftPageType, string> = {
   my: bannerCat,
@@ -27,6 +28,8 @@ export default function GiftCreateSheet({ open, onClose }: GiftCreateSheetProps)
   const [draftModalType, setDraftModalType] = useState<GiftPageType | null>(null)
   // '내 선물 페이지'(individual)는 실제 임시저장 API로 draft 여부를 확인
   const individualDraftQuery = useIndividualDraft()
+  // '함께 선물 페이지'(together)도 실제 임시저장 API로 draft 여부를 확인
+  const togetherDraftQuery = useTogetherDraft()
 
   const handleSelectCard = (type: GiftPageType) => {
     if (type === 'my') {
@@ -40,7 +43,8 @@ export default function GiftCreateSheet({ open, onClose }: GiftCreateSheetProps)
       return
     }
 
-    if (MOCK_HAS_DRAFT[type]) {
+    if (togetherDraftQuery.isLoading) return
+    if (togetherDraftQuery.data) {
       setDraftModalType(type)
       return
     }
@@ -78,7 +82,9 @@ export default function GiftCreateSheet({ open, onClose }: GiftCreateSheetProps)
 
           <div className="flex flex-col gap-4">
             {GIFT_CREATE_CARDS.map((card) => {
-              const disabled = card.type === 'my' && individualDraftQuery.isLoading
+              const disabled =
+                (card.type === 'my' && individualDraftQuery.isLoading) ||
+                (card.type === 'together' && togetherDraftQuery.isLoading)
               return (
                 <button
                   key={card.type}
