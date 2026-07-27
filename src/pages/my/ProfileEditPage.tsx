@@ -25,6 +25,7 @@ const PAGE_SHAKE_AMPLITUDE = '0.4px'
 export default function ProfileEditPage() {
   const { data: profile } = useMyProfile()
   const [nickname, setNickname] = useState('')
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [logoutModalOpen, setLogoutModalOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deletePhotoModalOpen, setDeletePhotoModalOpen] = useState(false)
@@ -34,21 +35,17 @@ export default function ProfileEditPage() {
   const queryClient = useQueryClient()
 
   const updateProfileMutation = useMutation({
-    mutationFn: updateMyProfile,
+    mutationFn: async () => {
+      const profileImageUrl = photoFile ? await uploadImage(PROFILE_IMAGE_PREFIX, photoFile) : undefined
+      return updateMyProfile({
+        nickname: nickname.length > 0 ? nickname : undefined,
+        profileImageUrl,
+      })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myProfile'] })
       setNickname('')
-    },
-    onError: () => replayShake(pageRef.current),
-  })
-
-  const uploadPhotoMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const imageUrl = await uploadImage(PROFILE_IMAGE_PREFIX, file)
-      return updateMyProfile({ profileImageUrl: imageUrl })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myProfile'] })
+      setPhotoFile(null)
     },
     onError: () => replayShake(pageRef.current),
   })
@@ -83,8 +80,10 @@ export default function ProfileEditPage() {
     onError: () => setDeleteModalOpen(false),
   })
 
+  const hasChanges = nickname.length > 0 || photoFile !== null
+
   const handleSave = () => {
-    updateProfileMutation.mutate({ nickname })
+    updateProfileMutation.mutate()
   }
 
   const handleLogout = () => {
@@ -104,7 +103,7 @@ export default function ProfileEditPage() {
       <Header title="내 정보" />
 
       <div className="mt-6 flex flex-col items-center gap-2">
-        <ProfileAvatar imageUrl={profile?.profileImageUrl} onSelect={(file) => uploadPhotoMutation.mutate(file)} />
+        <ProfileAvatar imageUrl={profile?.profileImageUrl} onSelect={setPhotoFile} />
         <p className="text-h3-sb text-black">{profile?.nickname ?? '회원'}</p>
         {profile?.profileImageUrl && (
           <button
@@ -114,9 +113,6 @@ export default function ProfileEditPage() {
           >
             사진 삭제
           </button>
-        )}
-        {uploadPhotoMutation.isError && (
-          <p className="text-caption1-r text-pink-500">사진 변경에 실패했어요. 다시 시도해 주세요.</p>
         )}
       </div>
 
@@ -129,11 +125,11 @@ export default function ProfileEditPage() {
           onChange={(e) => setNickname(e.target.value)}
           onOverflow={() => replayShake(pageRef.current)}
         />
-        <Button disabled={nickname.length === 0 || updateProfileMutation.isPending} onClick={handleSave}>
+        <Button disabled={!hasChanges || updateProfileMutation.isPending} onClick={handleSave}>
           저장
         </Button>
         {updateProfileMutation.isError && (
-          <p className="text-caption1-r text-pink-500">닉네임 변경에 실패했어요. 다시 시도해 주세요.</p>
+          <p className="text-caption1-r text-pink-500">프로필 저장에 실패했어요. 다시 시도해 주세요.</p>
         )}
       </div>
 
