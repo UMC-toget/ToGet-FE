@@ -7,6 +7,7 @@ import TextField from '../../components/common/TextField'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import PlusIcon from '../../components/icons/PlusIcon'
 import CloseIcon from '../../components/icons/CloseIcon'
+import Toast from '../../components/common/Toast'
 import { postGiftCandidate } from '../../api/groupFundings'
 
 const MEMO_MAX_LENGTH = 60
@@ -30,6 +31,7 @@ export default function CandidateNewPage() {
   const [inputName, setInputName] = useState('')
   const [inputPrice, setInputPrice] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [errorToast, setErrorToast] = useState<string | null>(null)
 
   const hasChanges = selectedGift !== null || memo.trim().length > 0
   const canSubmit = selectedGift !== null && memo.trim().length > 0
@@ -56,6 +58,11 @@ export default function CandidateNewPage() {
     setShowInputSheet(false)
   }
 
+  const showError = (msg: string) => {
+    setErrorToast(msg)
+    setTimeout(() => setErrorToast(null), 3000)
+  }
+
   const handleSubmit = async () => {
     if (!selectedGift || submitting) return
     setSubmitting(true)
@@ -66,8 +73,12 @@ export default function CandidateNewPage() {
         note: memo.trim(),
       })
       navigate(`/group/${id}/candidates`)
-    } catch (e) {
+    } catch (e: unknown) {
       console.error('후보 등록 실패', e)
+      const status = (e as { response?: { status?: number } })?.response?.status
+      if (status === 401) showError('로그인이 필요해요')
+      else if (status === 403) showError('후보 등록은 공동관리자 이상만 가능해요')
+      else showError('등록에 실패했어요. 다시 시도해주세요')
     } finally {
       setSubmitting(false)
     }
@@ -214,6 +225,8 @@ export default function CandidateNewPage() {
         onCancel={() => setShowLeaveModal(false)}
         onConfirm={() => navigate(-1)}
       />
+
+      <Toast open={errorToast !== null} message={errorToast ?? ''} />
     </div>
   )
 }

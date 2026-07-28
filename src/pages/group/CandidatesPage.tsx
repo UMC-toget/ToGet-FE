@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
-import { getGiftCandidates, toggleGiftVote } from '../../api/groupFundings'
-import type { GiftCandidateItem } from '../../api/groupFundings'
+import PlusIcon from '../../components/icons/PlusIcon'
+import { getGiftCandidates, getTogetherGiftDashboard, toggleGiftVote } from '../../api/groupFundings'
+import type { GiftCandidateItem, MemberSummary } from '../../api/groupFundings'
+import { useMyProfile } from '../../hooks/useMyProfile'
 
 const MAX_VOTES = 3
 
@@ -14,22 +16,36 @@ const RANK_BADGE: Record<number, string> = {
 
 export default function CandidatesPage() {
   const { id } = useParams()
+  const navigate = useNavigate()
+  const { data: profile } = useMyProfile()
 
   const [candidates, setCandidates] = useState<GiftCandidateItem[]>([])
   const [votedIds, setVotedIds] = useState<Set<number>>(new Set())
   const [togglingId, setTogglingId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
+  const [members, setMembers] = useState<MemberSummary[]>([])
+  const [isAdmin, setIsAdmin] = useState(false)
 
+  // 데이터 페치: id 바뀔 때만
   useEffect(() => {
     if (!id) return
-    getGiftCandidates(id)
-      .then(data => {
-        setCandidates(data.candidates)
-        setVotedIds(new Set(data.votedGiftIds))
-      })
-      .catch(console.error)
+    Promise.all([
+      getGiftCandidates(id),
+      getTogetherGiftDashboard(id),
+    ]).then(([candidatesData, dashboardData]) => {
+      setCandidates(candidatesData.candidates)
+      setVotedIds(new Set(candidatesData.votedGiftIds))
+      setMembers(dashboardData.members)
+    }).catch(console.error)
       .finally(() => setLoading(false))
   }, [id])
+
+  // 역할 계산: profile 또는 members 바뀔 때
+  useEffect(() => {
+    if (!profile || members.length === 0) return
+    const myRole = members.find(m => m.userId === profile.userId)?.role
+    setIsAdmin(myRole === 'HOST' || myRole === 'CO_HOST')
+  }, [profile, members])
 
   const voteCount = votedIds.size
   const atMax = voteCount >= MAX_VOTES
@@ -81,6 +97,17 @@ export default function CandidatesPage() {
     }
   }
 
+  const adminRight = isAdmin ? (
+    <button
+      type="button"
+      onClick={() => navigate(`/group/${id}/candidates/new`)}
+      className="flex items-center gap-1 text-b2-m text-pink-500"
+    >
+      <PlusIcon className="size-4" />
+      후보 등록
+    </button>
+  ) : undefined
+
   if (loading) {
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-8">
@@ -94,7 +121,7 @@ export default function CandidatesPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-8">
-      <Header title="후보 선택" />
+      <Header title="후보 선택" right={adminRight} />
 
       {/* 투표 현황 */}
       <div className="flex items-center justify-between border-b border-gray-100 px-[18px] py-3">
@@ -156,8 +183,7 @@ function CandidateListCard({ candidate, rank, isVoted, disabled, toggling, onVot
               <span className="text-h3-m text-black">{candidate.giftPrice.toLocaleString()}원</span>
               <button
                 type="button"
-                className="rounded px-[10px] py-[5px] text-caption2-m text-black"
-                style={{ background: '#F5F4F5' }}
+                className="rounded bg-background px-[10px] py-[5px] text-caption2-m text-black"
               >
                 구매링크
               </button>
