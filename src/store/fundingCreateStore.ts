@@ -103,7 +103,7 @@ const initialState = {
   showAmount: true,
   showParticipantCount: true,
   showParticipantNames: true,
-  showMessages: true,
+  showMessages: false,
   accounts: [],
   selectedAccountId: null,
   inviteTitle: '',

@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, Search, Trash2, ImagePlus, Gift } from 'luci
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import { MOCK_WISH_ITEMS } from '../../utils/wishData';
 import type { WishCategory } from '../../utils/wishData';
-import ImageCropper from './ImageCropper';
+import PhotoActionSheet from './PhotoActionSheet';
 
 interface Props {
   onNext: () => void;
@@ -28,7 +28,7 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
   // 새 선물 등록 폼
   const [form, setForm] = useState<AddFormState>(emptyForm);
   const [formImage, setFormImage] = useState<File | null>(null);
-  const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
+  const [showPhotoSheet, setShowPhotoSheet] = useState(false);
   const [nameError, setNameError] = useState(false);
   const [priceError, setPriceError] = useState(false);
 
@@ -165,18 +165,13 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
                 </button>
               </div>
             ) : (
-              <label className="w-24 h-24 flex flex-col items-center justify-center gap-1 bg-gray-50 rounded-xl text-gray-300 cursor-pointer border border-gray-100">
+              <button
+                type="button"
+                onClick={() => setShowPhotoSheet(true)}
+                className="w-24 h-24 flex flex-col items-center justify-center gap-1 bg-gray-50 rounded-xl text-gray-300 border border-gray-100"
+              >
                 <ImagePlus size={20} />
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) setPendingCropFile(file);
-                  }}
-                />
-              </label>
+              </button>
             )}
           </div>
         </div>
@@ -189,14 +184,13 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
           등록하기
         </button>
 
-        {pendingCropFile && (
-          <ImageCropper
-            file={pendingCropFile}
+        {showPhotoSheet && (
+          <PhotoActionSheet
             aspectRatio={1}
-            onCancel={() => setPendingCropFile(null)}
-            onConfirm={(croppedFile) => {
-              setFormImage(croppedFile);
-              setPendingCropFile(null);
+            onClose={() => setShowPhotoSheet(false)}
+            onSelect={(file) => {
+              setFormImage(file);
+              setShowPhotoSheet(false);
             }}
           />
         )}
