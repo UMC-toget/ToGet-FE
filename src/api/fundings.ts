@@ -207,3 +207,18 @@ export function dashboardToFundingDetail(
     messages,
   }
 }
+
+// ─── 계좌 조회 ─────────────────────────────────────────────────
+
+export interface FundingAccount {
+  bankName: BankName
+  account: string
+  accountOwner: string
+}
+
+/** E03 계좌 안내 (GET /api/v1/fundings/{fundingId}/account) */
+export function getFundingAccount(fundingId: number | string) {
+  return unwrap<FundingAccount>(
+    apiClient.get(`/api/v1/fundings/${fundingId}/account`),
+  )
+}

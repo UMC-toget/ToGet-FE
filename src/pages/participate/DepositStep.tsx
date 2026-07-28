@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { LetterColor } from '../../components/common/letterPalette'
 import LetterCard from '../../components/common/LetterCard'
-import { getFundingAccount } from '../../api/groupFundings'
+import { getFundingAccount } from '../../api/fundings'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
 
 const MOCK_ACCOUNT = {
