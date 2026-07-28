@@ -1,18 +1,55 @@
-import { useState } from 'react'
-import type { FundingMessage } from '../../types/funding'
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import type { FundingDetail, FundingMessage } from '../../types/funding'
 import Header from '../../components/common/Header'
 import { useMockFunding } from './useMockFunding'
 import { canOpenMessage, canViewMessages, getMessageDisplayName } from './messageUtils'
 import EnvelopeButton from './EnvelopeButton'
 import LetterModal from './LetterModal'
+import { getMyGiftDashboard, dashboardToFundingDetail, getSharedFunding, sharedFundingToFundingDetail } from '../../api/fundings'
+import { getContributions } from '../../api/contributions'
 
 /**
  * E02) 축하메세지 더보기 (/funding/:id/messages)
  * 봉투 전체 그리드. 봉투를 탭하면 편지 팝업이 열림.
  */
 export default function MessagesPage() {
+  const { id } = useParams()
   const [openedMessage, setOpenedMessage] = useState<FundingMessage | null>(null)
-  const funding = useMockFunding()
+  const mockFunding = useMockFunding()
+  const [realFunding, setRealFunding] = useState<FundingDetail | null>(null)
+
+  useEffect(() => {
+    if (!id) return
+    Promise.all([
+      getMyGiftDashboard(id).catch(() => null),
+      getContributions(id).catch(() => null),
+    ]).then(async ([dashboard, contribs]) => {
+      const messages: FundingMessage[] = (contribs?.contributions ?? []).map((c) => ({
+        id: String(c.contributionId),
+        senderName: c.isAnonymous ? null : c.senderName,
+        content: c.content,
+        isPrivate: c.isPrivate,
+        isAnonymous: c.isAnonymous,
+      }))
+      if (dashboard) {
+        setRealFunding(dashboardToFundingDetail(dashboard, messages))
+        return
+      }
+      try {
+        const shared = await getSharedFunding(id)
+        setRealFunding(sharedFundingToFundingDetail(shared, messages))
+      } catch {
+        // shared-fundings 실패 시 messages가 있으면 mock visibility로 fallback
+        if (messages.length > 0) {
+          setRealFunding({ ...mockFunding, messages })
+        }
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
+
+  const funding = realFunding ?? mockFunding
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import type { FundingMessage } from '../../types/funding'
+import type { FundingDetail, FundingMessage } from '../../types/funding'
 import { formatDateKorean, getDdayLabel } from '../../utils/formatDate'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
@@ -15,6 +15,8 @@ import ProgressCard from './ProgressCard'
 import MessageSection from './MessageSection'
 import LetterModal from './LetterModal'
 import ParticipantList from './ParticipantList'
+import { getMyGiftDashboard, dashboardToFundingDetail, updateFundingStatus, getSharedFunding, sharedFundingToFundingDetail } from '../../api/fundings'
+import { getContributions, getContribution } from '../../api/contributions'
 
 type OwnerTab = 'mine' | 'participants'
 
@@ -32,8 +34,45 @@ export default function FundingDetailPage() {
   const [openedMessage, setOpenedMessage] = useState<FundingMessage | null>(null)
   const [showEndConfirm, setShowEndConfirm] = useState(false)
   const [activeTab, setActiveTab] = useState<OwnerTab>('mine')
-  const funding = useMockFunding()
+  const mockFunding = useMockFunding()
+  const [realFunding, setRealFunding] = useState<FundingDetail | null>(null)
+  const [thumbnailApiUrl, setThumbnailApiUrl] = useState<string | null>(null)
   const store = useFundingCreateStore()
+
+  // 개설자: my-gift 대시보드, 비개설자: shared-fundings + 메세지는 공통으로 contributions 사용
+  useEffect(() => {
+    if (!id) return
+    Promise.all([
+      getMyGiftDashboard(id).catch(() => null),
+      getContributions(id).catch(() => null),
+    ]).then(async ([dashboard, contribs]) => {
+      const messages: FundingMessage[] = (contribs?.contributions ?? []).map((c) => ({
+        id: String(c.contributionId),
+        senderName: c.isAnonymous ? null : c.senderName,
+        content: c.content,
+        isPrivate: c.isPrivate,
+        isAnonymous: c.isAnonymous,
+      }))
+
+      if (dashboard) {
+        setRealFunding(dashboardToFundingDetail(dashboard, messages))
+        setThumbnailApiUrl(dashboard.thumbnailImageUrl ?? null)
+        return
+      }
+
+      // 비개설자(또는 비로그인): shared-fundings 조회
+      try {
+        const shared = await getSharedFunding(id)
+        setRealFunding(sharedFundingToFundingDetail(shared, messages))
+        setThumbnailApiUrl(shared.thumbnailImageUrl ?? null)
+      } catch {
+        // shared-fundings도 실패하면 mock 유지
+      }
+    })
+  }, [id])
+
+  // 실제 API 데이터 우선, 없으면 mock (비개설자 또는 API 실패 시)
+  const funding = realFunding ?? mockFunding
   const { editFundingId, title: storeTitle, commitAsFunding, loadForEdit, revertToOriginal } = store
 
   // 개설자 뷰인데 이 fundingId가 아직 스토어에 반영돼 있지 않다면:
@@ -49,8 +88,12 @@ export default function FundingDetailPage() {
     }
   }, [funding.isOwner, id, editFundingId, storeTitle, commitAsFunding, loadForEdit])
 
-  const displayFunding = funding.isOwner ? buildFundingFromStore(store, funding) : funding
-  const thumbnailSrc = funding.isOwner ? getThumbnailSrc(store.thumbnailImage) : null
+  // 실제 API 데이터가 있으면 그대로 사용 (API = source of truth)
+  // mock 모드면 스토어 오버레이 유지 (편집 데모 플로우용)
+  const displayFunding = realFunding ?? (mockFunding.isOwner ? buildFundingFromStore(store, mockFunding) : mockFunding)
+  const thumbnailSrc = realFunding
+    ? thumbnailApiUrl
+    : mockFunding.isOwner ? getThumbnailSrc(store.thumbnailImage) : null
 
   // 수정 화면(FundingEditSelectPage)에서 navigate state로 전달한 토스트를 일정 시간 표시
   const [toastState, setToastState] = useState<{ message: string; undo?: boolean } | null>(
@@ -72,11 +115,32 @@ export default function FundingDetailPage() {
     setToastState(null)
   }
 
-  const handleEndFunding = () => {
-    // TODO: 펀딩 마감 처리 정책(BE) 확정 후 실제 종료 API 연결
+  const handleEndFunding = async () => {
+    if (!id) return
+    try {
+      await updateFundingStatus(id, 'ENDED')
+      setRealFunding(prev => prev ? { ...prev, status: 'ENDED' } : null)
+    } catch (e) {
+      console.error('마감 처리 실패', e)
+    }
     setShowEndConfirm(false)
   }
 
+  const handleOpenMessage = async (message: FundingMessage) => {
+    if (message.content !== null) {
+      setOpenedMessage(message)
+      return
+    }
+    if (!id) return
+    try {
+      const detail = await getContribution(id, message.id)
+      setOpenedMessage({ ...message, content: detail.content })
+    } catch {
+      setOpenedMessage(message)
+    }
+  }
+
+  const isEnded = displayFunding.status === 'ENDED'
   const showBottomBar = !funding.isOwner || activeTab === 'mine'
   const showParticipants = funding.isOwner && activeTab === 'participants'
 
@@ -110,7 +174,7 @@ export default function FundingDetailPage() {
       ) : (
         <>
           {/* D 섹션: 대표 이미지가 있으면 실제 이미지, 없으면 placeholder */}
-          <section className={`relative flex h-[190px] w-full items-center justify-center overflow-hidden bg-gradient-to-t from-[#984463]/50 to-[#666666]/20 ${funding.isOwner ? 'mt-3' : ''}`}>
+          <section className={`relative flex h-[190px] w-full items-center justify-center overflow-hidden bg-black/40 ${funding.isOwner ? 'mt-3' : ''}`}>
             {thumbnailSrc ? (
               <img src={thumbnailSrc} alt="" className="absolute inset-0 h-full w-full object-cover" />
             ) : (
@@ -120,9 +184,15 @@ export default function FundingDetailPage() {
               <span className="rounded-full border border-gray-300 bg-white px-4 py-2 text-b2-m leading-normal text-gray-700">
                 {displayFunding.category}
               </span>
-              <span className="rounded-full border border-gray-300 bg-white px-4 py-2 text-b2-m leading-normal text-gray-700">
-                {getDdayLabel(displayFunding.anniversaryDate)}
-              </span>
+              {isEnded ? (
+                <span className="rounded-full bg-gray-900 px-4 py-2 text-b2-m leading-normal text-white">
+                  마감된 페이지
+                </span>
+              ) : (
+                <span className="rounded-full border border-gray-300 bg-white px-4 py-2 text-b2-m leading-normal text-gray-700">
+                  {getDdayLabel(displayFunding.anniversaryDate)}
+                </span>
+              )}
             </div>
           </section>
 
@@ -148,7 +218,7 @@ export default function FundingDetailPage() {
               </div>
             </div>
 
-            <MessageSection funding={displayFunding} onOpenMessage={setOpenedMessage} />
+            <MessageSection funding={displayFunding} onOpenMessage={handleOpenMessage} />
           </div>
         </>
       )}
@@ -157,14 +227,23 @@ export default function FundingDetailPage() {
         <div className="pointer-events-none fixed bottom-0 left-1/2 w-full max-w-[402px] -translate-x-1/2 bg-gradient-to-b from-white/0 to-white/80 px-[18px] pb-[34px] pt-10">
           {funding.isOwner ? (
             <div className="pointer-events-auto flex gap-3">
-              {/* 14px SemiBold는 @theme에 대응 토큰이 없어 일반 유틸 사용 (B2_SB 토큰 추가는 디자이너 확인 필요) */}
-              <button
-                type="button"
-                onClick={() => setShowEndConfirm(true)}
-                className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-gray-600 bg-white text-sm font-semibold text-black"
-              >
-                페이지 종료하기
-              </button>
+              {isEnded ? (
+                <button
+                  type="button"
+                  onClick={() => {/* TODO: J 섹션 후기 작성 페이지 연결 */}}
+                  className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-gray-600 bg-white text-sm font-semibold text-black"
+                >
+                  선물 후기 남기기
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowEndConfirm(true)}
+                  className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-gray-600 bg-white text-sm font-semibold text-black"
+                >
+                  페이지 종료하기
+                </button>
+              )}
               <Button className="flex-1" onClick={() => navigate(`/funding/${id}/edit`)}>
                 수정하기
               </Button>
