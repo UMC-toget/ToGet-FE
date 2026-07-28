@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { ChevronDown, ChevronLeft, Search, Pencil, Check } from 'lucide-react'
 import Toast from '../../components/common/Toast'
 import DefaultAvatar from '../../components/common/DefaultAvatar'
 import { getMockParticipants } from './participantMock'
 import type { Participant } from './participantMock'
+import { getFundingContributionList, updateContributionAmount } from '../../api/fundings'
 
 const TOAST_DURATION_MS = 2500
 
@@ -37,22 +39,40 @@ function ParticipantCard({ participant, onEdit }: { participant: Participant; on
  * 참여 인원/참여 금액 요약, 정렬(최신순/오래된순), 이름 검색, 참여 금액 수정(+실행취소 토스트)을 제공합니다.
  */
 export default function ParticipantList() {
+  const { id } = useParams()
   const [participants, setParticipants] = useState<Participant[]>(() => getMockParticipants())
+  const [totalAmount, setTotalAmount] = useState(() => getMockParticipants().reduce((s, p) => s + p.amount, 0))
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest')
   const [showSortSheet, setShowSortSheet] = useState(false)
   const [view, setView] = useState<View>('list')
   const [searchQuery, setSearchQuery] = useState('')
   const [editing, setEditing] = useState<Participant | null>(null)
   const [editValue, setEditValue] = useState('')
-  const [toast, setToast] = useState<{ id: string; previousAmount: number } | null>(null)
+  const [toast, setToast] = useState<{ id: string; contributionId: number; previousAmount: number } | null>(null)
+
+  useEffect(() => {
+    if (!id) return
+    getFundingContributionList(id).then((res) => {
+      setTotalAmount(res.totalAmount)
+      setParticipants(res.contributions.map((c) => {
+        const date = new Date(c.createdAt)
+        const dateLabel = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`
+        return {
+          id: String(c.contributionId),
+          name: c.senderName ?? '익명',
+          timestamp: date.getTime(),
+          dateLabel,
+          amount: c.amount,
+        }
+      }))
+    }).catch(console.error)
+  }, [id])
 
   useEffect(() => {
     if (!toast) return
     const timer = setTimeout(() => setToast(null), TOAST_DURATION_MS)
     return () => clearTimeout(timer)
   }, [toast])
-
-  const totalAmount = participants.reduce((sum, p) => sum + p.amount, 0)
 
   const sortParticipants = (list: Participant[]) =>
     [...list].sort((a, b) => (sortOrder === 'latest' ? b.timestamp - a.timestamp : a.timestamp - b.timestamp))
@@ -72,18 +92,32 @@ export default function ParticipantList() {
 
   const isEditValid = editing !== null && editValue !== '' && Number(editValue) !== editing.amount
 
-  const confirmEdit = () => {
-    if (!editing || !isEditValid) return
+  const confirmEdit = async () => {
+    if (!editing || !isEditValid || !id) return
     const previousAmount = editing.amount
     const nextAmount = Number(editValue)
+    const contributionId = Number(editing.id)
     setParticipants((prev) => prev.map((p) => (p.id === editing.id ? { ...p, amount: nextAmount } : p)))
-    setToast({ id: editing.id, previousAmount })
+    setTotalAmount((prev) => prev - previousAmount + nextAmount)
+    setToast({ id: editing.id, contributionId, previousAmount })
     closeEdit()
+    updateContributionAmount(id, contributionId, nextAmount).catch(() => {
+      // API 실패 시 로컬 롤백
+      setParticipants((prev) => prev.map((p) => (p.id === editing.id ? { ...p, amount: previousAmount } : p)))
+      setTotalAmount((prev) => prev + previousAmount - nextAmount)
+      setToast(null)
+    })
   }
 
   const handleUndo = () => {
-    if (!toast) return
-    setParticipants((prev) => prev.map((p) => (p.id === toast.id ? { ...p, amount: toast.previousAmount } : p)))
+    if (!toast || !id) return
+    const { id: pid, contributionId, previousAmount } = toast
+    setParticipants((prev) => prev.map((p) => (p.id === pid ? { ...p, amount: previousAmount } : p)))
+    setTotalAmount((prev) => {
+      const current = participants.find((p) => p.id === pid)?.amount ?? previousAmount
+      return prev - current + previousAmount
+    })
+    updateContributionAmount(id, contributionId, previousAmount).catch(console.error)
     setToast(null)
   }
 

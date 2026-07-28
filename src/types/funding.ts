@@ -72,6 +72,8 @@ export interface FundingDetail {
   participantCount: number | null
   /** 뷰어가 개설자인지 */
   isOwner: boolean
+  /** 펀딩 상태 — 'ENDED' 이면 마감 UI로 전환 */
+  status?: string
   visibility: FundingVisibility
   wishlist: WishlistItem[]
   messages: FundingMessage[]

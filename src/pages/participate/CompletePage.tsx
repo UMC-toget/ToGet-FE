@@ -1,5 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom'
-import { useMockFunding } from '../funding/useMockFunding'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import completeCat from '../../assets/complete-cat.svg'
 import heartBig from '../../assets/heart-big.svg'
 import heartRight from '../../assets/heart-right.svg'
@@ -11,7 +10,8 @@ import heartSmall from '../../assets/heart-small.svg'
 export default function CompletePage() {
   const navigate = useNavigate()
   const { id } = useParams()
-  const funding = useMockFunding()
+  const location = useLocation()
+  const hostName = (location.state as { hostName?: string } | null)?.hostName ?? '개설자'
 
   return (
     // antialiased 없으면 폰트가 피그마보다 굵게 렌더링됨
@@ -59,7 +59,7 @@ export default function CompletePage() {
         </h1>
 
         <p className="mt-[23px] w-[267px] text-center text-b2-m leading-[15px] text-gray-600">
-          {funding.hostName}님의 특별한 날
+          {hostName}님의 특별한 날
           <br />
           따뜻한 마음을 모아 전달할게요
         </p>
