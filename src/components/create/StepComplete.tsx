@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Copy, Share2, Heart, X } from 'lucide-react';
+import { Check, Copy, Heart, X } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import { CHARACTER_IMAGES, ACCENT_COLORS } from './Step5Invite';
 
@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function StepComplete({ onViewFunding, onGoHome }: Props) {
-  const { title, anniversaryDate, inviteCharacter, inviteColor } = useFundingCreateStore();
+  const { title, inviteCharacter, inviteColor } = useFundingCreateStore();
   const [copied, setCopied] = useState(false);
   const glowColor = inviteColor === '#FFFFFF' ? '#D1D5DB' : inviteColor;
   const accentColor = ACCENT_COLORS[inviteColor] ?? '#DB2777';
@@ -27,18 +27,6 @@ export default function StepComplete({ onViewFunding, onGoHome }: Props) {
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // 클립보드 권한이 없는 등의 경우 - 조용히 무시 (필요시 토스트 처리)
-    }
-  };
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title, url: `https://${shareLink}` });
-      } catch {
-        // 사용자가 공유 시트를 취소한 경우 등
-      }
-    } else {
-      handleCopy();
     }
   };
 
@@ -71,10 +59,10 @@ export default function StepComplete({ onViewFunding, onGoHome }: Props) {
           <img
             src={CHARACTER_IMAGES[inviteCharacter - 1]}
             alt=""
-            className="w-[150px] h-[150px] object-contain relative z-10"
+            className="w-[190px] h-[190px] object-contain relative z-10"
           />
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-9 h-9 bg-pink-400 rounded-full flex items-center justify-center border-2 border-white z-20">
-            <Check size={16} className="text-white" />
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-11 h-11 bg-pink-500 rounded-full flex items-center justify-center border-2 border-white z-20">
+            <Check size={20} className="text-white" />
           </div>
         </div>
 
@@ -86,7 +74,7 @@ export default function StepComplete({ onViewFunding, onGoHome }: Props) {
           </p>
         </div>
 
-        <div className="w-full border border-gray-100 rounded-2xl p-4 bg-white shadow-sm space-y-3">
+        <div className="w-full space-y-2">
           <p className="text-sm font-semibold text-gray-700">초대장 링크</p>
           <div className="flex items-center gap-2">
             <div className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-600 truncate bg-gray-50">
@@ -102,17 +90,7 @@ export default function StepComplete({ onViewFunding, onGoHome }: Props) {
               )}
             </button>
           </div>
-          <button
-            onClick={handleShare}
-            className="w-full py-2 bg-gray-100 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-200 transition-colors flex items-center justify-center gap-1"
-          >
-            <Share2 size={14} /> 초대장 공유
-          </button>
         </div>
-
-        {anniversaryDate && (
-          <p className="text-xs text-gray-400">기념일: {anniversaryDate}</p>
-        )}
       </div>
 
       <div className="w-full mt-4">

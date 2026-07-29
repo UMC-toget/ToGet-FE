@@ -75,21 +75,24 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
   if (view === 'list') {
     return (
       <div className="flex-1 min-h-0 flex flex-col">
-        <div className="flex-1 overflow-y-auto space-y-5">
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">선물 준비에 사용할 계좌를 선택해 주세요</h2>
-            <p className="text-xs text-gray-400 mt-1">친구들이 선물에 함께할 때 이 계좌 정보를 확인할 수 있어요</p>
-          </div>
+        <div className="flex-1 overflow-y-auto flex flex-col">
+          <div className="space-y-5 pb-5">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">선물 준비에 사용할 계좌를 선택해 주세요</h2>
+              <p className="text-xs text-gray-400 mt-1">친구들이 선물에 함께할 때 이 계좌 정보를 확인할 수 있어요</p>
+            </div>
 
-          <button
-            onClick={openAdd}
-            className="w-full flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <span className="text-base leading-none">+</span> 새로운 계좌 등록하기
-            </span>
-            <ChevronRight size={16} className="text-gray-400" />
-          </button>
+            <button
+              onClick={openAdd}
+              className="w-full flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-lg text-gray-500 shrink-0">
+                +
+              </span>
+              <span className="flex-1 text-left">새로운 계좌 등록하기</span>
+              <ChevronRight size={16} className="text-gray-400 shrink-0" />
+            </button>
+          </div>
 
           {accounts.length > 0 && (
             <div className="flex-1 -mx-[18px] px-[18px] pt-5 pb-6 bg-gray-100">
