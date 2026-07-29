@@ -3,6 +3,14 @@ import { ChevronLeft, ChevronRight, Search, Pencil } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import type { SavedAccount } from '../../store/fundingCreateStore';
 import { searchBanks } from '../../utils/bankData';
+import bankShinhan from '../../assets/bank-shinhan.png';
+import bankKakao from '../../assets/bank-kakao.png';
+
+// 지금은 신한/카카오뱅크 로고 자산만 있어 나머지 은행은 이모지로 대체합니다.
+const BANK_LOGOS: Partial<Record<string, string>> = {
+  '신한은행': bankShinhan,
+  '카카오뱅크': bankKakao,
+};
 
 interface Props {
   onNext: () => void;
@@ -66,7 +74,7 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
   // ── 계좌 목록 화면 ──────────────────────────────────────────
   if (view === 'list') {
     return (
-      <div className="flex flex-col h-full">
+      <div className="flex-1 min-h-0 flex flex-col">
         <div className="flex-1 overflow-y-auto space-y-5">
           <div>
             <h2 className="text-lg font-bold text-gray-900">선물 준비에 사용할 계좌를 선택해 주세요</h2>
@@ -84,41 +92,51 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
           </button>
 
           {accounts.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs text-gray-400">등록된 {accounts.length}개 계좌</p>
-              {accounts.map((acc) => {
-                const selected = acc.id === selectedAccountId;
-                return (
-                  <div
-                    key={acc.id}
-                    className={`border rounded-xl p-4 transition-colors ${selected ? 'border-gray-800 bg-gray-50' : 'border-gray-100'}`}
-                  >
-                    <button
-                      onClick={() => selectAccount(acc.id)}
-                      className="w-full flex items-center gap-3 text-left"
-                    >
-                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg shrink-0">
-                        🏦
+            <div className="flex-1 -mx-[18px] px-[18px] pt-5 pb-6 bg-gray-100">
+              <div className="px-3">
+                <p className="text-sm font-medium text-black mb-3">등록된 {accounts.length}개 계좌</p>
+                <div className="space-y-2">
+                  {accounts.map((acc) => {
+                    const selected = acc.id === selectedAccountId;
+                    return (
+                      <div
+                        key={acc.id}
+                        className={`border rounded-xl p-4 bg-white transition-colors ${selected ? 'border-gray-800' : 'border-gray-100'}`}
+                      >
+                        <button
+                          onClick={() => selectAccount(acc.id)}
+                          className="w-full flex items-center gap-3 text-left"
+                        >
+                          <div className="w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center text-lg shrink-0 overflow-hidden">
+                            {BANK_LOGOS[acc.bankName] ? (
+                              <img src={BANK_LOGOS[acc.bankName]} alt="" className="w-full h-full object-contain" />
+                            ) : (
+                              '🏦'
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-gray-400">{acc.bankName}</p>
+                            <p className="text-sm font-semibold text-black">{acc.accountHolder}</p>
+                            <p className="text-sm font-semibold text-black">{acc.accountNumber}</p>
+                          </div>
+                          <span
+                            aria-hidden
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? 'border-pink-500' : 'border-gray-300'}`}
+                          >
+                            {selected && <span className="w-2.5 h-2.5 rounded-full bg-pink-500" />}
+                          </span>
+                        </button>
+                        <button
+                          onClick={() => openEdit(acc)}
+                          className="w-full mt-3 py-2 text-xs font-medium text-gray-500 bg-gray-100 rounded-lg flex items-center justify-center gap-1 hover:bg-gray-200 transition-colors"
+                        >
+                          <Pencil size={12} /> 계좌 수정하기
+                        </button>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-800">{acc.bankName}</p>
-                        <p className="text-xs text-gray-500">{acc.accountHolder}</p>
-                        <p className="text-xs text-gray-500">{acc.accountNumber}</p>
-                      </div>
-                      <span
-                        aria-hidden
-                        className={`w-5 h-5 rounded-full border-2 shrink-0 ${selected ? 'border-pink-400 bg-pink-400' : 'border-gray-300'}`}
-                      />
-                    </button>
-                    <button
-                      onClick={() => openEdit(acc)}
-                      className="w-full mt-3 py-2 text-xs font-medium text-gray-500 border border-gray-200 rounded-lg flex items-center justify-center gap-1 hover:bg-gray-50 transition-colors"
-                    >
-                      <Pencil size={12} /> 계좌 수정하기
-                    </button>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -138,7 +156,7 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
   const isEdit = view === 'edit';
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex-1 min-h-0 flex flex-col">
       <div className="flex items-center gap-2 mb-4">
         <button onClick={() => setView('list')} className="p-1 text-gray-600 hover:text-gray-900 transition-colors">
           <ChevronLeft size={20} />
@@ -200,7 +218,7 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
       {/* 은행 검색 시트: 포함검색 + 초성검색("ㅅㅎ") + 영문 유사어 검색("shin") 지원 */}
       {showBankSheet && (
         <div className="fixed inset-0 bg-black/40 flex items-end z-50">
-          <div className="bg-white w-full max-w-sm mx-auto rounded-t-2xl p-4 max-h-[70vh] flex flex-col">
+          <div className="bg-white w-full max-w-sm mx-auto rounded-t-2xl p-4 h-[70vh] flex flex-col">
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-3" />
             <p className="text-sm font-semibold text-gray-700 mb-2">은행명</p>
             <div className="relative mb-3">
