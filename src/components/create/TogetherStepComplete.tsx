@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Copy, Share2, X } from 'lucide-react';
+import { Check, Copy, Link, X } from 'lucide-react';
 import { useTogetherCreateStore } from '../../store/togetherCreateStore';
 import { CHARACTER_IMAGES, ACCENT_COLORS } from './Step5Invite';
 import heroStars from '../../assets/hero-stars.svg';
@@ -76,10 +76,10 @@ export default function TogetherStepComplete() {
           <img
             src={CHARACTER_IMAGES[inviteCharacter - 1]}
             alt=""
-            className="w-[150px] h-[150px] object-contain relative z-10"
+            className="w-[190px] h-[190px] object-contain relative z-10"
           />
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-11 h-11 bg-pink-500 rounded-full flex items-center justify-center border-2 border-white z-20">
-            <Check size={20} className="text-white" />
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-12 h-12 bg-pink-500 rounded-full flex items-center justify-center border-2 border-white z-20">
+            <Check size={22} className="text-white" />
           </div>
         </div>
 
@@ -94,7 +94,7 @@ export default function TogetherStepComplete() {
         <div className="w-full border border-gray-100 rounded-2xl p-4 bg-white shadow-sm space-y-3">
           <p className="text-sm font-semibold text-gray-700">초대장 링크</p>
           <div className="flex items-center gap-2">
-            <div className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-600 truncate bg-gray-50">
+            <div className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-600 truncate bg-gray-100">
               {shareLink}
             </div>
             <button
@@ -111,7 +111,7 @@ export default function TogetherStepComplete() {
             onClick={handleShare}
             className="w-full py-2 bg-gray-100 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-200 transition-colors flex items-center justify-center gap-1"
           >
-            <Share2 size={14} /> 초대장 공유
+            <Link size={14} /> 초대장 공유
           </button>
         </div>
       </div>
