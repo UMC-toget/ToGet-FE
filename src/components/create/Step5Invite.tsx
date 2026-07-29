@@ -145,7 +145,7 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
   const glowColor = isWhite ? '#D1D5DB' : inviteColor;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex-1 min-h-0 flex flex-col">
       <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar space-y-4">
         <div>
           <h2 className="text-lg font-bold text-gray-900">초대장을 작성해 주세요</h2>
@@ -205,7 +205,9 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
                 <label className="text-sm font-medium text-gray-700">
                   초대장 제목 <span className="text-red-400">*</span>
                 </label>
-                <span className="text-[11px] text-gray-400">{inviteTitle.length}/{TITLE_MAX}</span>
+                <span className={`text-[11px] ${inviteTitle.length >= TITLE_MAX ? 'text-pink-400 font-semibold' : 'text-gray-400'}`}>
+                  {inviteTitle.length}/{TITLE_MAX}
+                </span>
               </div>
               <input
                 type="text"

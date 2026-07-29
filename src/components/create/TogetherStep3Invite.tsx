@@ -11,8 +11,7 @@ interface Props {
 
 type Tab = 'message' | 'color' | 'character';
 
-// G04) 함께 선물 만들기 - 초대장 만들기: 제목은 20자로 제한
-const TITLE_MAX = 20;
+const TITLE_MAX = 15;
 const CONTENT_MAX = 60;
 
 export default function TogetherStep3Invite({ onNext }: Props) {
@@ -96,7 +95,9 @@ export default function TogetherStep3Invite({ onNext }: Props) {
                 <label className="text-sm font-medium text-gray-700">
                   초대장 제목 <span className="text-red-400">*</span>
                 </label>
-                <span className="text-[11px] text-gray-400">{inviteTitle.length}/{TITLE_MAX}</span>
+                <span className={`text-[11px] ${inviteTitle.length >= TITLE_MAX ? 'text-pink-400 font-semibold' : 'text-gray-400'}`}>
+                  {inviteTitle.length}/{TITLE_MAX}
+                </span>
               </div>
               <input
                 type="text"
