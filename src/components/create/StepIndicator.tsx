@@ -42,7 +42,7 @@ export default function StepIndicator({ currentStep, steps = DEFAULT_STEPS }: St
           <div key={stepNum} className="relative z-10 flex flex-1 flex-col items-center gap-1">
             <div
               className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors
-                ${isDone ? 'bg-gray-800 text-white' : isActive ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-400'}`}
+                ${isDone ? 'bg-gray-800 text-white' : isActive ? 'bg-gray-800 text-white' : 'bg-gray-200/70 text-gray-400'}`}
             >
               {isDone ? <Check size={14} /> : stepNum}
             </div>
