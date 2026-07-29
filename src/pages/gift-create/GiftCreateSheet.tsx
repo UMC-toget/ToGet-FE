@@ -14,8 +14,7 @@ const CARD_ICONS: Record<GiftPageType, string> = {
   together: togetherCat,
 }
 
-// '내 선물 페이지'는 새로 만든 5단계 만들기 플로우(/funding/create)로 연결
-const resolveCreatePath = (type: GiftPageType) => (type === 'my' ? '/funding/create' : `/gift/create/${type}`)
+const resolveCreatePath = (type: GiftPageType) => `/gift/create/${type}`
 
 interface GiftCreateSheetProps {
   open: boolean
