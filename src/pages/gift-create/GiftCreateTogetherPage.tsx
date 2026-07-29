@@ -4,6 +4,7 @@ import Header from '../../components/common/Header'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import StepIndicator from '../../components/create/StepIndicator'
 import TogetherStep1BasicInfo from '../../components/create/TogetherStep1BasicInfo'
+import TogetherStep2Account from '../../components/create/TogetherStep2Account'
 
 const STEPS = ['기본 정보', '계좌 정보', '초대장 만들기']
 
@@ -38,7 +39,8 @@ export default function GiftCreateTogetherPage() {
 
       <div className="flex-1 px-[18px] pb-6 flex flex-col overflow-hidden">
         {step === 1 && <TogetherStep1BasicInfo onNext={handleNext} />}
-        {step > 1 && <p className="mt-10 text-center text-b2-r text-gray-600">준비 중인 화면입니다.</p>}
+        {step === 2 && <TogetherStep2Account onNext={handleNext} />}
+        {step > 2 && <p className="mt-10 text-center text-b2-r text-gray-600">준비 중인 화면입니다.</p>}
       </div>
 
       <ConfirmModal
