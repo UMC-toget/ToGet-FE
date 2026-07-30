@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import HomeIcon from '../icons/HomeIcon'
 import HomeIconBold from '../icons/HomeIconBold'
@@ -6,6 +7,7 @@ import GiftIconBold from '../icons/GiftIconBold'
 import ProfileIcon from '../icons/ProfileIcon'
 import ProfileIconBold from '../icons/ProfileIconBold'
 import PlusIcon from '../icons/PlusIcon'
+import WishCreateSheet from '../../pages/gift-create/WishCreateSheet'
 
 type Tab = 'home' | 'gift' | 'my'
 
@@ -18,13 +20,12 @@ const TABS: { id: Tab; label: string; path: string | null; Icon: typeof HomeIcon
 
 interface BottomNavProps {
   active: Tab
-  /** 플로팅(+) 버튼 클릭 시 호출 */
-  onFabClick?: () => void
 }
 
 /** 하단 네비게이션 바 + 플로팅 버튼 (피그마 하단 탭 컴포넌트 기준) */
-export default function BottomNav({ active, onFabClick }: BottomNavProps) {
+export default function BottomNav({ active }: BottomNavProps) {
   const navigate = useNavigate()
+  const [wishSheetOpen, setWishSheetOpen] = useState(false)
 
   // 활성 탭(검정 필)이 양 끝일 때 해당 쪽 패딩이 좁아집니다 (피그마 기준)
   const pillPadding = `${active === 'home' ? 'pl-1' : 'pl-5'} ${active === 'my' ? 'pr-1' : 'pr-5'}`
@@ -56,11 +57,12 @@ export default function BottomNav({ active, onFabClick }: BottomNavProps) {
       <button
         type="button"
         aria-label="선물 페이지 만들기"
-        onClick={onFabClick}
+        onClick={() => setWishSheetOpen(true)}
         className="flex size-14 items-center justify-center rounded-full bg-gray-900 text-white shadow-[0px_4px_20px_0px_rgba(0,0,0,0.25)]"
       >
         <PlusIcon className="size-6" />
       </button>
+      <WishCreateSheet open={wishSheetOpen} onClose={() => setWishSheetOpen(false)} />
     </nav>
   )
 }
