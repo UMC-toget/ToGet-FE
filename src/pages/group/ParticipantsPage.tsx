@@ -1,45 +1,115 @@
-import { useParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
-import DefaultAvatar from '../../components/common/DefaultAvatar'
-import { MOCK_GROUP } from './groupMock'
-import type { GroupParticipant, ParticipantRole } from '../../types/group'
+import { getTogetherGiftDashboard, updateMemberRole, type MemberSummary } from '../../api/groupFundings'
+import { MOCK_DASHBOARD } from './groupMock'
 
-const BADGE: Record<ParticipantRole, { label: string; className: string }> = {
+const BADGE: Record<MemberSummary['role'], { label: string; className: string }> = {
   HOST: { label: '방장', className: 'bg-pink-500 text-white' },
-  CO_HOST: { label: '부방장', className: 'bg-pink-100 text-pink-500' },
+  CO_HOST: { label: '부방장', className: 'bg-[#FFE3ED] text-pink-500' },
   MEMBER: { label: '참여자', className: 'bg-[#C1BCC0] text-white' },
 }
 
-export default function ParticipantsPage() {
-  useParams()
-  const group = MOCK_GROUP
+const ROLE_LABEL: Record<MemberSummary['role'], string> = {
+  HOST: '개설자',
+  CO_HOST: '부방장',
+  MEMBER: '참여자',
+}
 
-  const managers = group.participants.filter(p => p.role === 'HOST' || p.role === 'CO_HOST')
-  const members = group.participants.filter(p => p.role === 'MEMBER')
+export default function ParticipantsPage() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const [members, setMembers] = useState<MemberSummary[]>([])
+  const [loading, setLoading] = useState(true)
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!id) return
+    getTogetherGiftDashboard(id)
+      .then(data => setMembers(data.members))
+      .catch(() => { if (import.meta.env.DEV) setMembers(MOCK_DASHBOARD.members) })
+      .finally(() => setLoading(false))
+  }, [id])
+
+  const handleRoleChange = async (memberId: number, newRole: 'CO_HOST' | 'MEMBER') => {
+    setOpenMenuId(null)
+    setMembers(prev => prev.map(m => m.fundingMemberId === memberId ? { ...m, role: newRole } : m))
+    try {
+      await updateMemberRole(id!, memberId, newRole)
+    } catch {
+      getTogetherGiftDashboard(id!).then(data => setMembers(data.members)).catch(() => {})
+    }
+  }
+
+  const managers = members.filter(m => m.role === 'HOST' || m.role === 'CO_HOST')
+  const regularMembers = members.filter(m => m.role === 'MEMBER')
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-8">
-      <Header title="참여자 더보기" />
+    <div className="mx-auto flex h-dvh w-full max-w-[402px] flex-col bg-white">
+      <Header title="함께 선물 페이지" />
 
-      <div className="flex flex-col gap-5 px-[18px] py-5">
-        {/* 참여자 현황 타이틀 */}
-        <div className="flex flex-col gap-2">
-          <h2 className="text-h3-sb text-black">참여자 현황</h2>
-          <p className="text-caption1-r text-gray-500">현재 함께선물 페이지에 참여한 참여자 목록</p>
-        </div>
+      {/* 세그먼트 탭 */}
+      <div className="mx-[18px] my-6 flex shrink-0 items-center gap-1 rounded-lg bg-gray-100 p-1">
+        <button
+          type="button"
+          onClick={() => navigate(`/group/${id}`)}
+          className="flex flex-1 items-center justify-center rounded py-2 px-[10px] text-b2-m text-[#797378]"
+        >
+          함께 선물 페이지
+        </button>
+        <button
+          type="button"
+          className="flex flex-1 items-center justify-center rounded bg-white py-2 px-[10px] text-b2-m text-black"
+        >
+          참여자 관리
+        </button>
+      </div>
 
-        {/* 통계 카드 */}
-        <div className="flex items-center justify-around rounded-xl border border-gray-100 px-[14px] py-3">
-          <StatItem label="전체" count={group.totalParticipantCount} />
-          <StatItem label="관리자" count={managers.length} />
-          <StatItem label="일반 참여자" count={group.totalParticipantCount - managers.length} />
-        </div>
+      {/* 스크롤 영역 */}
+      <div className="flex-1 overflow-y-auto pb-8">
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <span className="text-b2-r text-gray-400">불러오는 중...</span>
+          </div>
+        ) : (
+          <div className="flex flex-col px-[18px]">
+            {/* 제목 + 캡션 */}
+            <div className="flex flex-col gap-2">
+              <h2 className="text-h3-sb text-[#000]">참여자 관리하기</h2>
+              <p className="text-caption1-r text-[#7F7779]">참여자를 확인하고 권한을 부여하여 함께 페이지를 관리해요.</p>
+            </div>
 
-        {/* 참여자 목록 */}
-        <div className="flex flex-col gap-5">
-          <ParticipantSection title="관리자" participants={managers} />
-          <ParticipantSection title="일반 참여자" participants={members} />
-        </div>
+            {/* 통계 박스 */}
+            <div className="mt-5 flex items-center justify-center gap-12 rounded-xl border border-[#EAE9EA] bg-white px-[14px] py-3">
+              <StatItem label="전체" count={members.length} />
+              <StatItem label="관리자" count={managers.length} />
+              <StatItem label="일반 참여자" count={regularMembers.length} />
+            </div>
+
+            {/* 안내 문구 */}
+            <p className="mt-2 text-caption2-r text-[#7F7779]">
+              전체 참여자는 최대 50명, 공동 관리자는 최대 10명까지 초대할 수 있어요
+            </p>
+
+            {/* 참여자 목록 */}
+            <div className="mt-5 flex flex-col gap-4">
+              <MemberSection
+                title="관리자"
+                members={managers}
+                openMenuId={openMenuId}
+                setOpenMenuId={setOpenMenuId}
+                onRoleChange={handleRoleChange}
+              />
+              <MemberSection
+                title="일반 참여자"
+                members={regularMembers}
+                openMenuId={openMenuId}
+                setOpenMenuId={setOpenMenuId}
+                onRoleChange={handleRoleChange}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -48,45 +118,115 @@ export default function ParticipantsPage() {
 function StatItem({ label, count }: { label: string; count: number }) {
   return (
     <div className="flex flex-col items-center gap-2">
-      <span className="text-caption1-r text-gray-700">{label}</span>
-      <span className="text-h3-m text-black">{count}명</span>
+      <span className="text-caption1-r text-[#797378]">{label}</span>
+      <span className="text-h3-sb text-black">{count}명</span>
     </div>
   )
 }
 
-function ParticipantSection({ title, participants }: { title: string; participants: GroupParticipant[] }) {
-  if (participants.length === 0) return null
+interface MemberSectionProps {
+  title: string
+  members: MemberSummary[]
+  openMenuId: number | null
+  setOpenMenuId: (id: number | null) => void
+  onRoleChange: (memberId: number, role: 'CO_HOST' | 'MEMBER') => void
+}
+
+function MemberSection({ title, members, openMenuId, setOpenMenuId, onRoleChange }: MemberSectionProps) {
+  if (members.length === 0) return null
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-b1-m text-black">{title}</h3>
       <div className="flex flex-col gap-2">
-        {participants.map(p => (
-          <ParticipantCard key={p.id} participant={p} />
+        {members.map(m => (
+          <MemberCard
+            key={m.fundingMemberId}
+            member={m}
+            menuOpen={openMenuId === m.fundingMemberId}
+            onToggleMenu={() => setOpenMenuId(openMenuId === m.fundingMemberId ? null : m.fundingMemberId)}
+            onCloseMenu={() => setOpenMenuId(null)}
+            onRoleChange={onRoleChange}
+          />
         ))}
       </div>
     </div>
   )
 }
 
-function ParticipantCard({ participant }: { participant: GroupParticipant }) {
-  const { role, isMe, name } = participant
+interface MemberCardProps {
+  member: MemberSummary
+  menuOpen: boolean
+  onToggleMenu: () => void
+  onCloseMenu: () => void
+  onRoleChange: (memberId: number, role: 'CO_HOST' | 'MEMBER') => void
+}
+
+function MemberCard({ member, menuOpen, onToggleMenu, onCloseMenu, onRoleChange }: MemberCardProps) {
+  const { role, name, profileImageUrl, fundingMemberId } = member
   const badge = BADGE[role]
-  const roleLabel = role === 'HOST'
-    ? isMe ? '개설자(나)' : '개설자'
-    : isMe ? '참여자(나)' : '참여자'
+  const canChangeRole = role === 'CO_HOST' || role === 'MEMBER'
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        onCloseMenu()
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [menuOpen, onCloseMenu])
 
   return (
-    <div className="flex items-center justify-between rounded-xl border border-gray-100 px-[14px] py-3">
+    <div className="flex items-center justify-between rounded-xl border border-[#EAE9EA] bg-white px-[14px] py-3">
       <div className="flex items-center gap-2">
-        <DefaultAvatar className="size-10 shrink-0" />
+        <div className="shrink-0">
+          {profileImageUrl ? (
+            <img src={profileImageUrl} alt={name} className="size-10 rounded-full object-cover" />
+          ) : (
+            <div className="size-10 rounded-full bg-[#F7F5F8]" />
+          )}
+        </div>
         <div className="flex flex-col gap-1">
-          <span className="text-caption1-r text-gray-600">{roleLabel}</span>
-          <span className="text-b2-r text-black">{name}</span>
+          <span className="text-caption1-r text-[#797378]">{ROLE_LABEL[role]}</span>
+          <span className="text-b2-m text-black">{name}</span>
         </div>
       </div>
-      <span className={`rounded px-[10px] py-[5px] text-caption2-m ${badge.className}`}>
-        {badge.label}
-      </span>
+
+      {/* 뱃지 + 드롭다운 */}
+      <div ref={menuRef} className="relative">
+        <button
+          type="button"
+          disabled={!canChangeRole}
+          onClick={onToggleMenu}
+          className={`flex h-[25px] w-[57px] items-center justify-center rounded text-caption2-m ${badge.className}`}
+        >
+          {badge.label}
+        </button>
+
+        {menuOpen && canChangeRole && (
+          <div
+            className="absolute right-0 z-50 flex w-[100px] flex-col items-start justify-center divide-y divide-[#EAE9EA] overflow-hidden rounded-lg bg-white py-1 shadow-[0_0_10px_0_rgba(0,0,0,0.20)]"
+            style={{ top: '-8.5px' }}
+          >
+            <button
+              type="button"
+              className="w-full px-[5px] py-1 text-left text-caption1-r text-black"
+              onClick={() => onRoleChange(fundingMemberId, 'MEMBER')}
+            >
+              참여자
+            </button>
+            <button
+              type="button"
+              className="w-full px-[5px] py-1 text-left text-caption1-r text-black"
+              onClick={() => onRoleChange(fundingMemberId, 'CO_HOST')}
+            >
+              부방장
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

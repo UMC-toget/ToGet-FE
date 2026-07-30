@@ -249,7 +249,6 @@ export default function FundingDetailPage() {
               </Button>
             </div>
           ) : (
-            // TODO: E03(#28) 머지 전까지는 /funding/:id/participate 라우트가 없어 빈 화면으로 이동함
             <Button
               className="pointer-events-auto"
               onClick={() => navigate(`/funding/${id}/participate`)}
