@@ -12,6 +12,7 @@ import {
 import { getFundingAccount, type FundingAccount } from '../../api/fundings'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
 import { useMyProfile } from '../../hooks/useMyProfile'
+import { MOCK_SETTLEMENTS, MOCK_ACCOUNT, MOCK_DASHBOARD } from './groupMock'
 
 interface InfoRowProps {
   label: string
@@ -53,10 +54,14 @@ export default function SettlePage() {
       getTogetherGiftDashboard(id),
     ]).then(([accountRes, settlementRes, dashboardRes]) => {
       if (accountRes.status === 'fulfilled') setAccount(accountRes.value)
+      else if (import.meta.env.DEV) setAccount(MOCK_ACCOUNT)
       if (dashboardRes.status === 'fulfilled') {
         const d = dashboardRes.value
         setRecipientName(d.recipientName)
         setGiftItems(d.confirmedGifts ?? [])
+      } else if (import.meta.env.DEV) {
+        setRecipientName(MOCK_DASHBOARD.recipientName)
+        setGiftItems(MOCK_DASHBOARD.confirmedGifts ?? [])
       }
       if (settlementRes.status === 'fulfilled') {
         const s = settlementRes.value
@@ -69,6 +74,10 @@ export default function SettlePage() {
           myEntry?.amountDue ??
             Math.ceil(s.totalSettlementAmount / (s.settlementParticipantCount || 1)),
         )
+      } else if (import.meta.env.DEV) {
+        setTotalAmount(MOCK_SETTLEMENTS.totalSettlementAmount)
+        setParticipantCount(MOCK_SETTLEMENTS.settlementParticipantCount)
+        setMyShare(Math.ceil(MOCK_SETTLEMENTS.totalSettlementAmount / (MOCK_SETTLEMENTS.settlementParticipantCount || 1)))
       }
     }).finally(() => setLoading(false))
   }, [id, profile])

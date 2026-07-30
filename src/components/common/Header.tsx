@@ -24,19 +24,25 @@ export default function Header({ title, onBack, hideBack = false, right }: Heade
   const navigate = useNavigate()
 
   return (
-    <header className="relative flex h-[50px] w-full items-center justify-center border-b border-gray-100 bg-white px-[18px]">
-      {!hideBack && (
-        <button
-          type="button"
-          aria-label="뒤로가기"
-          onClick={onBack ?? (() => navigate(-1))}
-          className="absolute left-[18px] text-black"
-        >
-          <ChevronLeftIcon />
-        </button>
-      )}
-      <h1 className="text-h3-sb text-black">{title}</h1>
-      {right && <div className="absolute right-[18px]">{right}</div>}
+    <header className="relative w-full border-b border-gray-100 bg-white">
+      <div
+        className="shrink-0"
+        style={{ height: 'max(env(safe-area-inset-top), 16px)' }}
+      />
+      <div className="relative flex h-[50px] items-center justify-center px-[18px]">
+        {!hideBack && (
+          <button
+            type="button"
+            aria-label="뒤로가기"
+            onClick={onBack ?? (() => navigate(-1))}
+            className="absolute left-[18px] text-black"
+          >
+            <ChevronLeftIcon />
+          </button>
+        )}
+        <h1 className="text-h3-sb text-black">{title}</h1>
+        {right && <div className="absolute right-[18px]">{right}</div>}
+      </div>
     </header>
   )
 }

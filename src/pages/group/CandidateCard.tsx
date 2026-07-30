@@ -18,7 +18,7 @@ export default function CandidateCard({ candidate, rank }: CandidateCardProps) {
   const rankBadge = RANK_COLORS[rank]
 
   return (
-    <div className="flex w-[175px] shrink-0 flex-col items-center rounded-[18px] border border-gray-100 p-[10px]">
+    <div className="flex w-full flex-col items-center rounded-[18px] border border-gray-100 p-[10px]">
       {/* 이미지 */}
       <div className="relative flex size-[154px] shrink-0 items-center justify-center rounded-xl bg-background">
         {candidate.giftImageUrl ? (

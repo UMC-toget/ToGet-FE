@@ -1,5 +1,4 @@
 import { apiClient, unwrap } from '../lib/apiClient'
-import type { BankName } from './userAccounts'
 
 // ─── 공통 ─────────────────────────────────────────────────────
 
@@ -33,6 +32,7 @@ export interface ConfirmedGift {
 export interface TogetherGiftDashboard {
   fundingId: number
   status: GroupFundingStatus
+  title?: string
   anniversaryDate: string
   recipientName: string
   introduction: string
@@ -87,6 +87,31 @@ export function getGiftCandidates(fundingId: number | string) {
 export function toggleGiftVote(fundingId: number | string, fundingGiftId: number | string) {
   return unwrap<GiftVoteToggleResponse>(
     apiClient.post(`/api/v1/fundings/${fundingId}/gift-candidates/${fundingGiftId}/votes`, {}),
+  )
+}
+
+// ─── H02: 선물 후보 상세 ──────────────────────────────────────
+
+export interface GiftCandidateComment {
+  commentId: number
+  authorName: string
+  authorProfileImageUrl: string | null
+  content: string
+}
+
+export interface GiftCandidateDetail extends GiftCandidateItem {
+  note: string
+  giftPurchaseUrl: string | null
+  registrantName: string
+  registrantProfileImageUrl: string | null
+  isVotedByMe: boolean
+  comments: GiftCandidateComment[]
+}
+
+/** H02) 선물 후보 단건 조회 (GET /api/v1/fundings/{fundingId}/gift-candidates/{giftId}) */
+export function getGiftCandidateDetail(fundingId: number | string, giftId: number | string) {
+  return unwrap<GiftCandidateDetail>(
+    apiClient.get(`/api/v1/fundings/${fundingId}/gift-candidates/${giftId}`),
   )
 }
 
@@ -157,6 +182,17 @@ export function updateSettlementStatus(
 }
 
 // ─── H06: 선물 후보 등록 ──────────────────────────────────────
+
+/** 참여자 역할 변경 (HOST 전용, PATCH /api/v1/fundings/{fundingId}/members/{memberId}/role) */
+export function updateMemberRole(
+  fundingId: number | string,
+  memberId: number | string,
+  role: 'CO_HOST' | 'MEMBER',
+) {
+  return unwrap<MemberSummary>(
+    apiClient.patch(`/api/v1/fundings/${fundingId}/members/${memberId}/role`, { role }),
+  )
+}
 
 /** H06) 선물 후보 등록 (CO_HOST 이상) */
 export function postGiftCandidate(

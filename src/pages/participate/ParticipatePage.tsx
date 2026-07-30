@@ -19,7 +19,7 @@ const LOCAL_BY_NAME = Object.fromEntries(LETTER_COLORS.map(c => [c.name, c]))
 function bgMetaToLetterColor(meta: BackgroundMeta): LetterColor {
   const local = LOCAL_BY_NAME[meta.name]
   if (local) return { ...local, id: String(meta.id) }
-  return { id: String(meta.id), name: meta.name, background: meta.hexCode, border: meta.hexCode, placeholder: meta.hexCode }
+  return { id: String(meta.id), name: meta.name, background: meta.hexCode, border: meta.hexCode, lineColor: meta.hexCode, placeholder: meta.hexCode }
 }
 
 /**
@@ -43,6 +43,7 @@ export default function ParticipatePage() {
     fetchContributionBackgrounds()
       .then(data => {
         const mapped = data.map(bgMetaToLetterColor)
+        if (mapped.length === 0) return // 빈 응답이면 로컬 팔레트 유지
         setColors(mapped)
         const white = mapped.find(c => c.name === '화이트') ?? mapped[mapped.length - 1]
         if (white) setLetterColor(white)
