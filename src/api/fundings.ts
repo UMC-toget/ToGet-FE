@@ -208,6 +208,25 @@ export function dashboardToFundingDetail(
   }
 }
 
+// ─── 초대장 카드 조회 ──────────────────────────────────────────
+
+export interface InvitationCardResponse {
+  invitationCardId: number
+  /** 개설자 이름. 개설자 정보가 없으면 null */
+  creatorName: string | null
+  characterId: number
+  backgroundId: number
+  title: string
+  content: string
+}
+
+/** E01) 초대장 카드 조회 (GET /api/v1/fundings/{fundingId}/invitations) — 비로그인 가능 */
+export function getInvitationCard(fundingId: number | string) {
+  return unwrap<InvitationCardResponse>(
+    apiClient.get(`/api/v1/fundings/${fundingId}/invitations`),
+  )
+}
+
 // ─── 계좌 조회 ─────────────────────────────────────────────────
 
 export interface FundingAccount {

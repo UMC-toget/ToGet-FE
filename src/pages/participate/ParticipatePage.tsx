@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
 import ConfirmModal from '../../components/common/ConfirmModal'
+import Toast from '../../components/common/Toast'
 import { useMockFunding } from '../funding/useMockFunding'
 import { LETTER_COLORS, type LetterColor } from '../../components/common/letterPalette'
 import { fetchContributionBackgrounds, type BackgroundMeta } from '../../api/metaApi'
@@ -29,7 +30,12 @@ function bgMetaToLetterColor(meta: BackgroundMeta): LetterColor {
 export default function ParticipatePage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const funding = useMockFunding()
+  const locationState = useLocation().state as { hostName?: string; anniversaryDate?: string } | null
+  const mockFunding = useMockFunding()
+  const hostName = locationState?.hostName ?? mockFunding.hostName
+  const funding = locationState?.anniversaryDate
+    ? { ...mockFunding, anniversaryDate: locationState.anniversaryDate }
+    : mockFunding
 
   const [step, setStep] = useState(1)
   const [name, setName] = useState('')
@@ -53,6 +59,7 @@ export default function ParticipatePage() {
   const [amount, setAmount] = useState<number | null>(null)
   const [showExitModal, setShowExitModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState(false)
 
   const canGoNext = [
     name.trim() !== '' || isAnonymous,
@@ -82,11 +89,11 @@ export default function ParticipatePage() {
         content: letter,
         isPrivate,
       })
-      navigate(`/funding/${id}/complete`, { state: { hostName: funding.hostName } })
+      navigate(`/funding/${id}/complete`, { state: { hostName } })
     } catch (e) {
       console.error('참여 제출 실패', e)
-      // 실패해도 UI 흐름 유지 (완료 페이지로 이동 — 추후 에러 처리 개선)
-      navigate(`/funding/${id}/complete`, { state: { hostName: funding.hostName } })
+      setSubmitError(true)
+      setTimeout(() => setSubmitError(false), 3000)
     } finally {
       setSubmitting(false)
     }
@@ -95,7 +102,7 @@ export default function ParticipatePage() {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-[140px]">
       <Header
-        title={`${funding.hostName}에게`}
+        title={`${hostName}에게`}
         onBack={handleBack}
         right={
           <button type="button" onClick={() => setShowExitModal(true)} className="text-b2-m text-black">
@@ -117,7 +124,7 @@ export default function ParticipatePage() {
         )}
         {step === 2 && (
           <LetterStep
-            hostName={funding.hostName}
+            hostName={hostName}
             letter={letter}
             letterColor={letterColor}
             colors={colors}
@@ -129,7 +136,7 @@ export default function ParticipatePage() {
         )}
         {step === 3 && <AmountStep funding={funding} amount={amount} onAmountChange={setAmount} />}
         {step === 4 && (
-          <DepositStep hostName={funding.hostName} letter={letter} letterColor={letterColor} amount={amount ?? 0} fundingId={id} />
+          <DepositStep hostName={hostName} letter={letter} letterColor={letterColor} amount={amount ?? 0} fundingId={id} />
         )}
       </div>
 
@@ -150,6 +157,8 @@ export default function ParticipatePage() {
         onCancel={() => navigate(`/funding/${id}`)}
         onConfirm={() => setShowExitModal(false)}
       />
+
+      <Toast open={submitError} message="참여 제출에 실패했어요. 다시 시도해주세요." />
     </div>
   )
 }

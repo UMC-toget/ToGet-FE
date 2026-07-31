@@ -24,15 +24,19 @@ export default function DepositStep({ hostName, letter, letterColor, amount, fun
   const [letterOpen, setLetterOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [account, setAccount] = useState(MOCK_ACCOUNT)
+  const [accountLoaded, setAccountLoaded] = useState(false)
 
   useEffect(() => {
     if (!fundingId) return
     getFundingAccount(fundingId)
-      .then((acc) => setAccount({
-        bankName: BANK_NAME_LABELS[acc.bankName] ?? acc.bankName,
-        accountNumber: acc.account,
-        holderName: acc.accountOwner,
-      }))
+      .then((acc) => {
+        setAccount({
+          bankName: BANK_NAME_LABELS[acc.bankName] ?? acc.bankName,
+          accountNumber: acc.account,
+          holderName: acc.accountOwner,
+        })
+        setAccountLoaded(true)
+      })
       .catch(console.error)
   }, [fundingId])
 
@@ -51,7 +55,10 @@ export default function DepositStep({ hostName, letter, letterColor, amount, fun
       ok = document.execCommand('copy')
       document.body.removeChild(textarea)
     }
-    setCopied(ok)
+    if (ok) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
   }
 
   return (
@@ -77,7 +84,7 @@ export default function DepositStep({ hostName, letter, letterColor, amount, fun
         </div>
       </div>
 
-      {amount > 0 && (
+      {amount > 0 && accountLoaded && (
         <div className="flex flex-col gap-2">
           <p className="text-b1-m leading-normal text-black">입금계좌</p>
           <div className="flex flex-col gap-4">

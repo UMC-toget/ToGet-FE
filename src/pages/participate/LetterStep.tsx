@@ -43,7 +43,7 @@ export default function LetterStep({
               className={`size-[35px] shrink-0 rounded-[4px] ${letterColor.id === color.id ? '' : 'opacity-60'}`}
               style={{
                 backgroundColor: color.background,
-                ...(color.id === 'white' && { border: '2px solid var(--color-gray-500)' }),
+                ...(color.name === '화이트' && { border: '2px solid var(--color-gray-500)' }),
               }}
             />
           ))}

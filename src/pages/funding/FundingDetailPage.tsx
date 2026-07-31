@@ -37,6 +37,7 @@ export default function FundingDetailPage() {
   const mockFunding = useMockFunding()
   const [realFunding, setRealFunding] = useState<FundingDetail | null>(null)
   const [thumbnailApiUrl, setThumbnailApiUrl] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const store = useFundingCreateStore()
 
   // 개설자: my-gift 대시보드, 비개설자: shared-fundings + 메세지는 공통으로 contributions 사용
@@ -68,7 +69,7 @@ export default function FundingDetailPage() {
       } catch {
         // shared-fundings도 실패하면 mock 유지
       }
-    })
+    }).finally(() => setIsLoading(false))
   }, [id])
 
   // 실제 API 데이터 우선, 없으면 mock (비개설자 또는 API 실패 시)
@@ -146,8 +147,9 @@ export default function FundingDetailPage() {
 
   return (
     <div className={`mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white ${showBottomBar ? 'pb-[140px]' : 'pb-6'}`}>
-      <Header title={`${displayFunding.hostName}님의 선물 페이지`} />
+      <Header title={isLoading ? '' : `${displayFunding.hostName}님의 선물 페이지`} />
 
+      <div className={`flex flex-1 flex-col ${isLoading ? 'invisible' : ''}`}>
       {funding.isOwner && (
         <div className="mx-[18px] mt-3 flex gap-1 rounded-lg bg-gray-100 p-1">
           <button
@@ -230,7 +232,7 @@ export default function FundingDetailPage() {
               {isEnded ? (
                 <button
                   type="button"
-                  onClick={() => {/* TODO: J 섹션 후기 작성 페이지 연결 */}}
+                  onClick={() => navigate('/gift/review/write/news')}
                   className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-gray-600 bg-white text-sm font-semibold text-black"
                 >
                   선물 후기 남기기
@@ -251,13 +253,14 @@ export default function FundingDetailPage() {
           ) : (
             <Button
               className="pointer-events-auto"
-              onClick={() => navigate(`/funding/${id}/participate`)}
+              onClick={() => navigate(`/funding/${id}/participate`, { state: { hostName: displayFunding.hostName, anniversaryDate: displayFunding.anniversaryDate } })}
             >
               마음 전하기
             </Button>
           )}
         </div>
       )}
+      </div>
 
       {/* content가 null이면(BE 계약 불일치 방어) 빈 편지 대신 모달을 열지 않음 */}
       <LetterModal
