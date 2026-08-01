@@ -4,7 +4,6 @@ import Toast from "../../components/common/Toast";
 import HomeBanner from "./HomeBanner";
 import GiftBrowseSection from "./GiftBrowseSection";
 import MyFundingsSection from "./MyFundingsSection";
-import WishCreateSheet from "../gift-create/WishCreateSheet";
 import togetLogo from "../../assets/toget-logo.svg";
 import GiftCreateSheet from "../gift-create/GiftCreateSheet";
 import { useAuth } from "../../hooks/useAuth";
@@ -17,7 +16,6 @@ const TOAST_DURATION_MS = 2500;
 export default function HomePage() {
   const { isLoggedIn } = useAuth();
   const myFundings = useMyFundings();
-  const [wishSheetOpen, setWishSheetOpen] = useState(false);
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -53,11 +51,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <BottomNav active="home" onFabClick={() => setWishSheetOpen(true)} />
-      <WishCreateSheet
-        open={wishSheetOpen}
-        onClose={() => setWishSheetOpen(false)}
-      />
+      <BottomNav active="home" />
       <GiftCreateSheet
         open={createSheetOpen}
         onClose={() => setCreateSheetOpen(false)}

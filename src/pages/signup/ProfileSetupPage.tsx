@@ -17,6 +17,9 @@ const PROFILE_IMAGE_PREFIX = 'profiles'
 // 화면 전체 흔들림은 입력창 자체보다 훨씬 은은하게 느껴지도록 진폭을 크게 줄입니다.
 const PAGE_SHAKE_AMPLITUDE = '0.4px'
 
+/** uploadImage() 실패를 updateMyProfile() 실패와 구분해 정확한 에러 메시지를 보여주기 위한 태그용 에러 */
+class ProfileImageUploadError extends Error {}
+
 /** 회원가입 마지막 단계: 프로필(닉네임/사진) 설정 페이지 */
 export default function ProfileSetupPage() {
   const [nickname, setNickname] = useState('')
@@ -29,7 +32,14 @@ export default function ProfileSetupPage() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async () => {
-      const profileImageUrl = photoFile ? await uploadImage(PROFILE_IMAGE_PREFIX, photoFile) : undefined
+      let profileImageUrl: string | undefined
+      if (photoFile) {
+        try {
+          profileImageUrl = await uploadImage(PROFILE_IMAGE_PREFIX, photoFile)
+        } catch {
+          throw new ProfileImageUploadError()
+        }
+      }
       return updateMyProfile({ nickname, profileImageUrl })
     },
     onSuccess: () => {
@@ -39,7 +49,11 @@ export default function ProfileSetupPage() {
     },
     onError: (error) => {
       setTermsOpen(false)
-      setErrorMessage(error instanceof ApiError ? error.message : '닉네임 저장에 실패했어요. 다시 시도해 주세요.')
+      if (error instanceof ProfileImageUploadError) {
+        setErrorMessage('프로필 사진 업로드에 실패했어요. 다시 시도해 주세요.')
+      } else {
+        setErrorMessage(error instanceof ApiError ? error.message : '닉네임 저장에 실패했어요. 다시 시도해 주세요.')
+      }
       replayShake(pageRef.current)
     },
   })
