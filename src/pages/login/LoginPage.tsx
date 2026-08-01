@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { GoogleLogin } from '@react-oauth/google'
-import type { CredentialResponse } from '@react-oauth/google'
+import { useGoogleLogin } from '@react-oauth/google'
 import CloseIcon from '../../components/icons/CloseIcon'
 import Toast from '../../components/common/Toast'
 import BadgeTailIcon from '../../components/icons/BadgeTailIcon'
@@ -80,11 +79,13 @@ export default function LoginPage() {
     kakaoAuthorize(KAKAO_REDIRECT_URI)
   }
 
-  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
-    const idToken = credentialResponse.credential
-    if (!idToken) return
-    await completeSocialLogin('google', idToken)
-  }
+  // 진짜 구글 iframe 버튼을 숨기고 커스텀 버튼을 얹는 방식은, 서드파티 쿠키가 차단된 환경(FedCM)에서
+  // "완전히 안 보이는 iframe" 클릭을 보안상 무시해 프로덕션에서 로그인이 먹통이 되는 문제가 있었다.
+  // 팝업 방식은 우리 버튼이 직접 여는 것이라 숨겨진 iframe 자체가 없어 이 문제에서 자유롭다.
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: (tokenResponse) => completeSocialLogin('google', tokenResponse.access_token),
+    onError: () => setErrorMessage(LOGIN_FAIL_MESSAGE),
+  })
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white px-[18px]">
@@ -124,23 +125,16 @@ export default function LoginPage() {
             <span className="text-b2-m text-[#3c1e1e]">카카오로 시작하기</span>
           </button>
         </div>
-        {/* 구글 위젯은 텍스트/스타일을 자유롭게 바꿀 수 없어, 피그마 스펙대로 그린 커스텀 버튼 뒤에
-            실제 GoogleLogin 위젯을 투명하게 겹쳐서 클릭을 그대로 위젯이 받도록 처리 */}
-        <div className="relative h-[52px] w-full">
+        <div className="relative w-full">
           {lastProvider === 'google' && <LastLoginBadge />}
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center gap-3 rounded-xl border border-gray-600 bg-white">
+          <button
+            type="button"
+            onClick={() => handleGoogleLogin()}
+            className="flex h-[52px] w-full items-center justify-center gap-3 rounded-xl border border-gray-600 bg-white"
+          >
             <img src={googleIcon} alt="" className="size-4 object-contain" />
             <span className="text-b2-m text-black">구글로 시작하기</span>
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-xl opacity-0 [&>div]:!w-full">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => setErrorMessage(LOGIN_FAIL_MESSAGE)}
-              shape="rectangular"
-              size="large"
-              width="366"
-            />
-          </div>
+          </button>
         </div>
       </div>
 
