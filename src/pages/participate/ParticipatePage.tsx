@@ -1,16 +1,27 @@
-import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
 import ConfirmModal from '../../components/common/ConfirmModal'
+import Toast from '../../components/common/Toast'
 import { useMockFunding } from '../funding/useMockFunding'
-import { LETTER_COLORS } from '../../components/common/letterPalette'
-import ProcessBar from './ProcessBar'
+import { LETTER_COLORS, type LetterColor } from '../../components/common/letterPalette'
+import { fetchContributionBackgrounds, type BackgroundMeta } from '../../api/metaApi'
+import ProcessBar from '../../components/common/ProcessBar'
 import NameStep from './NameStep'
 import LetterStep from './LetterStep'
 import AmountStep from './AmountStep'
 import DepositStep from './DepositStep'
 import { postContribution } from '../../api/contributions'
+
+// BE background 이름 → 로컬 팔레트 매핑 (시각 속성 유지, id만 BE 값으로 교체)
+const LOCAL_BY_NAME = Object.fromEntries(LETTER_COLORS.map(c => [c.name, c]))
+
+function bgMetaToLetterColor(meta: BackgroundMeta): LetterColor {
+  const local = LOCAL_BY_NAME[meta.name]
+  if (local) return { ...local, id: String(meta.id) }
+  return { id: String(meta.id), name: meta.name, background: meta.hexCode, border: meta.hexCode, lineColor: meta.hexCode, placeholder: meta.hexCode }
+}
 
 /**
  * E03) 내 선물 참여: 축하 페이지 (4단계 참여 흐름)
@@ -19,17 +30,36 @@ import { postContribution } from '../../api/contributions'
 export default function ParticipatePage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const funding = useMockFunding()
+  const locationState = useLocation().state as { hostName?: string; anniversaryDate?: string } | null
+  const mockFunding = useMockFunding()
+  const hostName = locationState?.hostName ?? mockFunding.hostName
+  const funding = locationState?.anniversaryDate
+    ? { ...mockFunding, anniversaryDate: locationState.anniversaryDate }
+    : mockFunding
 
   const [step, setStep] = useState(1)
   const [name, setName] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [letter, setLetter] = useState('')
-  const [letterColor, setLetterColor] = useState(LETTER_COLORS[7]) // 기본 화이트
+  const [colors, setColors] = useState<LetterColor[]>(LETTER_COLORS)
+  const [letterColor, setLetterColor] = useState<LetterColor>(LETTER_COLORS[7]) // 기본 화이트
   const [isPrivate, setIsPrivate] = useState(false)
+
+  useEffect(() => {
+    fetchContributionBackgrounds()
+      .then(data => {
+        const mapped = data.map(bgMetaToLetterColor)
+        if (mapped.length === 0) return // 빈 응답이면 로컬 팔레트 유지
+        setColors(mapped)
+        const white = mapped.find(c => c.name === '화이트') ?? mapped[mapped.length - 1]
+        if (white) setLetterColor(white)
+      })
+      .catch(() => { /* API 실패 시 기존 팔레트 유지 */ })
+  }, [])
   const [amount, setAmount] = useState<number | null>(null)
   const [showExitModal, setShowExitModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState(false)
 
   const canGoNext = [
     name.trim() !== '' || isAnonymous,
@@ -51,24 +81,19 @@ export default function ParticipatePage() {
     if (submitting) return
     setSubmitting(true)
     try {
-      // ⚠️ backgroundId: 로컬 팔레트와 BE background ID 매핑이 미완성
-      // 추후 fetchContributionBackgrounds() 연동 후 letterColor.id → backgroundId 맵 교체
-      const bgIdByColor: Record<string, number> = {
-        pink: 1, red: 2, yellow: 3, green: 4, skyBlue: 5, darkPurple: 6, lightPurple: 7, white: 8,
-      }
       await postContribution(id!, {
         senderName: isAnonymous ? '익명' : name.trim(),
-        backgroundId: bgIdByColor[letterColor.id] ?? 1,
+        backgroundId: Number(letterColor.id) || 1,
         isAnonymous,
         amount: amount ?? 0,
         content: letter,
         isPrivate,
       })
-      navigate(`/funding/${id}/complete`)
+      navigate(`/funding/${id}/complete`, { state: { hostName } })
     } catch (e) {
       console.error('참여 제출 실패', e)
-      // 실패해도 UI 흐름 유지 (완료 페이지로 이동 — 추후 에러 처리 개선)
-      navigate(`/funding/${id}/complete`)
+      setSubmitError(true)
+      setTimeout(() => setSubmitError(false), 3000)
     } finally {
       setSubmitting(false)
     }
@@ -77,7 +102,7 @@ export default function ParticipatePage() {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-[140px]">
       <Header
-        title={`${funding.hostName}에게`}
+        title={`${hostName}에게`}
         onBack={handleBack}
         right={
           <button type="button" onClick={() => setShowExitModal(true)} className="text-b2-m text-black">
@@ -87,7 +112,7 @@ export default function ParticipatePage() {
       />
 
       <div className="flex flex-col gap-5 px-[18px] pt-6">
-        <ProcessBar currentStep={step} />
+        <ProcessBar steps={['참여자 정보', '축하 메세지', '참여 금액 선택', '마음 전하기']} currentStep={step} />
 
         {step === 1 && (
           <NameStep
@@ -99,9 +124,10 @@ export default function ParticipatePage() {
         )}
         {step === 2 && (
           <LetterStep
-            hostName={funding.hostName}
+            hostName={hostName}
             letter={letter}
             letterColor={letterColor}
+            colors={colors}
             isPrivate={isPrivate}
             onLetterChange={setLetter}
             onColorChange={setLetterColor}
@@ -110,7 +136,7 @@ export default function ParticipatePage() {
         )}
         {step === 3 && <AmountStep funding={funding} amount={amount} onAmountChange={setAmount} />}
         {step === 4 && (
-          <DepositStep hostName={funding.hostName} letter={letter} letterColor={letterColor} amount={amount ?? 0} />
+          <DepositStep hostName={hostName} letter={letter} letterColor={letterColor} amount={amount ?? 0} fundingId={id} />
         )}
       </div>
 
@@ -131,6 +157,8 @@ export default function ParticipatePage() {
         onCancel={() => navigate(`/funding/${id}`)}
         onConfirm={() => setShowExitModal(false)}
       />
+
+      <Toast open={submitError} message="참여 제출에 실패했어요. 다시 시도해주세요." />
     </div>
   )
 }

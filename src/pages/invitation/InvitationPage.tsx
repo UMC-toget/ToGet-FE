@@ -1,13 +1,14 @@
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Button from '../../components/common/Button'
-import heroBgGlow from '../../assets/hero-bg-glow.svg'
 import InvitationHero from './InvitationHero'
+import { getInvitationCard } from '../../api/fundings'
+import { fetchInvitationBackgrounds, fetchCharacters } from '../../api/metaApi'
 
-// TODO: BE 연동 후 실제 펀딩 데이터로 교체 (개설자 이름/제목/인사말)
-const MOCK_INVITATION = {
-  title: '생일 초대장이 도착했어요',
-  message: '안녕!!\n내가 이번 생일에 진짜 필요한 선물을 사고 싶은데\n혹시 함께해줄 수 있을까...',
-  senderName: '희주',
+const DEFAULT_INVITATION = {
+  title: '따뜻한 선물 초대장이 도착했어요',
+  content: '',
+  creatorName: null as string | null,
 }
 
 /**
@@ -19,38 +20,73 @@ export default function InvitationPage() {
   const { id } = useParams()
   const navigate = useNavigate()
 
+  const [invitation, setInvitation] = useState(DEFAULT_INVITATION)
+  const [glowColor, setGlowColor] = useState<string>('#FE71A5')
+  const [characterImageUrl, setCharacterImageUrl] = useState<string | undefined>(undefined)
+
+  useEffect(() => {
+    if (!id) return
+
+    const load = async () => {
+      try {
+        const [card, backgrounds, characters] = await Promise.all([
+          getInvitationCard(id),
+          fetchInvitationBackgrounds().catch(() => []),
+          fetchCharacters().catch(() => []),
+        ])
+
+        setInvitation({
+          title: card.title,
+          content: card.content,
+          creatorName: card.creatorName,
+        })
+
+        const bg = backgrounds.find((b) => b.id === card.backgroundId)
+        if (bg) setGlowColor(bg.hexCode)
+
+        const character = characters.find((c) => c.id === card.characterId)
+        if (character) setCharacterImageUrl(character.imageUrl)
+      } catch {
+        // API 실패 시 기본값 유지
+      }
+    }
+
+    load()
+  }, [id])
+
   return (
     <div className="relative mx-auto flex min-h-dvh w-full max-w-[402px] flex-col overflow-hidden bg-white">
-      {/* 핑크 글로우 배경 (피그마: x58 y292 286×286, blur 100px — 카드 영역 뒤까지 이어짐)
-          402px 고정 크기로 중앙 배치해 좁은 화면에서도 수직 위치가 어긋나지 않게 함 */}
-      <img
-        src={heroBgGlow}
-        alt=""
+      {/* 글로우 배경 — backgroundId에서 받은 색상 적용 (피그마: x58 y292 286×286, blur 100px) */}
+      <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-[92px] w-[402px] max-w-none -translate-x-1/2"
+        className="pointer-events-none absolute left-1/2 top-[92px] h-[286px] w-[286px] -translate-x-1/2 rounded-full blur-[100px]"
+        style={{ backgroundColor: glowColor + '80' }}
       />
 
-      <InvitationHero />
+      <InvitationHero characterImageUrl={characterImageUrl} />
 
       <div className="relative flex flex-1 flex-col items-center gap-5 px-[18px]">
         {/* 초대장 카드 (피그마: w366, padding 20, radius 20, shadow 0 4px 20px 15%) */}
         <article className="flex w-full flex-col gap-2.5 rounded-[20px] bg-white p-5 shadow-[0px_4px_20px_0px_rgba(0,0,0,0.15)]">
-          <h2 className="text-h3-sb text-black">{MOCK_INVITATION.title}</h2>
-          <p className="whitespace-pre-line text-b2-r leading-relaxed text-gray-700">
-            {MOCK_INVITATION.message}
-          </p>
-          <p className="text-right text-b2-m text-pink-500">from. {MOCK_INVITATION.senderName}</p>
+          <h2 className="text-h3-sb text-black">{invitation.title}</h2>
+          {invitation.content && (
+            <p className="whitespace-pre-line text-b2-r leading-relaxed text-gray-700">
+              {invitation.content}
+            </p>
+          )}
+          {invitation.creatorName && (
+            <p className="text-right text-b2-m text-pink-500">from. {invitation.creatorName}</p>
+          )}
         </article>
 
         <div className="flex w-full flex-col items-center gap-3">
-          {/* TODO: E02(#27) 머지 전까지는 /funding/:id 라우트가 없어 빈 화면으로 이동함 — E02 작업에서 연결 */}
           <Button onClick={() => navigate(`/funding/${id}`)}>축하하러 가기</Button>
           <p className="text-caption1-r text-gray-500">
             축하 메세지를 남기거나, 선물에 마음을 보탤 수 있어요
           </p>
         </div>
 
-        {/* /gift/about = PR #25(준영님)에서 정한 C02 서비스 소개 경로. PR #25 머지 전까지는 빈 화면으로 이동함 */}
+        {/* /gift/about = C02 서비스 소개 경로 */}
         <button
           type="button"
           onClick={() => navigate('/gift/about')}

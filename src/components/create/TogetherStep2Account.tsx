@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Search, Pencil } from 'lucide-react';
-import { useFundingCreateStore } from '../../store/fundingCreateStore';
+import { useTogetherCreateStore } from '../../store/togetherCreateStore';
 import type { SavedAccount } from '../../store/fundingCreateStore';
 import { searchBanks } from '../../utils/bankData';
 import bankShinhan from '../../assets/bank-shinhan.png';
@@ -14,8 +14,6 @@ const BANK_LOGOS: Partial<Record<string, string>> = {
 
 interface Props {
   onNext: () => void;
-  submitLabel?: string;
-  disabled?: boolean;
 }
 
 type View = 'list' | 'add' | 'edit';
@@ -28,8 +26,8 @@ interface AccountFormState {
 
 const emptyForm: AccountFormState = { bankName: '', accountNumber: '', accountHolder: '' };
 
-export default function Step4Account({ onNext, submitLabel = '다음', disabled = false }: Props) {
-  const { accounts, selectedAccountId, addAccount, updateAccount, selectAccount } = useFundingCreateStore();
+export default function TogetherStep2Account({ onNext }: Props) {
+  const { accounts, selectedAccountId, addAccount, updateAccount, selectAccount } = useTogetherCreateStore();
 
   const [view, setView] = useState<View>('list');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -78,8 +76,8 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
         <div className="flex-1 overflow-y-auto flex flex-col">
           <div className="space-y-5 pb-5">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">선물 준비에 사용할 계좌를 선택해 주세요</h2>
-              <p className="text-xs text-gray-400 mt-1">친구들이 선물에 함께할 때 이 계좌 정보를 확인할 수 있어요</p>
+              <h2 className="text-lg font-bold text-gray-900">입금받을 계좌를 등록해 주세요</h2>
+              <p className="text-xs text-gray-400 mt-1">참여자에게 해당 계좌번호가 안내돼요</p>
             </div>
 
             <button
@@ -146,10 +144,10 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
 
         <button
           onClick={onNext}
-          disabled={!selectedAccountId || disabled}
+          disabled={!selectedAccountId}
           className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {submitLabel}
+          다음
         </button>
       </div>
     );
@@ -177,7 +175,7 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
           <label className="text-xs text-gray-500 mb-1 block">은행명 <span className="text-red-400">*</span></label>
           <button
             onClick={() => setShowBankSheet(true)}
-            className="w-full flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 text-sm text-left focus:border-gray-800 transition-colors"
+            className="w-full flex items-center justify-between rounded-xl px-4 py-3 text-sm text-left bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
           >
             <span className={form.bankName ? 'text-gray-800' : 'text-gray-400'}>
               {form.bankName || '은행명을 정확히 선택해주세요'}
@@ -194,7 +192,7 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
             placeholder="본인의 계좌번호를 정확히 입력해주세요"
             value={form.accountNumber}
             onChange={(e) => setForm({ ...form, accountNumber: e.target.value.replace(/[^0-9]/g, '') })}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-800 transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-sm outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
           />
         </div>
 
@@ -205,7 +203,7 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
             placeholder="예금주 이름을 정확히 입력해 주세요"
             value={form.accountHolder}
             onChange={(e) => setForm({ ...form, accountHolder: e.target.value.replace(/[0-9]/g, '') })}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-800 transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-sm outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
           />
         </div>
       </div>

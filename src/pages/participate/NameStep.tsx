@@ -1,5 +1,5 @@
 import TextField from '../../components/common/TextField'
-import CheckOption from './CheckOption'
+import CheckOption from '../../components/common/CheckOption'
 
 interface NameStepProps {
   name: string

@@ -73,7 +73,7 @@ export default function GiftReviewDetailPage() {
                 ))}
               </div>
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-t from-[#984463]/50 to-[#666666]/20">
+              <div className="flex h-full w-full items-center justify-center bg-black/40">
                 <p className="text-caption1-r text-[#888888]">대표 이미지 삽입 영역</p>
               </div>
             )}

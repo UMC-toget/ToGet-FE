@@ -30,7 +30,7 @@ interface LetterCardProps {
   className?: string
 }
 
-/** 28px 간격 편지지 밑줄 */
+/** 28px 간격 편지지 밑줄 (repeating-gradient로 무한 반복 — 마지막 선 잘림 없음) */
 const ruledLineStyle = (lineColor: string): CSSProperties => ({
   backgroundImage: `repeating-linear-gradient(to bottom, transparent, transparent 27px, ${lineColor} 27px, ${lineColor} 28px)`,
 })
@@ -50,9 +50,10 @@ export default function LetterCard({
   className = '',
 }: LetterCardProps) {
   const cardStyle: CSSProperties = { backgroundColor: color.background, borderColor: color.border }
-  const lineStyle = ruledLineStyle(color.border)
+  const lineStyle = ruledLineStyle(color.lineColor)
 
   if (state === 'preInput') {
+    const rows = 11
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const val = maxLength && e.target.value.length > maxLength
         ? e.target.value.slice(0, maxLength)
@@ -73,9 +74,13 @@ export default function LetterCard({
           onKeyDown={handleKeyDown}
           placeholder={contentPlaceholder}
           maxLength={maxLength}
-          rows={10}
-          className="mt-[13px] w-full resize-none bg-transparent text-b2-r leading-[28px] text-gray-800 outline-none placeholder:text-[var(--ph-color)]"
-          style={{ '--ph-color': color.placeholder, ...lineStyle } as CSSProperties}
+          rows={rows}
+          className="mt-[13px] w-full resize-none bg-transparent p-0 text-b2-r leading-[28px] text-gray-800 outline-none placeholder:text-[var(--ph-color)]"
+          style={{
+            height: `${rows * 28}px`,
+            '--ph-color': color.placeholder,
+            ...lineStyle,
+          } as CSSProperties}
         />
       </div>
     )

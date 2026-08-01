@@ -44,7 +44,7 @@ export default function Step3Visibility({ onNext, submitLabel = '다음', disabl
   } = useFundingCreateStore();
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex-1 min-h-0 flex flex-col">
       <div className="flex-1 overflow-y-auto">
         <div className="mb-5">
           <h2 className="text-lg font-bold text-gray-900">친구들에게 보일 정보를 선택해 주세요</h2>
