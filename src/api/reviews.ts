@@ -33,13 +33,16 @@ export interface ReviewCreateResponse {
 
 // ─── 응답 타입 ───────────────────────────────────────────────
 
+/** 조회 응답의 type은 요청 경로(review|news|heartfelt)와 달리 대문자로 내려온다 */
+export type ReviewDetailType = 'REVIEW' | 'NEWS' | 'HEARTFELT'
+
 export interface ReviewDetail {
   fundingReviewId: number
-  type: ReviewApiType
-  /** review 타입이면 null */
+  type: ReviewDetailType
+  /** REVIEW 타입이면 null */
   title: string | null
   content: string
-  /** news/heartfelt 타입이면 null */
+  /** NEWS/HEARTFELT 타입이면 null */
   backgroundId: number | null
   images: string[]
   createdAt: string
