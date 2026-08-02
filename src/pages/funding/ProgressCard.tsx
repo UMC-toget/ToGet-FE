@@ -69,7 +69,12 @@ export default function ProgressCard({ funding }: ProgressCardProps) {
                 key={item.id}
                 className={`flex items-center gap-5 py-2 ${index > 0 ? 'border-t border-gray-100' : 'pt-0'}`}
               >
-                <img src={item.imageUrl} alt={item.name} className="size-[60px] rounded-[4px] bg-background-2 object-cover" />
+                <img
+                  src={item.imageUrl}
+                  alt={item.name}
+                  className="size-[60px] rounded-[4px] bg-background-2 object-cover"
+                  onError={(e) => { e.currentTarget.style.display = 'none' }}
+                />
                 <div className="flex flex-1 flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <p className="text-caption1-m leading-normal text-black">{item.name}</p>

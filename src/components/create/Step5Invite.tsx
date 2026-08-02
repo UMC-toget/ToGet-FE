@@ -62,7 +62,7 @@ const SPARKLES: { top: string; left?: string; right?: string; size: number; colo
   { top: '20%', left: '40%', size: 8, color: '#FBCFE8', rotate: -10 },
 ];
 
-function InviteSparkles() {
+export function InviteSparkles() {
   return (
     <>
       {SPARKLES.map((s, i) => (
@@ -94,7 +94,7 @@ const TOGET_LOGO_PATH =
 
 // "To Get" 로고 - SVG를 직접 렌더링해서 색을 동적으로 입힙니다 (mask 방식 대비 크로스브라우저로 안전함).
 // 흰색 팔레트를 고른 경우엔 글씨를 흰색으로 채우고 회색 stroke로 테두리를 그립니다.
-function TogetLogoMark({ accentColor, isWhite, className }: { accentColor: string; isWhite?: boolean; className?: string }) {
+export function TogetLogoMark({ accentColor, isWhite, className }: { accentColor: string; isWhite?: boolean; className?: string }) {
   const gradId = useId();
   // viewBox에 여백(padding)을 살짝 줬습니다. path의 'T'가 x=0에 딱 붙어있다보니
   // 안티앨리어싱/둥근 모서리(overflow-hidden) 경계와 맞물려 아주 미세하게 잘려 보이는 문제가 있었는데,
@@ -145,7 +145,7 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
   const glowColor = isWhite ? '#D1D5DB' : inviteColor;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex-1 min-h-0 flex flex-col">
       <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar space-y-4">
         <div>
           <h2 className="text-lg font-bold text-gray-900">초대장을 작성해 주세요</h2>
@@ -205,7 +205,9 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
                 <label className="text-sm font-medium text-gray-700">
                   초대장 제목 <span className="text-red-400">*</span>
                 </label>
-                <span className="text-[11px] text-gray-400">{inviteTitle.length}/{TITLE_MAX}</span>
+                <span className={`text-[11px] ${inviteTitle.length >= TITLE_MAX ? 'text-pink-400 font-semibold' : 'text-gray-400'}`}>
+                  {inviteTitle.length}/{TITLE_MAX}
+                </span>
               </div>
               <input
                 type="text"

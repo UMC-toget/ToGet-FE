@@ -51,7 +51,7 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex-1 min-h-0 flex flex-col">
       <div className="flex-1 overflow-y-auto space-y-5">
         <div>
           <h2 className="text-lg font-bold text-gray-900">기본 정보를 입력해 주세요</h2>

@@ -1,7 +1,7 @@
 import type { LetterColor } from '../../components/common/letterPalette'
 import { LETTER_COLORS } from '../../components/common/letterPalette'
 import LetterCard from '../../components/common/LetterCard'
-import CheckOption from './CheckOption'
+import CheckOption from '../../components/common/CheckOption'
 
 const LETTER_MAX_LENGTH = 234
 
@@ -9,6 +9,7 @@ interface LetterStepProps {
   hostName: string
   letter: string
   letterColor: LetterColor
+  colors?: LetterColor[]
   isPrivate: boolean
   onLetterChange: (letter: string) => void
   onColorChange: (color: LetterColor) => void
@@ -20,6 +21,7 @@ export default function LetterStep({
   hostName,
   letter,
   letterColor,
+  colors = LETTER_COLORS,
   isPrivate,
   onLetterChange,
   onColorChange,
@@ -32,7 +34,7 @@ export default function LetterStep({
       <div className="flex flex-col gap-4">
         <p className="text-b1-m leading-normal text-black">편지지 색상</p>
         <div className="flex items-center gap-3 overflow-x-auto pb-1">
-          {LETTER_COLORS.map((color) => (
+          {colors.map((color) => (
             <button
               key={color.id}
               type="button"
@@ -41,7 +43,7 @@ export default function LetterStep({
               className={`size-[35px] shrink-0 rounded-[4px] ${letterColor.id === color.id ? '' : 'opacity-60'}`}
               style={{
                 backgroundColor: color.background,
-                ...(color.id === 'white' && { border: '2px solid var(--color-gray-500)' }),
+                ...(color.name === '화이트' && { border: '2px solid var(--color-gray-500)' }),
               }}
             />
           ))}

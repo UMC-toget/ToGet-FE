@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { LetterColor } from '../../components/common/letterPalette'
 import LetterCard from '../../components/common/LetterCard'
+import { getFundingAccount } from '../../api/fundings'
+import { BANK_NAME_LABELS } from '../../api/userAccounts'
 
-// TODO: BE 연동 후 펀딩 상세 응답의 개설자 계좌 정보로 교체 (D05에서 등록한 계좌)
 const MOCK_ACCOUNT = {
   bankName: '카카오뱅크',
   accountNumber: '3333-22-1234567',
@@ -15,16 +16,33 @@ interface DepositStepProps {
   letterColor: LetterColor
   /** 0이면 금액 없이 참여(마음만 보내기) → 계좌 안내 숨김 */
   amount: number
+  fundingId?: string
 }
 
 /** E03 4단계: 마음 전하기 (피그마 #1714:68700) */
-export default function DepositStep({ hostName, letter, letterColor, amount }: DepositStepProps) {
+export default function DepositStep({ hostName, letter, letterColor, amount, fundingId }: DepositStepProps) {
   const [letterOpen, setLetterOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [account, setAccount] = useState(MOCK_ACCOUNT)
+  const [accountLoaded, setAccountLoaded] = useState(false)
+
+  useEffect(() => {
+    if (!fundingId) return
+    getFundingAccount(fundingId)
+      .then((acc) => {
+        setAccount({
+          bankName: BANK_NAME_LABELS[acc.bankName] ?? acc.bankName,
+          accountNumber: acc.account,
+          holderName: acc.accountOwner,
+        })
+        setAccountLoaded(true)
+      })
+      .catch(console.error)
+  }, [fundingId])
 
   const copyAccountNumber = async () => {
     // 은행 앱 계좌 입력란에 바로 붙여넣을 수 있게 하이픈 없이 숫자만 복사
-    const digits = MOCK_ACCOUNT.accountNumber.replace(/-/g, '')
+    const digits = account.accountNumber.replace(/-/g, '')
     let ok = true
     try {
       await navigator.clipboard.writeText(digits)
@@ -37,7 +55,10 @@ export default function DepositStep({ hostName, letter, letterColor, amount }: D
       ok = document.execCommand('copy')
       document.body.removeChild(textarea)
     }
-    setCopied(ok)
+    if (ok) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
   }
 
   return (
@@ -63,15 +84,15 @@ export default function DepositStep({ hostName, letter, letterColor, amount }: D
         </div>
       </div>
 
-      {amount > 0 && (
+      {amount > 0 && accountLoaded && (
         <div className="flex flex-col gap-2">
           <p className="text-b1-m leading-normal text-black">입금계좌</p>
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3">
               {[
-                ['은행', MOCK_ACCOUNT.bankName],
-                ['계좌번호', MOCK_ACCOUNT.accountNumber],
-                ['예금주', MOCK_ACCOUNT.holderName],
+                ['은행', account.bankName],
+                ['계좌번호', account.accountNumber],
+                ['예금주', account.holderName],
               ].map(([label, value], index) => (
                 <div
                   key={label}
