@@ -16,6 +16,7 @@ import type { ContributionItem } from '../../api/contributions'
 import EnvelopeButton from '../funding/EnvelopeButton'
 import LetterModal from '../funding/LetterModal'
 import { useMyProfile } from '../../hooks/useMyProfile'
+import { useAuth } from '../../hooks/useAuth'
 import { MOCK_DASHBOARD, MOCK_CONTRIBUTIONS } from './groupMock'
 import ribbonHost from '../../assets/ribbon-host.svg'
 import ribbonCoHost from '../../assets/ribbon-co-host.svg'
@@ -28,6 +29,7 @@ export default function GroupPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   useMyProfile()
+  const { isLoggedIn } = useAuth()
 
   const [group, setGroup] = useState<TogetherGiftDashboard | null>(null)
   const [contributions, setContributions] = useState<ContributionItem[]>([])
@@ -178,8 +180,8 @@ export default function GroupPage() {
               {group.title && (
                 <h2 className="text-h3-sb text-[#000]">{group.title}</h2>
               )}
-              {/* 함께선물 나가기: 선물 고르는 중 상태의 비개설자(공동관리자·참여자)만 */}
-              {group.status === 'SELECTING' && !isHost && (
+              {/* 함께선물 나가기: 선물 고르는 중 상태의 로그인한 비개설자(공동관리자·참여자)만. 비로그인은 아직 미참여라 미노출 */}
+              {group.status === 'SELECTING' && !isHost && isLoggedIn && (
                 <button
                   type="button"
                   onClick={() => setLeaveOpen(true)}
@@ -429,7 +431,8 @@ export default function GroupPage() {
                   >
                     더보기
                   </button>
-                ) : (
+                ) : isLoggedIn ? (
+                  // 편지 남기기는 로그인 필요 액션 — 비로그인 게스트에겐 미노출
                   <button
                     type="button"
                     onClick={() => navigate(`/group/${id}/letter`, { state: { recipientName: group.recipientName } })}
@@ -437,7 +440,7 @@ export default function GroupPage() {
                   >
                     편지 남기기
                   </button>
-                )}
+                ) : null}
               </div>
               <p className="text-caption1-r text-gray-600">봉투를 탭하면 메세지를 확인할 수 있어요</p>
             </div>
@@ -458,6 +461,13 @@ export default function GroupPage() {
 
       {/* 하단 고정 CTA */}
       <StickyBottomBar>
+        {!isLoggedIn ? (
+          // 비로그인 참여자: H는 조회만 비로그인 OK → 참여하려면 로그인
+          <Button className="pointer-events-auto" onClick={() => navigate('/login')}>
+            함께 선물 참여하기
+          </Button>
+        ) : (
+          <>
         {/* 선물 고르는 중 */}
         {group.status === 'SELECTING' && (
           isHost ? (
@@ -585,6 +595,8 @@ export default function GroupPage() {
               전달 완료 소식보기
             </Button>
           )
+        )}
+          </>
         )}
       </StickyBottomBar>
       <Toast open={toastOpen} message="초대장 링크가 복사되었습니다." variant="pink" bottomClass="bottom-[102px]" />
