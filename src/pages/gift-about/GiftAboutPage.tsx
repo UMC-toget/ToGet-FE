@@ -33,7 +33,7 @@ const TAB_CONTENT: Record<GiftPageType, TabContent> = {
     tabLabel: '내 선물 페이지',
     title: '내 선물 페이지',
     subtitle: '나를 위한 선물도, 친구를 위한 선물도\n함께 마음을 모아 준비해보세요.',
-    createPath: '/funding/create',
+    createPath: '/gift/create/my',
     items: [
       {
         Icon: GiftIcon,

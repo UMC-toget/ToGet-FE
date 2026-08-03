@@ -1,8 +1,15 @@
 export type ReviewWriteType = 'gift' | 'news' | 'message'
 
+/** FE 작성 유형 → BE 엔드포인트/조회 type 파라미터 매핑 */
+export const REVIEW_API_TYPE: Record<ReviewWriteType, 'review' | 'news' | 'heartfelt'> = {
+  gift: 'review',
+  news: 'news',
+  message: 'heartfelt',
+}
+
 /**
  * 작성 화면 → 완료 화면 → 조회 화면으로 넘기는 임시 데이터 (서버 연동 전, navigate state로 전달)
- * 조회 화면(GiftReviewDetailPage)은 이 값이 없으면(직접 URL 접근 등) mockReview로 대체한다.
+ * 조회 화면(GiftReviewDetailPage)은 이 값이 없으면(직접 URL 접근 등) 실제 조회 API → mockReview 순으로 대체한다.
  */
 export interface ReviewPreviewData {
   /** 후기를 작성한(선물을 받은) 사람 이름 */
@@ -13,6 +20,8 @@ export interface ReviewPreviewData {
   /** LETTER_COLORS의 id */
   colorId: string
   images: string[]
+  /** 작성 API 응답으로 받은 실제 후기 id (BE 연동 전 접근 시엔 없음) */
+  fundingReviewId?: number
 }
 
 interface ReviewWriteTypeConfig {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import Header from '../components/common/Header';
 import StepIndicator from '../components/create/StepIndicator';
 import Step1BasicInfo from '../components/create/Step1BasicInfo';
 import Step2Wishlist from '../components/create/Step2Wishlist';
@@ -45,39 +45,22 @@ export default function FundingCreatePage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between px-4 pt-5 pb-3">
-        {!isComplete ? (
-          <button
-            onClick={handleBack}
-            className="p-1 text-gray-600 hover:text-gray-900 transition-colors"
-            aria-label="뒤로가기"
-          >
-            <ChevronLeft size={24} />
-          </button>
-        ) : (
-          <span className="w-6" />
-        )}
-
-        <h1 className="text-sm font-semibold text-gray-700">내 선물 페이지 만들기</h1>
-
-        {!isComplete ? (
-          <button
-            onClick={handleExit}
-            className="text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            나가기
-          </button>
-        ) : (
-          <span className="w-8" />
-        )}
-      </div>
-
-      {/* 스텝 인디케이터 */}
       {!isComplete && (
-        <div className="px-4 pb-2">
-          <StepIndicator currentStep={step} />
-        </div>
+        <>
+          <Header
+            title="내 선물 페이지 만들기"
+            onBack={handleBack}
+            right={
+              <button type="button" onClick={handleExit} className="text-b2-m text-black">
+                나가기
+              </button>
+            }
+          />
+
+          <div className="px-4 pt-5 pb-2">
+            <StepIndicator currentStep={step} />
+          </div>
+        </>
       )}
 
       {/* 컨텐츠 */}

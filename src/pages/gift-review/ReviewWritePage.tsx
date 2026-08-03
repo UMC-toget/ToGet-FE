@@ -4,6 +4,7 @@ import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
 import TextField from '../../components/common/TextField'
 import ConfirmModal from '../../components/common/ConfirmModal'
+import Toast from '../../components/common/Toast'
 import PhotoActionSheet from '../../components/create/PhotoActionSheet'
 import ChevronLeftIcon from '../../components/icons/ChevronLeftIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
@@ -11,20 +12,19 @@ import ExpandIcon from '../../components/icons/ExpandIcon'
 import CloseIcon from '../../components/icons/CloseIcon'
 import PlusIcon from '../../components/icons/PlusIcon'
 import { LETTER_COLORS } from '../../components/common/letterPalette'
+import { uploadImage } from '../../utils/uploadImage'
 import { REVIEW_CHARACTERS } from './reviewCharacters'
 import { REVIEW_WRITE_TYPES, REVIEW_TITLE_MAX_LENGTH, REVIEW_CONTENT_MAX_LENGTH } from './reviewTypes'
 import type { ReviewWriteType, ReviewPreviewData } from './reviewTypes'
+import { useContributionBackgrounds, useCharacters, colorIdToBackgroundId } from './useDecorations'
+import { useCreateReview, useCreateNews, useCreateHeartfelt, getReviewSubmitErrorMessage } from './useReviews'
 import { MOCK_USER } from '../my/mockUser'
 
-/** File을 base64 data URL로 변환 (blob URL과 달리 페이지 이동 후에도 값이 유지됨) */
-function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(file)
-  })
-}
+const REVIEW_IMAGE_PREFIX = 'reviews'
+const TOAST_DURATION_MS = 2000
+
+// TODO: E·H 진입점(펀딩 상세/함께 참여)에서 fundingId를 넘겨주기 전까지, 라우트 직접 접근 시 사용할 임시값
+const FALLBACK_FUNDING_ID = '1'
 
 type ReviewTab = 'message' | 'color' | 'character'
 
@@ -117,7 +117,8 @@ function TogetLogoMark({ accentHex, isWhite, className }: { accentHex: string; i
 
 /** J파트 작성물 3종 공용 작성 화면 (/gift/review/write/:type, 피그마 "J01-1) 후기: 초대장 만들기" 외) */
 export default function ReviewWritePage() {
-  const { type } = useParams<{ type: string }>()
+  const { type, fundingId } = useParams<{ type: string; fundingId?: string }>()
+  const resolvedFundingId = fundingId ?? FALLBACK_FUNDING_ID
   const navigate = useNavigate()
 
   const [tab, setTab] = useState<ReviewTab>('message')
@@ -129,6 +130,20 @@ export default function ReviewWritePage() {
   const [showPhotoSheet, setShowPhotoSheet] = useState(false)
   const [showExitModal, setShowExitModal] = useState(false)
   const [showExpandModal, setShowExpandModal] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+
+  const backgrounds = useContributionBackgrounds()
+  const characters = useCharacters()
+  const createReviewMutation = useCreateReview(resolvedFundingId)
+  const createNewsMutation = useCreateNews(resolvedFundingId)
+  const createHeartfeltMutation = useCreateHeartfelt(resolvedFundingId)
+
+  useEffect(() => {
+    if (toastMessage === null) return
+    const timer = setTimeout(() => setToastMessage(null), TOAST_DURATION_MS)
+    return () => clearTimeout(timer)
+  }, [toastMessage])
 
   // images가 바뀔 때만 새로 생성하고, 이전 URL은 해제해서 blob 메모리가 쌓이지 않게 함
   const imageUrls = useMemo(() => images.map((file) => URL.createObjectURL(file)), [images])
@@ -146,7 +161,7 @@ export default function ReviewWritePage() {
   const characterImage = REVIEW_CHARACTERS[characterIndex]
   const displayTitle = title || config.titlePlaceholder
   const displayContent = content || config.contentPlaceholder
-  const canSubmit = title.trim() !== '' && content.trim() !== ''
+  const canSubmit = title.trim() !== '' && content.trim() !== '' && !submitting
 
   const changeCharacter = (delta: number) => {
     const count = REVIEW_CHARACTERS.length
@@ -158,16 +173,56 @@ export default function ReviewWritePage() {
   const handleExit = () => setShowExitModal(true)
 
   const handleSubmit = async () => {
-    // TODO: BE 연동 시 작성 데이터 전송 (colorId, characterIndex 포함)
-    const imageDataUrls = await Promise.all(images.map(fileToDataUrl))
-    const previewData: ReviewPreviewData = {
-      senderName: MOCK_USER.name,
-      title,
-      content,
-      colorId,
-      images: imageDataUrls,
+    if (submitting) return
+    setSubmitting(true)
+    try {
+      const imageUrls = await Promise.all(images.map((file) => uploadImage(REVIEW_IMAGE_PREFIX, file)))
+      // ⚠️ 배경색·캐릭터는 로컬 팔레트 순서가 서버 리소스 순서와 같다고 가정한 임시 매핑 (colorIdToBackgroundId 참고)
+      const backgroundId = colorIdToBackgroundId(colorId, backgrounds) ?? backgrounds[0]?.id ?? 1
+      const characterId = characters[characterIndex]?.id ?? characters[0]?.id ?? 1
+
+      let fundingReviewId: number
+      // 작성 화면엔 메시지 입력(제목·내용)이 하나뿐이라, 후기 본문과 초대장 문구를 동일한 값으로 채운다
+      if (config.key === 'gift') {
+        const result = await createReviewMutation.mutateAsync({
+          content,
+          backgroundId,
+          images: imageUrls,
+          invitationTitle: title,
+          invitationContent: content,
+          invitationCharacterId: characterId,
+          invitationBackgroundId: backgroundId,
+        })
+        fundingReviewId = result.fundingReviewId
+      } else {
+        const payload = {
+          title,
+          content,
+          images: imageUrls,
+          invitationTitle: title,
+          invitationContent: content,
+          invitationCharacterId: characterId,
+          invitationBackgroundId: backgroundId,
+        }
+        const mutation = config.key === 'news' ? createNewsMutation : createHeartfeltMutation
+        const result = await mutation.mutateAsync(payload)
+        fundingReviewId = result.fundingReviewId
+      }
+
+      const previewData: ReviewPreviewData = {
+        senderName: MOCK_USER.name,
+        title,
+        content,
+        colorId,
+        images: imageUrls,
+        fundingReviewId,
+      }
+      navigate(config.completePath, { state: previewData })
+    } catch (error) {
+      setToastMessage(getReviewSubmitErrorMessage(error))
+    } finally {
+      setSubmitting(false)
     }
-    navigate(config.completePath, { state: previewData })
   }
 
   return (
@@ -405,6 +460,8 @@ export default function ReviewWritePage() {
           </div>
         </div>
       )}
+
+      <Toast open={toastMessage !== null} message={toastMessage ?? ''} standalone />
     </div>
   )
 }
