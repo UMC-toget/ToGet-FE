@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# 개발용 피그마 참고 이미지 (앱 에셋 아님)
+src/assets/figma-ref/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
