@@ -587,10 +587,10 @@ export default function GroupPage() {
             </Button>
           ) : (
             // 공동관리자·참여자: 개설자가 남긴 전달 완료 소식(후기) 보기
-            // TODO: 후기 조회 라우트/식별자 BE 확정 시 경로 확인
+            // 라우트 /gift/review/:id/:fundingId? — 실제 조회는 fundingId로 하므로 함께 전달 (:id는 mock fallback용)
             <Button
               className="pointer-events-auto !bg-[#1E1D1E]"
-              onClick={() => navigate(`/gift/review/${id}`)}
+              onClick={() => navigate(`/gift/review/${id}/${id}`)}
             >
               전달 완료 소식보기
             </Button>
