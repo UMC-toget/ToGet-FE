@@ -60,7 +60,7 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
 
         {/* 제목 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">
+          <label className="text-sm font-medium text-gray-700 mb-2 block">
             선물 페이지 제목 <span className="text-red-400">*</span>
           </label>
           <input
@@ -68,7 +68,7 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
             placeholder="선물 페이지 제목을 입력해주세요"
             value={title}
             onChange={(e) => setStep1({ title: e.target.value })}
-            className={`w-full rounded-xl px-4 py-3 text-sm outline-none transition-colors border
+            className={`w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none transition-colors border
               ${errors.title ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-50 focus:border-gray-800 focus:bg-white'}`}
           />
           {errors.title && (
@@ -78,7 +78,7 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
 
         {/* 선물 필요 날짜 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">
+          <label className="text-sm font-medium text-gray-700 mb-2 block">
             선물 필요 날짜 <span className="text-red-400">*</span>
           </label>
           <button
@@ -99,7 +99,7 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
 
         {/* 선물 준비 기간 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">
+          <label className="text-sm font-medium text-gray-700 mb-2 block">
             선물 준비 기간 <span className="text-red-400">*</span>
           </label>
           <button
@@ -122,13 +122,13 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
 
         {/* 페이지 소개글 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">페이지 소개글</label>
+          <label className="text-sm font-medium text-gray-700 mb-2 block">페이지 소개글</label>
           <textarea
             placeholder="친구들에게 전하고 싶은 말을 적어주세요"
             value={greeting}
             onChange={(e) => setStep1({ greeting: e.target.value })}
             rows={3}
-            className="w-full rounded-xl px-4 py-3 text-sm outline-none bg-gray-50 border border-transparent focus:border-gray-800 focus:bg-white resize-none transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-50 border border-transparent focus:border-gray-800 focus:bg-white resize-none transition-colors"
           />
         </div>
 
@@ -166,7 +166,7 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
       <button
         onClick={handleNext}
         disabled={!isValid || disabled}
-        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
       >
         {submitLabel}
       </button>
