@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
@@ -12,6 +12,8 @@ import LetterStep from './LetterStep'
 import AmountStep from './AmountStep'
 import DepositStep from './DepositStep'
 import { postContribution } from '../../api/contributions'
+import { getSharedFunding, sharedFundingToFundingDetail } from '../../api/fundings'
+import type { FundingDetail } from '../../types/funding'
 
 /**
  * E03) 내 선물 참여: 축하 페이지 (4단계 참여 흐름)
@@ -22,10 +24,23 @@ export default function ParticipatePage() {
   const navigate = useNavigate()
   const locationState = useLocation().state as { hostName?: string; anniversaryDate?: string } | null
   const mockFunding = useMockFunding()
-  const hostName = locationState?.hostName ?? mockFunding.hostName
-  const funding = locationState?.anniversaryDate
-    ? { ...mockFunding, anniversaryDate: locationState.anniversaryDate }
-    : mockFunding
+  const [realFunding, setRealFunding] = useState<FundingDetail | null>(null)
+
+  // 진행카드·추천금액·개설자명·위시는 실펀딩(shared-fundings)에서 채웁니다.
+  // 조회 실패 시 mock으로 fallback (계좌는 DepositStep이 fundingId로 따로 조회)
+  useEffect(() => {
+    if (!id) return
+    getSharedFunding(id)
+      .then((shared) => setRealFunding(sharedFundingToFundingDetail(shared, [])))
+      .catch(() => {})
+  }, [id])
+
+  const funding =
+    realFunding ??
+    (locationState?.anniversaryDate
+      ? { ...mockFunding, anniversaryDate: locationState.anniversaryDate }
+      : mockFunding)
+  const hostName = realFunding?.hostName ?? locationState?.hostName ?? mockFunding.hostName
 
   const [step, setStep] = useState(1)
   const [name, setName] = useState('')
