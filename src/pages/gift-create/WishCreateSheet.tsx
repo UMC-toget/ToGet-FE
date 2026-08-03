@@ -4,6 +4,7 @@ import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import bannerCat from '../../assets/banner-cat.svg'
 import togetherCat from '../../assets/together-cat.svg'
 import wishGift from '../../assets/wish-gift.svg'
+import { useAuth } from '../../hooks/useAuth'
 
 interface WishCreateSheetProps {
   open: boolean
@@ -61,10 +62,11 @@ function WishCreateCard({ icon, title, description, onClick }: WishCreateCardInf
 /** 위시 등록 포함 바텀시트 (하단 탭바 + 버튼을 누르면 열림) */
 export default function WishCreateSheet({ open, onClose }: WishCreateSheetProps) {
   const navigate = useNavigate()
+  const { isLoggedIn } = useAuth()
 
   const handleSelectCard = (path: string) => {
     onClose()
-    navigate(path)
+    navigate(isLoggedIn ? path : '/login')
   }
 
   const handleGuideClick = () => {
