@@ -581,7 +581,7 @@ export default function GroupPage() {
           isHost ? (
             <Button
               className="pointer-events-auto !bg-[#1E1D1E]"
-              onClick={() => navigate(`/gift/review/write/news?fundingId=${id}`)}
+              onClick={() => navigate(`/gift/review/write/news/${id}`)}
             >
               전달 완료 소식 남기기
             </Button>
