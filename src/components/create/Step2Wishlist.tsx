@@ -162,10 +162,11 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
             </label>
             <div className="relative">
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 placeholder="선물 가격을 입력해 주세요"
-                value={form.price}
-                onChange={(e) => setForm({ ...form, price: e.target.value })}
+                value={form.price ? Number(form.price).toLocaleString() : ''}
+                onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^0-9]/g, '') })}
                 className={`w-full rounded-xl px-4 py-3 pr-12 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none border transition-colors
                   ${priceError ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-100/70 focus:border-gray-800 focus:bg-white'}`}
               />
