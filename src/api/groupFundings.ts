@@ -205,6 +205,13 @@ export function updateGroupFundingStatus(
   )
 }
 
+/** 함께 선물 나가기 (참여자·공동관리자, DELETE /api/v1/fundings/{fundingId}/members/me)
+ *  나가면 투표 내역이 사라지고 참여자에서 제외됨. HOST는 사용 불가.
+ *  TODO: BE 엔드포인트 확정 후 경로 확인 */
+export function leaveGroupFunding(fundingId: number | string) {
+  return unwrap<void>(apiClient.delete(`/api/v1/fundings/${fundingId}/members/me`))
+}
+
 /** H06) 선물 후보 등록 (CO_HOST 이상) */
 export function postGiftCandidate(
   fundingId: number | string,

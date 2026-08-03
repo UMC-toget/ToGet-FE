@@ -12,9 +12,8 @@ export interface CharacterMeta {
   imageUrl: string
 }
 
-export const fetchContributionBackgrounds = () =>
-  apiGet<BackgroundMeta[]>('/api/v1/contribution-backgrounds')
-
+// 편지지(축하 메세지) 색은 피그마 고정 8종을 작성자가 직접 고르는 로컬 팔레트라 BE 조회하지 않음.
+// (초대장 배경은 개설자가 정하는 값이라 BE에서 받아옴 — 아래 유지)
 export const fetchInvitationBackgrounds = () =>
   apiGet<BackgroundMeta[]>('/api/v1/invitation-backgrounds')
 
