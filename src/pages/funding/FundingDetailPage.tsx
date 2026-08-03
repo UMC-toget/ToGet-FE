@@ -232,7 +232,7 @@ export default function FundingDetailPage() {
               {isEnded ? (
                 <button
                   type="button"
-                  onClick={() => navigate('/gift/review/write/news')}
+                  onClick={() => navigate(`/gift/review/write/news/${id}`)}
                   className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-gray-600 bg-white text-sm font-semibold text-black"
                 >
                   선물 후기 남기기

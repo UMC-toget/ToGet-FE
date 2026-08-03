@@ -3,18 +3,16 @@ import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import { getTogetherGiftDashboard, updateMemberRole, type MemberSummary } from '../../api/groupFundings'
 import { MOCK_DASHBOARD } from './groupMock'
+import GroupSegmentTabs from './GroupSegmentTabs'
+import { ROLE_LABELS } from './groupConstants'
 
+// 접근: 로그인한 모든 역할 (역할 변경·권한 부여는 개설자·공동관리자) | 참여자 더보기
 const BADGE: Record<MemberSummary['role'], { label: string; className: string }> = {
   HOST: { label: '방장', className: 'bg-pink-500 text-white' },
   CO_HOST: { label: '부방장', className: 'bg-[#FFE3ED] text-pink-500' },
   MEMBER: { label: '참여자', className: 'bg-[#C1BCC0] text-white' },
 }
 
-const ROLE_LABEL: Record<MemberSummary['role'], string> = {
-  HOST: '개설자',
-  CO_HOST: '부방장',
-  MEMBER: '참여자',
-}
 
 export default function ParticipantsPage() {
   const { id } = useParams<{ id: string }>()
@@ -49,21 +47,12 @@ export default function ParticipantsPage() {
       <Header title="함께 선물 페이지" />
 
       {/* 세그먼트 탭 */}
-      <div className="mx-[18px] my-6 flex shrink-0 items-center gap-1 rounded-lg bg-gray-100 p-1">
-        <button
-          type="button"
-          onClick={() => navigate(`/group/${id}`)}
-          className="flex flex-1 items-center justify-center rounded py-2 px-[10px] text-b2-m text-[#797378]"
-        >
-          함께 선물 페이지
-        </button>
-        <button
-          type="button"
-          className="flex flex-1 items-center justify-center rounded bg-white py-2 px-[10px] text-b2-m text-black"
-        >
-          참여자 관리
-        </button>
-      </div>
+      <GroupSegmentTabs
+        tabs={[
+          { label: '함께 선물 페이지', active: false, onClick: () => navigate(`/group/${id}`) },
+          { label: '참여자 관리', active: true },
+        ]}
+      />
 
       {/* 스크롤 영역 */}
       <div className="flex-1 overflow-y-auto pb-8">
@@ -119,7 +108,7 @@ function StatItem({ label, count }: { label: string; count: number }) {
   return (
     <div className="flex flex-col items-center gap-2">
       <span className="text-caption1-r text-[#797378]">{label}</span>
-      <span className="text-h3-sb text-black">{count}명</span>
+      <span className="text-[18px] font-medium text-black">{count}명</span>
     </div>
   )
 }
@@ -189,8 +178,8 @@ function MemberCard({ member, menuOpen, onToggleMenu, onCloseMenu, onRoleChange 
           )}
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-caption1-r text-[#797378]">{ROLE_LABEL[role]}</span>
-          <span className="text-b2-m text-black">{name}</span>
+          <span className="text-b2-r text-[#797378]">{ROLE_LABELS[role]}</span>
+          <span className="text-b2-r text-black">{name}</span>
         </div>
       </div>
 
@@ -207,19 +196,20 @@ function MemberCard({ member, menuOpen, onToggleMenu, onCloseMenu, onRoleChange 
 
         {menuOpen && canChangeRole && (
           <div
-            className="absolute right-0 z-50 flex w-[100px] flex-col items-start justify-center divide-y divide-[#EAE9EA] overflow-hidden rounded-lg bg-white py-1 shadow-[0_0_10px_0_rgba(0,0,0,0.20)]"
-            style={{ top: '-8.5px' }}
+            className="absolute right-0 z-50 flex w-[100px] flex-col rounded-lg bg-white py-1 shadow-[0_0_10px_0_rgba(0,0,0,0.20)]"
+            style={{ top: '8.5px' }}
           >
             <button
               type="button"
-              className="w-full px-[5px] py-1 text-left text-caption1-r text-black"
+              className="w-full pl-[9px] pr-2 py-1 text-left text-caption2-r text-black"
               onClick={() => onRoleChange(fundingMemberId, 'MEMBER')}
             >
               참여자
             </button>
+            <div className="mx-[9px] h-px bg-[#EAE9EA]" />
             <button
               type="button"
-              className="w-full px-[5px] py-1 text-left text-caption1-r text-black"
+              className="w-full pl-[9px] pr-2 py-1 text-left text-caption2-r text-black"
               onClick={() => onRoleChange(fundingMemberId, 'CO_HOST')}
             >
               부방장

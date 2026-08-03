@@ -12,6 +12,7 @@ import { getTogetherGiftDashboard, getGiftCandidates, type GiftCandidateItem, ty
 import { getFundingAccount, type FundingAccount } from '../../api/fundings'
 import { MOCK_CANDIDATES, MOCK_DASHBOARD, MOCK_ACCOUNT } from './groupMock'
 
+// 접근: 개설자 전용 | 선물 확정 플로우 4단계 (선물 확정 → 정산인원 → 금액 → 정산 시작)
 export interface ConfirmedGift {
   id: number
   name: string
@@ -55,14 +56,18 @@ export default function ConfirmPage() {
       getTogetherGiftDashboard(id),
       getFundingAccount(id),
     ]).then(([candidatesRes, dashboardRes, accountRes]) => {
+      const apiCandidates =
+        candidatesRes.status === 'fulfilled' ? candidatesRes.value.candidates : []
       const rawCandidates =
-        candidatesRes.status === 'fulfilled'
-          ? candidatesRes.value.candidates
+        apiCandidates.length > 0
+          ? apiCandidates
           : import.meta.env.DEV ? MOCK_CANDIDATES.candidates : []
 
+      const apiMembers =
+        dashboardRes.status === 'fulfilled' ? dashboardRes.value.members : []
       const rawMembers =
-        dashboardRes.status === 'fulfilled'
-          ? dashboardRes.value.members
+        apiMembers.length > 0
+          ? apiMembers
           : import.meta.env.DEV ? MOCK_DASHBOARD.members : []
 
       setCandidates(rawCandidates)
@@ -197,9 +202,9 @@ export default function ConfirmPage() {
         )}
       </div>
 
-      <div className="px-[18px] pb-8 pt-4">
+      <div className="sticky bottom-0 px-[18px] pb-8 pt-4">
         <Button disabled={!canGoNext || submitting} onClick={handleNext}>
-          {step === 4 ? '정산하고 안내하기' : '다음'}
+          {step === 4 ? '저장하고 안내하기' : '다음'}
         </Button>
       </div>
 
@@ -218,7 +223,12 @@ export default function ConfirmPage() {
 
 function ExitButton({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="text-b2-m text-black">
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-[#797378]"
+      style={{ fontFamily: 'Noto Sans KR', fontSize: '14px', fontWeight: 500, lineHeight: '100%' }}
+    >
       나가기
     </button>
   )

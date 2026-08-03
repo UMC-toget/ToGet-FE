@@ -2,6 +2,7 @@ import type { ConfirmedGift } from './ConfirmPage'
 import type { FundingAccount } from '../../api/fundings'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
 
+// ConfirmPage 서브 컴포넌트 (개설자 전용) | 4단계 정산 시작하기 — 최종 선물 목록 및 계좌 정보 확인
 interface Props {
   confirmedGifts: ConfirmedGift[]
   includedCount: number
@@ -33,7 +34,7 @@ export default function ConfirmStep4({ confirmedGifts, includedCount, account }:
                   <div className="size-full bg-gray-100" />
                 )}
               </div>
-              <div className="flex flex-1 flex-col gap-1">
+              <div className="flex flex-1 flex-col gap-[10px]">
                 <span className="text-b2-m text-black line-clamp-1">{gift.name}</span>
                 <span className="text-caption1-r text-gray-700">{gift.price.toLocaleString()}원</span>
               </div>
@@ -50,6 +51,7 @@ export default function ConfirmStep4({ confirmedGifts, includedCount, account }:
             <SettleRow label="총 금액" value={`${totalAmount.toLocaleString()}원`} />
             <div className="h-px bg-gray-100" />
             <SettleRow label="정산 인원" value={`${includedCount}명`} />
+            <div className="h-px bg-gray-100" />
             <SettleRow label="내 입금 금액" value={`${myShare.toLocaleString()}원`} highlight />
           </div>
         </div>
@@ -63,6 +65,7 @@ export default function ConfirmStep4({ confirmedGifts, includedCount, account }:
             <AccountRow label="은행" value={bankLabel} />
             <div className="h-px bg-gray-100" />
             <AccountRow label="계좌번호" value={account?.account ?? '-'} />
+            <div className="h-px bg-gray-100" />
             <AccountRow label="예금주" value={account?.accountOwner ?? '-'} />
           </div>
         </div>

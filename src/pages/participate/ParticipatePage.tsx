@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
@@ -6,22 +6,12 @@ import ConfirmModal from '../../components/common/ConfirmModal'
 import Toast from '../../components/common/Toast'
 import { useMockFunding } from '../funding/useMockFunding'
 import { LETTER_COLORS, type LetterColor } from '../../components/common/letterPalette'
-import { fetchContributionBackgrounds, type BackgroundMeta } from '../../api/metaApi'
 import ProcessBar from '../../components/common/ProcessBar'
 import NameStep from './NameStep'
 import LetterStep from './LetterStep'
 import AmountStep from './AmountStep'
 import DepositStep from './DepositStep'
 import { postContribution } from '../../api/contributions'
-
-// BE background 이름 → 로컬 팔레트 매핑 (시각 속성 유지, id만 BE 값으로 교체)
-const LOCAL_BY_NAME = Object.fromEntries(LETTER_COLORS.map(c => [c.name, c]))
-
-function bgMetaToLetterColor(meta: BackgroundMeta): LetterColor {
-  const local = LOCAL_BY_NAME[meta.name]
-  if (local) return { ...local, id: String(meta.id) }
-  return { id: String(meta.id), name: meta.name, background: meta.hexCode, border: meta.hexCode, lineColor: meta.hexCode, placeholder: meta.hexCode }
-}
 
 /**
  * E03) 내 선물 참여: 축하 페이지 (4단계 참여 흐름)
@@ -41,21 +31,9 @@ export default function ParticipatePage() {
   const [name, setName] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [letter, setLetter] = useState('')
-  const [colors, setColors] = useState<LetterColor[]>(LETTER_COLORS)
+  // 편지지 색은 피그마 고정 8종(로컬 팔레트). 작성자가 자유롭게 선택 — BE 조회 불필요, 제출 시 backgroundId만 전송
   const [letterColor, setLetterColor] = useState<LetterColor>(LETTER_COLORS[7]) // 기본 화이트
   const [isPrivate, setIsPrivate] = useState(false)
-
-  useEffect(() => {
-    fetchContributionBackgrounds()
-      .then(data => {
-        const mapped = data.map(bgMetaToLetterColor)
-        if (mapped.length === 0) return // 빈 응답이면 로컬 팔레트 유지
-        setColors(mapped)
-        const white = mapped.find(c => c.name === '화이트') ?? mapped[mapped.length - 1]
-        if (white) setLetterColor(white)
-      })
-      .catch(() => { /* API 실패 시 기존 팔레트 유지 */ })
-  }, [])
   const [amount, setAmount] = useState<number | null>(null)
   const [showExitModal, setShowExitModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -83,7 +61,7 @@ export default function ParticipatePage() {
     try {
       await postContribution(id!, {
         senderName: isAnonymous ? '익명' : name.trim(),
-        backgroundId: Number(letterColor.id) || 1,
+        backgroundId: letterColor.backgroundId,
         isAnonymous,
         amount: amount ?? 0,
         content: letter,
@@ -127,7 +105,6 @@ export default function ParticipatePage() {
             hostName={hostName}
             letter={letter}
             letterColor={letterColor}
-            colors={colors}
             isPrivate={isPrivate}
             onLetterChange={setLetter}
             onColorChange={setLetterColor}
