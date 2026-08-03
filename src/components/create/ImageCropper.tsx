@@ -307,7 +307,7 @@ export default function ImageCropper({ file, aspectRatio, onCancel, onConfirm }:
           type="button"
           onClick={handleConfirm}
           disabled={!cropRect}
-          className="flex h-14 w-full items-center justify-center rounded-2xl bg-[#1E1D1E] text-[16px] font-semibold text-white disabled:opacity-40"
+          className="flex h-14 w-full items-center justify-center rounded-2xl bg-[#1E1D1E] text-[16px] font-semibold text-white disabled:bg-gray-300"
         >
           다음
         </button>

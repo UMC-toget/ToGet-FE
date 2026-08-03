@@ -33,7 +33,7 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
 
         {/* 준비방 이름 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">
+          <label className="text-sm font-medium text-gray-700 mb-2 block">
             준비방 이름 <span className="text-red-400">*</span>
           </label>
           <input
@@ -41,13 +41,13 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
             placeholder="준비방 이름을 입력해주세요"
             value={roomName}
             onChange={(e) => setStep1({ roomName: e.target.value })}
-            className="w-full rounded-xl px-4 py-3 text-sm outline-none bg-gray-50 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-50 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
           />
         </div>
 
         {/* 선물 받을 사람 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">
+          <label className="text-sm font-medium text-gray-700 mb-2 block">
             선물 받을 사람 <span className="text-red-400">*</span>
           </label>
           <input
@@ -55,13 +55,13 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
             placeholder="선물 받을 사람의 이름을 입력해주세요"
             value={recipientName}
             onChange={(e) => setStep1({ recipientName: e.target.value })}
-            className="w-full rounded-xl px-4 py-3 text-sm outline-none bg-gray-50 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-50 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
           />
         </div>
 
         {/* 기념일 날짜 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">
+          <label className="text-sm font-medium text-gray-700 mb-2 block">
             기념일 날짜 <span className="text-red-400">*</span>
           </label>
           <button
@@ -80,19 +80,19 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
 
         {/* 준비방 소개글 또는 메모 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">준비방 소개글 또는 메모</label>
+          <label className="text-sm font-medium text-gray-700 mb-2 block">준비방 소개글 또는 메모</label>
           <input
             type="text"
             placeholder="선물 준비에 대해 간단히 소개 해주세요"
             value={memo}
             onChange={(e) => setStep1({ memo: e.target.value })}
-            className="w-full rounded-xl px-4 py-3 text-sm outline-none bg-gray-50 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-50 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
           />
         </div>
 
         {/* 준비방 대표 이미지 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">준비방 대표 이미지</label>
+          <label className="text-sm font-medium text-gray-700 mb-2 block">준비방 대표 이미지</label>
           {thumbnailImage ? (
             <div className="relative w-24 h-24">
               <img
@@ -125,7 +125,7 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
       <button
         onClick={onNext}
         disabled={!isValid}
-        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
       >
         다음
       </button>

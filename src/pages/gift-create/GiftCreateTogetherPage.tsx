@@ -59,7 +59,7 @@ export default function GiftCreateTogetherPage() {
         cancelText="계속 작성하기"
         confirmText="저장하고 나가기"
         onCancel={() => setShowExitModal(false)}
-        onConfirm={() => navigate('/gift/about')}
+        onConfirm={() => navigate('/home')}
       />
     </div>
   )
