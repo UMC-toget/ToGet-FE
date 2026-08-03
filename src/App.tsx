@@ -11,7 +11,6 @@ import AccountListPage from './pages/my/AccountListPage'
 import AccountFormPage from './pages/my/AccountFormPage'
 import FundingCreatePage from './pages/FundingCreatePage';
 import GiftAboutPage from './pages/gift-about/GiftAboutPage'
-import GiftCreateMyPage from './pages/gift-create/GiftCreateMyPage'
 import GiftCreateTogetherPage from './pages/gift-create/GiftCreateTogetherPage'
 import InvitationPage from './pages/invitation/InvitationPage'
 import FundingDetailPage from './pages/funding/FundingDetailPage'
@@ -48,9 +47,8 @@ function App() {
       <Route path="/my/accounts" element={<AccountListPage />} />
       <Route path="/my/accounts/new" element={<AccountFormPage />} />
       <Route path="/my/accounts/:id/edit" element={<AccountFormPage />} />
-      <Route path="/funding/create" element={<FundingCreatePage />} />
       <Route path="/gift/about" element={<GiftAboutPage />} />
-      <Route path="/gift/create/my" element={<GiftCreateMyPage />} />
+      <Route path="/gift/create/my" element={<FundingCreatePage />} />
       <Route path="/gift/create/together" element={<GiftCreateTogetherPage />} />
       <Route path="/funding/:id/invitation" element={<InvitationPage />} />
       <Route path="/funding/:id" element={<FundingDetailPage />} />
