@@ -1,16 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
-import PlusIcon from '../../components/icons/PlusIcon'
 import { getGiftCandidates, getTogetherGiftDashboard, toggleGiftVote } from '../../api/groupFundings'
 import type { GiftCandidateItem, MemberSummary } from '../../api/groupFundings'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import { MOCK_CANDIDATES, MOCK_DASHBOARD } from './groupMock'
+import PlusIcon from '../../components/icons/PlusIcon'
 
+// 접근: 전체 (비로그인 조회 OK, 투표는 로그인 필요, 후보 등록 버튼은 공동관리자 이상) | H02 선물 후보 목록
 const MAX_VOTES = 3
 const TOP_COUNT = 2
-
-
 
 export default function CandidatesPage() {
   const { id } = useParams()
@@ -30,17 +29,17 @@ export default function CandidatesPage() {
       getGiftCandidates(id),
       getTogetherGiftDashboard(id),
     ]).then(([candidatesRes, dashboardRes]) => {
-      if (candidatesRes.status === 'fulfilled') {
-        setCandidates(candidatesRes.value.candidates)
-        setVotedIds(new Set(candidatesRes.value.votedGiftIds))
-      } else if (import.meta.env.DEV) {
+      if (import.meta.env.DEV) {
         setCandidates(MOCK_CANDIDATES.candidates)
         setVotedIds(new Set(MOCK_CANDIDATES.votedGiftIds))
+      } else if (candidatesRes.status === 'fulfilled') {
+        setCandidates(candidatesRes.value.candidates)
+        setVotedIds(new Set(candidatesRes.value.votedGiftIds))
       }
-      if (dashboardRes.status === 'fulfilled') {
-        setMembers(dashboardRes.value.members)
-      } else if (import.meta.env.DEV) {
+      if (import.meta.env.DEV) {
         setMembers(MOCK_DASHBOARD.members)
+      } else if (dashboardRes.status === 'fulfilled') {
+        setMembers(dashboardRes.value.members)
       }
     }).catch(console.error)
       .finally(() => setLoading(false))
@@ -104,17 +103,6 @@ export default function CandidatesPage() {
     }
   }
 
-  const adminRight = isAdmin ? (
-    <button
-      type="button"
-      onClick={() => navigate(`/group/${id}/candidates/new`)}
-      className="flex items-center gap-1 text-b2-m text-pink-500"
-    >
-      <PlusIcon className="size-4" />
-      후보 등록
-    </button>
-  ) : undefined
-
   if (loading) {
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
@@ -128,17 +116,31 @@ export default function CandidatesPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-8">
-      <Header title="선물 후보 더보기" right={adminRight} />
+      <Header title="선물 후보 더보기" />
 
-      {/* 섹션 1: 상위 후보 */}
-      <section className="flex flex-col gap-4 px-[18px] py-5">
-        <div className="flex flex-col gap-1">
+      {/* 후보 등록 배너 (관리자만) */}
+      {isAdmin && (
+        <button
+          type="button"
+          onClick={() => navigate(`/group/${id}/candidates/new`)}
+          className="mx-[18px] mt-5 flex items-center gap-[10px] rounded-xl border border-gray-100 px-[14px] py-3"
+        >
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-[6px] bg-background">
+            <PlusIcon className="size-5 text-gray-600" />
+          </div>
+          <span className="text-b2-m text-black">새로운 선물 후보 등록하기</span>
+        </button>
+      )}
+
+      {/* 섹션 1: 실시간 상위 후보 */}
+      <section className="flex flex-col gap-5 px-[18px] pb-5 pt-5">
+        <div className="flex flex-col gap-2">
           <h2 className="text-h3-sb text-black">실시간 득표수가 높은 선물후보</h2>
-          <p className="text-caption1-r text-gray-500">
+          <p className="text-caption1-r text-gray-600">
             최대 3개까지 투표가 가능해요 ({voteCount}/{MAX_VOTES})
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           {topCandidates.map((candidate, idx) => (
             <VoteCard
               key={candidate.fundingGiftId}
@@ -155,15 +157,15 @@ export default function CandidatesPage() {
       </section>
 
       {/* 구분선 */}
-      <div className="h-2 bg-background" />
+      <div className="h-3 bg-background" />
 
       {/* 섹션 2: 전체 후보 */}
-      <section className="flex flex-col gap-4 px-[18px] py-5">
-        <div className="flex flex-col gap-1">
+      <section className="flex flex-col gap-5 px-[18px] pb-5 pt-5">
+        <div className="flex flex-col gap-2">
           <h2 className="text-h3-sb text-black">선물 후보</h2>
-          <p className="text-caption1-r text-gray-500">한 명당 최대 3개까지 투표할 수 있어요</p>
+          <p className="text-caption1-r text-[#888888]">한 명당 최대 3개까지 투표할 수 있어요</p>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           {sorted.map((candidate, idx) => (
             <VoteCard
               key={candidate.fundingGiftId}
@@ -192,62 +194,66 @@ interface VoteCardProps {
   onVote: () => void
 }
 
+const RANK_COLORS: Record<number, string> = {
+  1: 'bg-pink-500 text-white',
+  2: 'bg-gray-900 text-white',
+  3: 'bg-gray-900 text-white',
+}
+
 function VoteCard({ candidate, fundingId, rank, isVoted, disabled, toggling, onVote }: VoteCardProps) {
   const navigate = useNavigate()
-  const showRank = rank <= 3
-  const rankBadgeClass = rank === 1 ? 'bg-pink-500 text-white' : 'bg-gray-900 text-white'
+  const rankBadge = RANK_COLORS[rank]
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-xl border border-gray-100">
-      {/* 이미지 + 정보: 탭하면 상세 이동 */}
+    <div className="flex w-full flex-col items-center rounded-[18px] border border-gray-100 p-[10px]">
+      {/* 이미지: 탭하면 상세 이동 */}
       <button
         type="button"
-        onClick={() => navigate(`/group/${fundingId}/candidates/${candidate.fundingGiftId}`)}
-        className="flex flex-col text-left"
+        onClick={() => navigate(`/group/${fundingId}/candidates/${candidate.fundingGiftId}`, { state: { candidate } })}
+        className="w-full"
       >
-        <div className="h-[156px] w-full bg-background">
+        <div className="relative flex size-[154px] shrink-0 items-center justify-center rounded-xl bg-background">
           {candidate.giftImageUrl ? (
             <img
               src={candidate.giftImageUrl}
               alt={candidate.giftName}
-              className="size-full object-cover"
+              className="size-full rounded-xl object-cover"
             />
           ) : (
-            <div className="size-full" />
+            <div className="size-full rounded-xl bg-background" />
           )}
-        </div>
-
-        <div className="flex flex-col gap-[6px] px-3 pt-3">
-          <div className="flex items-center gap-1">
-            {showRank && (
-              <span className={`shrink-0 rounded-full px-2 py-0.5 text-caption2-m ${rankBadgeClass}`}>
-                {rank}위
-              </span>
-            )}
-            <span className="text-caption1-r text-gray-500">{candidate.voteCount}명 투표</span>
-          </div>
-          <p className="line-clamp-2 break-keep text-b2-m text-black">{candidate.giftName}</p>
-          <p className="text-b2-m text-gray-700">{candidate.giftPrice.toLocaleString()}원</p>
         </div>
       </button>
 
-      {/* 투표 버튼: 카드 이동과 별개 */}
-      <div className="px-3 pb-3 pt-2">
-        <button
-          type="button"
-          onClick={onVote}
-          disabled={disabled || toggling}
-          className={`w-full rounded-lg py-2 text-b2-m transition-colors ${
-            isVoted
-              ? 'bg-gray-900 text-white'
-              : disabled
-                ? 'bg-gray-100 text-gray-400'
-                : 'bg-[#C1BCC0] text-white'
-          }`}
-        >
-          투표하기
-        </button>
+      {/* 상품 정보 */}
+      <div className="mt-2 flex w-full flex-col gap-[3.5px]">
+        <div className="flex items-center gap-2">
+          {rankBadge && (
+            <span className={`rounded-full px-[8px] py-[2px] text-caption2-m ${rankBadge}`}>
+              {rank}위
+            </span>
+          )}
+          <span className="text-caption2-m text-gray-600">{candidate.voteCount}명 투표</span>
+        </div>
+        <p className="line-clamp-2 text-caption1-m leading-snug text-black">{candidate.giftName}</p>
+        <p className="text-caption1-m text-black">{candidate.giftPrice.toLocaleString()}원</p>
       </div>
+
+      {/* 투표 버튼 */}
+      <button
+        type="button"
+        onClick={onVote}
+        disabled={disabled || toggling}
+        className={`mt-2 h-[26px] w-full rounded-lg text-caption2-m transition-colors ${
+          isVoted
+            ? 'bg-gray-900 text-white'
+            : disabled
+              ? 'bg-gray-100 text-gray-400'
+              : 'bg-gray-100 text-black'
+        }`}
+      >
+        투표하기
+      </button>
     </div>
   )
 }

@@ -27,6 +27,7 @@ export interface ConfirmedGift {
   giftName: string
   giftPrice: number
   giftImageUrl: string | null
+  purchaseUrl?: string | null
 }
 
 export interface TogetherGiftDashboard {
@@ -191,6 +192,16 @@ export function updateMemberRole(
 ) {
   return unwrap<MemberSummary>(
     apiClient.patch(`/api/v1/fundings/${fundingId}/members/${memberId}/role`, { role }),
+  )
+}
+
+/** 펀딩 상태 전환 (HOST 전용, PATCH /api/v1/fundings/{fundingId}/status) */
+export function updateGroupFundingStatus(
+  fundingId: number | string,
+  status: GroupFundingStatus,
+) {
+  return unwrap<{ status: GroupFundingStatus }>(
+    apiClient.patch(`/api/v1/fundings/${fundingId}/status`, { status }),
   )
 }
 

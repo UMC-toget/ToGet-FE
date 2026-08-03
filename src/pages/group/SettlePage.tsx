@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
+import StickyBottomBar from '../../components/common/StickyBottomBar'
 import Toast from '../../components/common/Toast'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import {
@@ -13,7 +14,9 @@ import { getFundingAccount, type FundingAccount } from '../../api/fundings'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import { MOCK_SETTLEMENTS, MOCK_ACCOUNT, MOCK_DASHBOARD } from './groupMock'
+import { copyToClipboard } from '../../utils/clipboard'
 
+// 접근: 로그인한 모든 역할 | 정산하기 — 계좌 조회 및 입금 확인 요청 (참여자 뷰)
 interface InfoRowProps {
   label: string
   value: string
@@ -88,16 +91,7 @@ export default function SettlePage() {
 
   const copyAccount = async () => {
     if (!accountNumber) return
-    try {
-      await navigator.clipboard.writeText(accountNumber)
-    } catch {
-      const el = document.createElement('textarea')
-      el.value = accountNumber
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand('copy')
-      document.body.removeChild(el)
-    }
+    await copyToClipboard(accountNumber)
     setToastOpen(true)
     setTimeout(() => setToastOpen(false), 2000)
   }
@@ -216,14 +210,14 @@ export default function SettlePage() {
       </div>
 
       {/* 하단 고정 CTA */}
-      <div className="pointer-events-none fixed bottom-0 left-1/2 w-full max-w-[402px] -translate-x-1/2 bg-gradient-to-b from-white/0 to-white/80 px-[18px] pb-[34px] pt-10">
+      <StickyBottomBar>
         <Button
           className="pointer-events-auto"
           onClick={() => navigate(`/group/${id}`)}
         >
           입금 완료
         </Button>
-      </div>
+      </StickyBottomBar>
 
       <Toast open={toastOpen} message="계좌번호가 복사되었어요" />
     </div>

@@ -24,8 +24,8 @@ ToGet은 생일·졸업·집들이 등 특별한 날의 선물을 **여러 사�
 
 - 현재 저장소는 모바일 우선(Mobile-first) 반응형 웹으로 구현되었으며, 최대 너비 **402px** 기준의 모바일 레이아웃을 중심으로 설계되었습니다.
 
-- **스플래시 → 로그인(카카오/구글) → 프로필 설정(회원가입) → 홈(선물 둘러보기 · 내가 개최한 선물 모으기) → 위시 등록/수정 → 마이페이지(내 정보 · 계좌 관리) → 선물 만들기 → 펀딩 상세/참여/후기**까지 전체 서비스 흐름의 화면이 구현되어 있습니다. <br>
-- **프로필·계좌·내 펀딩 목록 등 일부 도메인은 실제 백엔드 API와 연동**되고 상품·위시·펀딩 등 나머지는 Mock 데이터로 렌더링됩니다. <br>
+- **스플래시 → 로그인(카카오/구글) → 프로필 설정(회원가입) → 홈(선물 둘러보기 · 내가 개최한 선물 모으기) → 위시 등록/수정 → 마이페이지(내 정보 · 계좌 관리) → 선물 만들기 → 펀딩 상세/참여/후기 · 함께 선물 참여(후보 투표/정산)**까지 전체 서비스 흐름의 화면이 구현되어 있습니다. <br>
+- **프로필·계좌·내 펀딩 목록·함께 선물 대시보드·선물 후보·투표·정산 등 일부 도메인은 실제 백엔드 API와 연동**되고 위시·후기 등 나머지는 Mock 데이터로 렌더링됩니다. <br>
 
 > 소셜 로그인·로그아웃은 클라이언트 구현이 별도 브랜치에 완료되어 있으나 백엔드 데이터베이스 미구축으로 인해 `dev`에는 아직 병합되지 않았습니다. <br>
 > 미연동 지점은 코드 내 `// TODO` 주석으로 표시되어 있습니다.
@@ -63,7 +63,7 @@ ToGet은 생일·졸업·집들이 등 특별한 날의 선물을 **여러 사�
     <td align="center"><a href="https://github.com/sumin0423"><b>최수민</b></a></td>
   </tr>
   <tr height="30px">
-    <td align="center">초대장 · 펀딩 상세/참여 · 메세지</td>
+    <td align="center">초대장 · 펀딩 상세/참여 · 메세지 · 함께 선물 참여</td>
     <td align="center">선물 만들기 진입 · 선물 후기</td>
     <td align="center">온보딩 · 홈 · 위시 · 마이 · 공통/API</td>
     <td align="center">선물 만들기 플로우(5단계)</td>
@@ -168,6 +168,9 @@ src/
 │   ├── funding/                # 펀딩 상세·수정·메세지
 │   ├── invitation/             # 펀딩 초대장
 │   ├── participate/            # 펀딩 참여(4단계)·완료
+│   ├── group/                  # 함께 선물 참여 — H섹션
+│   │                           #  (GroupPage/CandidatesPage/CandidateNewPage/
+│   │                           #   ParticipantsPage/LetterPage/SettlePage/GroupEditPage)
 │   └── gift-review/            # 선물 후기 작성/완료/조회
 │
 ├── assets/                     # 로고/캐릭터/은행 로고 등 (+ mock 이미지)
@@ -195,6 +198,14 @@ src/
               ▼               ▼                 ▼
       [/participate]   [/messages]        [/gift/review/write/:type]
       펀딩 참여 4단계   메세지 전체보기      선물 후기 작성 → 완료 → 조회
+
+[/group/:id] 함께 선물 메인 (H 섹션 — 그룹 펀딩 참여)
+   ├── [/group/:id/candidates]         선물 후보 목록/투표 (최대 3표)
+   │     └── [/group/:id/candidates/new]  후보 등록 (CO_HOST 이상)
+   ├── [/group/:id/participants]       참여자 목록
+   ├── [/group/:id/letter]             편지 남기기
+   ├── [/group/:id/settle]             정산하기
+   └── [/group/:id/edit]               선물 페이지 수정 (HOST 전용)
 ```
 
 전체 화면 목록, 진입 경로, 라우팅 표, 담당자, 공통 컴포넌트 사용 방식 등 상세 내용은
@@ -221,7 +232,15 @@ src/
 | 내 펀딩 목록 (`/api/v1/users/me/fundings`) | ✅ 연동 |
 | 로그아웃 (`/api/v1/auth/tokens/me` DELETE) | 🟡 `dev`는 클라이언트 토큰 정리만 수행. 서버 로그아웃 API 연동은 `feat/#131-logout-api` 브랜치에서 구현 완료, `dev` 미병합 |
 | 소셜 로그인 (`/api/v1/auth/tokens/{provider}`) | 🟡 구글(`feat/#104-google-login`)·카카오(`feat/#129-kakao-login`) 모두 클라이언트 SDK 연동까지 완료됐으나 `dev` 미병합. 백엔드 이슈(구글: DB 미구축 / 카카오: 토큰 검증 오류 `USER401_1`)로 실제 로그인은 미검증 |
-| 상품·위시·펀딩·후기 | ❌ Mock (연동 예정) |
+| 함께 선물 대시보드 (`/api/v1/fundings/{id}/dashboards/together-gift`) | ✅ 연동 |
+| 선물 후보 목록/단건 조회 (`/api/v1/fundings/{id}/gift-candidates`) | ✅ 연동 |
+| 투표 토글 (POST `/api/v1/fundings/{id}/gift-candidates/{giftId}/votes`) | ✅ 연동 |
+| 선물 후보 등록 (POST `/api/v1/fundings/{id}/gift-candidates`) | ✅ 연동 |
+| 정산 내역 조회 (`/api/v1/fundings/{id}/dashboards/settlements`) | ✅ 연동 |
+| 정산 상태 수정 (PATCH `/api/v1/fundings/{id}/members/{memberId}/settlement-status`) | ✅ 연동 (HOST 전용) |
+| 참여자 역할 변경 (PATCH `/api/v1/fundings/{id}/members/{memberId}/role`) | ✅ 연동 (HOST 전용) |
+| 참여자 UNPAID → PAID 상태 변경 | ❌ BE 미구현 (연동 대기) |
+| 상품·위시·펀딩(비개설자 뷰)·후기·편지 | ❌ Mock (연동 예정) |
 
 > 모든 API 응답은 `ApiEnvelope<T>`(`{ isSuccess, code, message, result }`) 형태이며, `apiClient`의 `unwrap()`이 `result`만 반환하고 실패 시 `ApiError`를 던집니다. <br> <br>
 > `apiClient`는 요청에 access token을 주입하고, 401 응답 시 refresh token으로 자동 재발급 후 원요청을 재시도합니다. <br><br>

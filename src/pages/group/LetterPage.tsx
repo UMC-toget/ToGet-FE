@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
+import StickyBottomBar from '../../components/common/StickyBottomBar'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import CheckOption from '../../components/common/CheckOption'
 import { LETTER_COLORS } from '../../components/common/letterPalette'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import { postContribution } from '../../api/contributions'
 
+// 접근: 로그인한 모든 역할 | 편지 남기기
 const LETTER_MAX_LENGTH = 234
 
 const BG_ID_BY_COLOR: Record<string, number> = {
@@ -132,7 +134,7 @@ export default function LetterPage() {
         </div>
       </div>
 
-      <div className="pointer-events-none fixed bottom-0 left-1/2 w-full max-w-[402px] -translate-x-1/2 bg-gradient-to-b from-white/0 to-white/80 px-[18px] pb-[34px] pt-10">
+      <StickyBottomBar>
         <Button
           className="pointer-events-auto"
           disabled={content.trim().length === 0 || submitting}
@@ -140,7 +142,7 @@ export default function LetterPage() {
         >
           완료하기
         </Button>
-      </div>
+      </StickyBottomBar>
 
       <ConfirmModal
         open={showLeaveModal}

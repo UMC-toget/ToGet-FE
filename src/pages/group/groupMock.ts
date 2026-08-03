@@ -1,5 +1,5 @@
-import type { GroupFunding } from '../../types/group'
 import type { TogetherGiftDashboard, GiftCandidateListResponse, FundingSettlementListResponse, GiftCandidateDetail } from '../../api/groupFundings'
+import type { ContributionItem } from '../../api/contributions'
 import type { FundingAccount } from '../../api/fundings'
 import mockGraduation from '../../assets/mock-graduation.png'
 import mockMushroomLamp from '../../assets/mock-mushroom-lamp.png'
@@ -20,60 +20,12 @@ export interface Settlement {
   accountHolder: string
 }
 
-export const MOCK_GROUP: GroupFunding = {
-  id: '1',
-  title: '예원이 졸업 선물',
-  recipientName: '이예원',
-  anniversaryDate: '2026-03-16',
-  introduction: '예원이 7년 만에 졸업하는데\n선물이라도 주자 우리',
-  status: 'SELECTING',
-  deadline: '2026-08-10',
-  dDay: 7,
-  targetAmount: 100000,
-  collectedAmount: null,
-  totalParticipantCount: 35,
-  myRole: 'MEMBER',
-  participants: [
-    { id: '1', name: '홍길동', role: 'HOST' },
-    { id: '2', name: '김철수', role: 'CO_HOST' },
-    { id: '3', name: '장하영', role: 'MEMBER', isMe: true },
-    { id: '4', name: '이영희', role: 'MEMBER' },
-    { id: '5', name: '박지수', role: 'MEMBER' },
-  ],
-  candidates: [
-    {
-      id: '1',
-      giftName: '오브리 도트 머쉬룸 램프 화이트',
-      giftPrice: 65000,
-      giftImageUrl: null,
-      voteCount: 12,
-      isVotedByMe: false,
-    },
-    {
-      id: '2',
-      giftName: '르쿠르제 에코 텀블러 체리 레드',
-      giftPrice: 49000,
-      giftImageUrl: null,
-      voteCount: 8,
-      isVotedByMe: true,
-    },
-    {
-      id: '3',
-      giftName: '에어팟 프로 2세대',
-      giftPrice: 329000,
-      giftImageUrl: null,
-      voteCount: 5,
-      isVotedByMe: false,
-    },
-  ],
-}
-
 // ─── 현재 API 타입 기반 mock (UI 테스트용) ───────────────────────
 
 export const MOCK_DASHBOARD: TogetherGiftDashboard = {
   fundingId: 1,
-  // 'SELECTING' | 'SETTLING' | 'ENDED' 바꿔가며 상태별 UI 확인
-  status: 'SELECTING',
+  // 'SELECTING' | 'SETTLING' | 'PURCHASING' | 'DELIVERING' | 'ENDED' 바꿔가며 상태별 UI 확인
+  status: 'SETTLING',
   title: '예원이 졸업 선물',
   anniversaryDate: '2026-08-15',
   recipientName: '이예원',
@@ -86,18 +38,28 @@ export const MOCK_DASHBOARD: TogetherGiftDashboard = {
     { fundingMemberId: 4, userId: 40, name: '이영희', profileImageUrl: null, role: 'MEMBER' },
     { fundingMemberId: 5, userId: 50, name: '박지수', profileImageUrl: null, role: 'MEMBER' },
   ],
+  // SELECTING: collectedAmount/targetAmount null, topGifts 있음
+  // SETTLING 이후 테스트: status 변경, collectedAmount → 203800, targetAmount → 392000, topGifts → null
   topGifts: [
     { fundingGiftId: 1, giftName: '오브리 도트 머쉬룸 램프 화이트', giftPrice: 65000, giftImageUrl: mockMushroomLamp, voteCount: 12 },
     { fundingGiftId: 2, giftName: '르쿠르제 에코 텀블러 체리 레드', giftPrice: 49000, giftImageUrl: null, voteCount: 8 },
-    { fundingGiftId: 3, giftName: '에어팟 프로 2세대', giftPrice: 329000, giftImageUrl: null, voteCount: 5 },
   ],
-  // SELECTING: collectedAmount/targetAmount null, topGifts 있음
-  // SETTLING 테스트: status → 'SETTLING', collectedAmount → 203800, targetAmount → 392000, topGifts → null
-  collectedAmount: null,
-  targetAmount: 150000,
-  confirmedGifts: null,
+  collectedAmount: 203800,
+  targetAmount: 392000,
+  confirmedGifts: [
+    { fundingGiftId: 1, giftName: '오브리 도트 머쉬룸 램프 화이트', giftPrice: 65000, giftImageUrl: mockMushroomLamp, purchaseUrl: 'https://www.29cm.co.kr' },
+    { fundingGiftId: 2, giftName: '르쿠르제 에코 텀블러 체리 레드', giftPrice: 49000, giftImageUrl: null, purchaseUrl: null },
+  ],
   messageIds: null,
 }
+
+export const MOCK_CONTRIBUTIONS: ContributionItem[] = [
+  { contributionId: 1, senderName: '지은', isAnonymous: false, amount: 50000, content: '예원아 졸업 진심으로 축하해! 앞으로도 좋은 일만 가득하길 바랄게', isPrivate: false, createdAt: '2026-03-14' },
+  { contributionId: 2, senderName: '세라', isAnonymous: false, amount: 30000, content: '드디어 졸업이다! 고생 많았어 우리 예원이', isPrivate: false, createdAt: '2026-03-14' },
+  { contributionId: 3, senderName: '지원', isAnonymous: false, amount: 40000, content: '축하해 예원아, 새 출발 응원할게!', isPrivate: false, createdAt: '2026-03-15' },
+  { contributionId: 4, senderName: '상휘니', isAnonymous: false, amount: 20000, content: '졸업 축하해~ 밥 한번 먹자', isPrivate: false, createdAt: '2026-03-15' },
+  { contributionId: 5, senderName: '소희', isAnonymous: false, amount: 35000, content: '예원아 졸업 너무 축하하고 늘 응원해', isPrivate: false, createdAt: '2026-03-15' },
+]
 
 export const MOCK_CANDIDATES: GiftCandidateListResponse = {
   votedGiftIds: [2],

@@ -23,13 +23,21 @@ import CompletePage from './pages/participate/CompletePage'
 import GroupPage from './pages/group/GroupPage'
 import CandidatesPage from './pages/group/CandidatesPage'
 import ParticipantsPage from './pages/group/ParticipantsPage'
+import ParticipantViewPage from './pages/group/ParticipantViewPage'
 import LetterPage from './pages/group/LetterPage'
 import SettlePage from './pages/group/SettlePage'
 import HostSettlePage from './pages/group/HostSettlePage'
 import CandidateDetailPage from './pages/group/CandidateDetailPage'
+import CandidateCommentsPage from './pages/group/CandidateCommentsPage'
 import CandidateNewPage from './pages/group/CandidateNewPage'
 import ConfirmPage from './pages/group/ConfirmPage'
 import ConfirmEditPage from './pages/group/ConfirmEditPage'
+import GroupEditPage from './pages/group/GroupEditPage'
+import GroupEditBasicPage from './pages/group/GroupEditBasicPage'
+import GroupEditAccountPage from './pages/group/GroupEditAccountPage'
+import GroupEditInvitationPage from './pages/group/GroupEditInvitationPage'
+import PurchaseUploadPage from './pages/group/PurchaseUploadPage'
+import GroupMessagesPage from './pages/group/GroupMessagesPage'
 import ReviewWritePage from './pages/gift-review/ReviewWritePage'
 import ReviewCompletePage from './pages/gift-review/ReviewCompletePage'
 import GiftReviewDetailPage from './pages/gift-review/GiftReviewDetailPage'
@@ -63,13 +71,21 @@ function App() {
       <Route path="/group/:id" element={<GroupPage />} />
       <Route path="/group/:id/candidates" element={<CandidatesPage />} />
       <Route path="/group/:id/candidates/:candidateId" element={<CandidateDetailPage />} />
+      <Route path="/group/:id/candidates/:candidateId/comments" element={<CandidateCommentsPage />} />
       <Route path="/group/:id/candidates/new" element={<CandidateNewPage />} />
-      <Route path="/group/:id/participants" element={<ParticipantsPage />} />
+      <Route path="/group/:id/participants" element={<ParticipantViewPage />} />
+      <Route path="/group/:id/participants/manage" element={<ParticipantsPage />} />
       <Route path="/group/:id/letter" element={<LetterPage />} />
       <Route path="/group/:id/settle" element={<SettlePage />} />
       <Route path="/group/:id/settle/host" element={<HostSettlePage />} />
       <Route path="/group/:id/confirm" element={<ConfirmPage />} />
       <Route path="/group/:id/confirm/edit" element={<ConfirmEditPage />} />
+      <Route path="/group/:id/edit" element={<GroupEditPage />} />
+      <Route path="/group/:id/edit/basic" element={<GroupEditBasicPage />} />
+      <Route path="/group/:id/edit/account" element={<GroupEditAccountPage />} />
+      <Route path="/group/:id/edit/invitation" element={<GroupEditInvitationPage />} />
+      <Route path="/group/:id/purchase-upload" element={<PurchaseUploadPage />} />
+      <Route path="/group/:id/messages" element={<GroupMessagesPage />} />
       <Route path="/gift/review/write/:type" element={<ReviewWritePage />} />
       <Route path="/gift/review/complete/:type" element={<ReviewCompletePage />} />
       <Route path="/gift/review/:id" element={<GiftReviewDetailPage />} />
