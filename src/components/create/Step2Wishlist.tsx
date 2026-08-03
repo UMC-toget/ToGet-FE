@@ -150,23 +150,24 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
               placeholder="받고 싶은 선물 이름을 입력해 주세요"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value.slice(0, NAME_MAX) })}
-              className={`w-full rounded-xl px-4 py-3 text-sm outline-none border transition-colors
+              className={`w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none border transition-colors
                 ${nameError ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-100/70 focus:border-gray-800 focus:bg-white'}`}
             />
             {nameError && <p className="text-xs text-red-400 mt-1">▲ 선물 이름을 입력해 주세요</p>}
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">
+            <label className="text-xs text-gray-500 mb-2 block">
               선물 가격 <span className="text-pink-400">*</span>
             </label>
             <div className="relative">
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 placeholder="선물 가격을 입력해 주세요"
-                value={form.price}
-                onChange={(e) => setForm({ ...form, price: e.target.value })}
-                className={`w-full rounded-xl px-4 py-3 pr-12 text-sm outline-none border transition-colors
+                value={form.price ? Number(form.price).toLocaleString() : ''}
+                onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^0-9]/g, '') })}
+                className={`w-full rounded-xl px-4 py-3 pr-12 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none border transition-colors
                   ${priceError ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-100/70 focus:border-gray-800 focus:bg-white'}`}
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">(원)</span>
@@ -175,18 +176,18 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">선물 구매처 링크</label>
+            <label className="text-xs text-gray-500 mb-2 block">선물 구매처 링크</label>
             <input
               type="url"
               placeholder="구매 가능한 링크를 입력해 주세요"
               value={form.link}
               onChange={(e) => setForm({ ...form, link: e.target.value })}
-              className="w-full rounded-xl px-4 py-3 text-sm outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
+              className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
             />
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">선물 이미지</label>
+            <label className="text-xs text-gray-500 mb-2 block">선물 이미지</label>
             {formImage ? (
               <div className="relative w-24 h-24">
                 <img src={URL.createObjectURL(formImage)} alt="선물 이미지" className="w-24 h-24 object-cover rounded-xl" />
@@ -214,7 +215,7 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
         <button
           onClick={handleAdd}
           disabled={!isFormValid}
-          className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           등록하기
         </button>
@@ -295,7 +296,7 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
       <button
         onClick={onNext}
         disabled={wishlist.length === 0 || disabled}
-        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
       >
         {submitLabel}
       </button>
@@ -316,7 +317,7 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
                 value={wishQuery}
                 onChange={(e) => setWishQuery(e.target.value)}
                 placeholder="상품 이름을 검색해보세요"
-                className="w-full rounded-xl px-4 py-3 pr-10 text-sm outline-none bg-gray-100 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
+                className="w-full rounded-xl px-4 py-3 pr-10 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
               />
               <Search size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
@@ -411,7 +412,7 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
             <button
               onClick={confirmWishImport}
               disabled={selectedWishIds.size === 0}
-              className="w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-medium mt-2 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-medium mt-2 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
               {selectedWishIds.size > 0 ? `${selectedWishIds.size}개 상품 등록하기` : '상품을 선택해주세요'}
             </button>
