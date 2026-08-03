@@ -89,7 +89,7 @@ export default function Step3Visibility({ onNext, submitLabel = '다음', disabl
       <button
         onClick={onNext}
         disabled={disabled}
-        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
       >
         {submitLabel}
       </button>
