@@ -105,6 +105,8 @@ export default function DateSheet(props: DateSheetProps) {
     if (props.mode === 'single') return key === single;
     return key === rangeStart || key === rangeEnd;
   };
+  const isToday = (day: number) =>
+    toKey(viewYear, viewMonth, day) === toKey(today.getFullYear(), today.getMonth(), today.getDate());
   const isRangeStart = (day: number) => props.mode === 'range' && toKey(viewYear, viewMonth, day) === rangeStart;
   const isRangeEnd = (day: number) => props.mode === 'range' && toKey(viewYear, viewMonth, day) === rangeEnd;
   const isInRange = (day: number) => {
@@ -166,6 +168,9 @@ export default function DateSheet(props: DateSheetProps) {
 
             return (
               <div key={idx} className={`relative flex flex-col items-center justify-center h-11 ${barClass}`}>
+                {isToday(day) && (
+                  <span className="absolute top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-red-500" />
+                )}
                 <button
                   type="button"
                   onClick={() => handlePick(day)}
