@@ -34,7 +34,9 @@ export default function ProductCard({ product, rank, isLoggedIn, wished, onLogin
   return (
     <button type="button" onClick={handleCardClick} className="flex flex-col gap-2 text-left">
       <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-background p-3">
-        <img src={product.image} alt={product.name} className="max-h-[75%] max-w-[80%] object-contain" />
+        {product.image && (
+          <img src={product.image} alt={product.name} className="max-h-[75%] max-w-[80%] object-contain" />
+        )}
         <span className="absolute left-3 top-3 flex size-6 items-center justify-center rounded-full bg-gray-700 text-caption1-m text-white">
           {/* 폰트 렌더링 특성상 숫자가 살짝 치우쳐 보여 보정합니다 (모바일 기준) */}
           <span className="translate-y-[-0.5px]">{rank}</span>
