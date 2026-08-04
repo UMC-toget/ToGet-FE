@@ -9,6 +9,7 @@ import char3 from '../../assets/invite-character3.svg';
 import char4 from '../../assets/invite-character4.svg';
 import char5 from '../../assets/invite-character5.svg';
 import char6 from '../../assets/invite-character6.svg';
+import inviteSparklesSvg from '../../assets/invite-sparkles.svg';
 
 interface Props {
   onNext: () => void;
@@ -52,37 +53,15 @@ function lighten(hex: string, ratio: number) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-// 초대장 배경에 흩뿌려지는 반짝이 별 장식 (퍼센트 좌표라 카드/모달 크기 상관없이 재사용 가능)
-const SPARKLES: { top: string; left?: string; right?: string; size: number; color: string; rotate: number }[] = [
-  { top: '52%', right: '22%', size: 12, color: '#FFFFFF', rotate: 20 },
-  { top: '49%', left: '16%', size: 18, color: '#FFFFFF', rotate: 8 },
-  { top: '46%', left: '32%', size: 10, color: '#FBCFE8', rotate: 0 },
-  { top: '53%', left: '45%', size: 9, color: '#FFFFFF', rotate: 15 },
-  { top: '50%', right: '30%', size: 11, color: '#F472B6', rotate: 25 },
-  { top: '20%', left: '40%', size: 8, color: '#FBCFE8', rotate: -10 },
-];
-
+// 초대장 배경에 흩뿌려지는 반짝이 장식 (디자인팀 전달 SVG)
 export function InviteSparkles() {
   return (
-    <>
-      {SPARKLES.map((s, i) => (
-        <span
-          key={i}
-          aria-hidden
-          className="absolute select-none pointer-events-none"
-          style={{
-            top: s.top,
-            left: s.left,
-            right: s.right,
-            fontSize: s.size,
-            color: s.color,
-            transform: `rotate(${s.rotate}deg)`,
-          }}
-        >
-          ✦
-        </span>
-      ))}
-    </>
+    <img
+      src={inviteSparklesSvg}
+      alt=""
+      aria-hidden
+      className="absolute inset-0 w-full h-full pointer-events-none select-none"
+    />
   );
 }
 

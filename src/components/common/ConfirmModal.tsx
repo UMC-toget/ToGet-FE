@@ -54,7 +54,7 @@ export default function ConfirmModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-[18px]">
       <button type="button" aria-label="닫기" onClick={handleCancel} className="absolute inset-0 bg-black/50" />
-      <div className="relative flex w-[320px] flex-col items-center gap-5 rounded-[20px] bg-white px-6 py-7">
+      <div className="relative flex w-[350px] flex-col items-center gap-5 rounded-[20px] bg-white px-5 py-7">
         <div className="flex flex-col items-center gap-1">
           <div className="flex flex-col items-center gap-5">
             {/* 피그마 '이모티콘 있는 팝업' 원본 아이콘 (핑크 원 + 흰 느낌표 + 수염 마크) */}

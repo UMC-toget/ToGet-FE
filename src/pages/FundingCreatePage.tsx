@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
+import ConfirmModal from '../components/common/ConfirmModal';
 import StepIndicator from '../components/create/StepIndicator';
 import Step1BasicInfo from '../components/create/Step1BasicInfo';
 import Step2Wishlist from '../components/create/Step2Wishlist';
@@ -74,35 +75,18 @@ export default function FundingCreatePage() {
       </div>
 
       {/* 임시저장 모달 - 페이지 레벨로 옮겨서 어느 단계에서든 "나가기"로 띄울 수 있음 */}
-      {showSaveModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-6">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-xl">
-            <h3 className="text-base font-bold text-gray-900 mb-2">
-              작성 중인 선물 페이지를<br />임시 저장할까요?
-            </h3>
-            <p className="text-xs text-gray-500 mb-5">
-              지금 나가면 현재까지 입력한 내용이 저장되고,<br />다음에 다시 이어서 작성할 수 있어요
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowSaveModal(false)}
-                className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-600"
-              >
-                계속 작성하기
-              </button>
-              <button
-                onClick={() => {
-                  setShowSaveModal(false);
-                  handleGoHome();
-                }}
-                className="flex-1 py-3 rounded-xl bg-gray-900 text-white text-sm font-medium"
-              >
-                저장하고 나가기
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={showSaveModal}
+        title="작성 중인 선물 페이지를 저장할까요?"
+        description={'지금 나가면 현재까지 입력한 내용이 저장되고,\n다음에 다시 이어서 작성할 수 있어요'}
+        cancelText="계속 작성하기"
+        confirmText="저장하고 나가기"
+        onCancel={() => setShowSaveModal(false)}
+        onConfirm={() => {
+          setShowSaveModal(false);
+          handleGoHome();
+        }}
+      />
     </div>
   );
 }
