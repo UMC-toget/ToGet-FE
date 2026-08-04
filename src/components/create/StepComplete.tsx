@@ -4,12 +4,13 @@ import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import { getInvitationAccent, useInvitationMeta } from './Mascot';
 
 interface Props {
+  fundingId: number;
   onViewFunding: () => void;
   onGoHome: () => void;
 }
 
-export default function StepComplete({ onViewFunding, onGoHome }: Props) {
-  const { title, inviteCharacter, inviteBackgroundId, inviteColor } = useFundingCreateStore();
+export default function StepComplete({ fundingId, onViewFunding, onGoHome }: Props) {
+  const { inviteCharacter, inviteBackgroundId, inviteColor } = useFundingCreateStore();
   const [copied, setCopied] = useState(false);
   const { backgrounds, characters } = useInvitationMeta();
   const characterImageUrl = characters.find((item) => item.id === inviteCharacter)?.imageUrl;
@@ -18,11 +19,8 @@ export default function StepComplete({ onViewFunding, onGoHome }: Props) {
   const accentColor = getInvitationAccent(selectedColor);
   const decorationColor = selectedColor === '#FFFFFF' ? accentColor : selectedColor;
 
-  const slug = title
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w-]/g, '') || 'my-funding';
-  const shareLink = `toget.kr/p/${slug}`;
+  const invitationPath = `/funding/${fundingId}/invitation`;
+  const shareLink = `${window.location.origin}${invitationPath}`;
 
   const handleCopy = async () => {
     try {
