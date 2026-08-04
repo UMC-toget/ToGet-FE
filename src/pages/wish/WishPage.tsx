@@ -30,7 +30,7 @@ export default function WishPage() {
   }
 
   const wishedProducts = products.filter(
-    (product) => product.id in wishes && (tab === 'all' || wishes[product.id] === tab),
+    (product) => product.id in wishes && (tab === 'all' || wishes[product.id].includes(tab)),
   )
 
   return (

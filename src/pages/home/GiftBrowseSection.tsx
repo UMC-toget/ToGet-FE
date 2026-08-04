@@ -28,15 +28,14 @@ export default function GiftBrowseSection() {
   const handleLoginRequired = () => navigate('/login')
 
   // TODO: 위시 등록/해제 API 연동 후 addWish/removeWish 호출을 실제 서버 요청으로 교체 (useWishStore 참고)
-  const handleSelectWishType = (type: WishType | null) => {
-    if (wishSheetProductId != null) {
-      if (type === null) {
-        removeWish(wishSheetProductId)
-      } else {
-        addWish(wishSheetProductId, type)
-      }
+  const handleToggleWishType = (type: WishType) => {
+    if (wishSheetProductId == null) return
+    const current = wishes[wishSheetProductId] ?? []
+    if (current.includes(type)) {
+      removeWish(wishSheetProductId, type)
+    } else {
+      addWish(wishSheetProductId, type)
     }
-    setWishSheetProductId(null)
   }
 
   // 카테고리와 가격대 필터는 교집합으로 함께 서버에 전달합니다.
@@ -106,9 +105,9 @@ export default function GiftBrowseSection() {
       />
       <WishTypeSheet
         open={wishSheetProductId != null}
-        selected={wishSheetProductId != null ? (wishes[wishSheetProductId] ?? null) : null}
+        selected={wishSheetProductId != null ? (wishes[wishSheetProductId] ?? []) : []}
         onClose={() => setWishSheetProductId(null)}
-        onSelect={handleSelectWishType}
+        onToggle={handleToggleWishType}
       />
     </section>
   )

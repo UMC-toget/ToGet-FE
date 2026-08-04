@@ -28,26 +28,30 @@ function WishEditForm({ productId, product }: WishEditFormProps) {
   // TODO: 위시 등록 자체가 아직 API 연동 전이라(useWishStore 참고) 여기서 읽어오는 위시 유형도 로컬 상태 기준입니다.
   const { wishes } = useWishStore()
 
-  const initialWishType = wishes[productId] ?? 'receive'
+  const initialWishTypes = wishes[productId] ?? []
   const initialName = product?.name ?? ''
   const initialPrice = product ? String(product.price) : ''
   const initialPurchaseUrl = product?.purchaseUrl ?? ''
   const initialImage = product?.imageUrl ?? null
 
-  const [wishType, setWishType] = useState<WishType>(initialWishType)
+  const [wishTypes, setWishTypes] = useState<WishType[]>(initialWishTypes)
+  const toggleWishType = (type: WishType) =>
+    setWishTypes((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]))
   const [name, setName] = useState(initialName)
   const [price, setPrice] = useState(initialPrice)
   const [purchaseUrl, setPurchaseUrl] = useState(initialPurchaseUrl)
   const [image, setImage] = useState<string | null>(initialImage)
 
   // 피그마 기준: 필수값이 채워져 있어도 실제로 바뀐 내용이 없으면 "수정 완료"는 비활성 상태를 유지합니다.
+  const wishTypesChanged =
+    wishTypes.length !== initialWishTypes.length || wishTypes.some((t) => !initialWishTypes.includes(t))
   const hasChanges =
-    wishType !== initialWishType ||
+    wishTypesChanged ||
     name !== initialName ||
     price !== initialPrice ||
     purchaseUrl !== initialPurchaseUrl ||
     image !== initialImage
-  const isValid = name.length > 0 && price.length > 0 && hasChanges
+  const isValid = name.length > 0 && price.length > 0 && wishTypes.length > 0 && hasChanges
 
   const handleSubmit = () => {
     // TODO: 위시 수정 API 연동 후 실제 저장 요청으로 교체 (wishType 변경분은 위시 등록 API와도 함께 연동 필요)
@@ -68,9 +72,11 @@ function WishEditForm({ productId, product }: WishEditFormProps) {
               <button
                 key={option.type}
                 type="button"
-                onClick={() => setWishType(option.type)}
+                onClick={() => toggleWishType(option.type)}
                 className={`rounded-full px-4 py-2 text-b2-m ${
-                  wishType === option.type ? 'bg-gray-900 text-white' : 'border border-gray-300 bg-white text-gray-700'
+                  wishTypes.includes(option.type)
+                    ? 'bg-gray-900 text-white'
+                    : 'border border-gray-300 bg-white text-gray-700'
                 }`}
               >
                 {option.label}
