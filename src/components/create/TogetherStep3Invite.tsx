@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { X, Expand } from 'lucide-react';
+import { X, Expand, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTogetherCreateStore } from '../../store/togetherCreateStore';
 import { getInvitationAccent, useInvitationMeta } from './Mascot';
 import { TogetLogoMark, InviteSparkles } from './Step5Invite';
@@ -49,6 +49,8 @@ export default function TogetherStep3Invite({ onNext }: Props) {
   };
 
   const currentCharacter = characters.find((item) => item.id === inviteCharacter) ?? characters[0];
+  const currentCharacterIndex = Math.max(0, characters.findIndex((item) => item.id === currentCharacter?.id));
+  const currentCharacterNumber = String(currentCharacterIndex + 1).padStart(2, '0');
   const currentCharacterImage = currentCharacter?.imageUrl;
   const isWhite = inviteColor === '#FFFFFF';
   const accentColor = isWhite ? getInvitationAccent(inviteColor) : inviteColor;
@@ -179,26 +181,28 @@ export default function TogetherStep3Invite({ onNext }: Props) {
         {tab === 'character' && (
           <div>
             <p className="text-sm font-medium text-gray-700 mb-3">캐릭터 선택</p>
-            <div className="flex items-center justify-center gap-6">
+            <div className="flex items-center justify-between px-2">
               <button
                 onClick={() => changeCharacter(-1)}
                 aria-label="이전 캐릭터"
-                className="text-gray-400 text-2xl px-2 hover:text-gray-700 transition-colors"
+                className="w-14 h-14 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition-colors"
               >
-                ‹
+                <ChevronLeft size={28} />
               </button>
               <div className="flex flex-col items-center gap-2">
-                {currentCharacterImage ? <img src={currentCharacterImage} alt={currentCharacter?.name ?? '초대장 캐릭터'} className="w-24 h-24 object-contain" /> : <div className="w-24 h-24 rounded-full bg-gray-100 animate-pulse" />}
-                <span className="text-xs font-semibold text-pink-400">
-                  {currentCharacter?.name ?? (characterError ? '불러오기 실패' : '불러오는 중')}
-                </span>
+                {currentCharacterImage ? <img src={currentCharacterImage} alt={currentCharacter?.name ?? '초대장 캐릭터'} className="w-32 h-32 object-contain" /> : <div className="w-32 h-32 rounded-full bg-gray-100 animate-pulse" />}
+                {currentCharacter ? (
+                  <span className="px-3 py-1.5 rounded-md bg-pink-400 text-sm font-semibold text-white">No.{currentCharacterNumber}</span>
+                ) : (
+                  <span className="text-xs font-semibold text-pink-400">{characterError ? '불러오기 실패' : '불러오는 중'}</span>
+                )}
               </div>
               <button
                 onClick={() => changeCharacter(1)}
                 aria-label="다음 캐릭터"
-                className="text-gray-400 text-2xl px-2 hover:text-gray-700 transition-colors"
+                className="w-14 h-14 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition-colors"
               >
-                ›
+                <ChevronRight size={28} />
               </button>
             </div>
           </div>
