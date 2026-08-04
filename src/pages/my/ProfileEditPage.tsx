@@ -11,6 +11,7 @@ import Toast from '../../components/common/Toast'
 import ProfileAvatar from '../signup/ProfileAvatar'
 import { useAuth } from '../../hooks/useAuth'
 import { useMyProfile } from '../../hooks/useMyProfile'
+import { useRequireAuth } from '../../hooks/useRequireAuth'
 import { updateMyProfile, withdrawMe, deleteMyProfileImage } from '../../api/users'
 import { uploadImage } from '../../utils/uploadImage'
 import { logoutRequest } from '../../api/auth'
@@ -38,6 +39,8 @@ export default function ProfileEditPage() {
   const navigate = useNavigate()
   const pageRef = useRef<HTMLDivElement>(null)
   const queryClient = useQueryClient()
+
+  useRequireAuth()
 
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null)
   const [photoToastOpen, setPhotoToastOpen] = useState(false)

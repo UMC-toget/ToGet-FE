@@ -87,7 +87,7 @@ export default function MyPage() {
             </span>
             <span className="text-caption1-r text-gray-600">
               {isLoggedIn
-                ? `${OAUTH_PROVIDER_LABELS[profile?.oauthProvider ?? ''] ?? '소셜'}으로 로그인 중이에요`
+                ? `${OAUTH_PROVIDER_LABELS[profile?.oauthProvider ?? ''] ?? '소셜'}${profile?.oauthProvider === 'GOOGLE' ? '로' : '으로'} 로그인 중이에요`
                 : '소셜 로그인으로 선물 페이지를 모아 볼 수 있어요'}
             </span>
           </span>
