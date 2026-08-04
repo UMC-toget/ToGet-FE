@@ -44,10 +44,16 @@ export default function LoginPage() {
     setErrorMessage(null)
     try {
       const result = await postSocialLogin(provider, identityToken)
+      if (!result.isProfileCompleted) {
+        // 아직 회원이 아닙니다 — 이 시점엔 토큰이 없으므로 로그인 처리하지 않고, 프로필 설정
+        // 화면에서 signupToken과 함께 POST /api/v1/users를 호출해야 비로소 회원이 생성됩니다.
+        navigate('/signup/profile', { replace: true, state: { signupToken: result.signupToken } })
+        return
+      }
       setTokens(result.accessToken, result.refreshToken)
       setLastLoginProvider(provider)
       login()
-      navigate(result.isNewUser ? '/signup/profile' : '/home', { replace: true })
+      navigate('/home', { replace: true })
     } catch {
       setErrorMessage(LOGIN_FAIL_MESSAGE)
     }

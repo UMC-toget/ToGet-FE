@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import Header from '../../components/common/Header'
 import TextField from '../../components/common/TextField'
@@ -8,16 +8,17 @@ import ProfileAvatar from './ProfileAvatar'
 import TermsBottomSheet from './TermsBottomSheet'
 import { useAuth } from '../../hooks/useAuth'
 import { replayShake } from '../../utils/shake'
-import { updateMyProfile } from '../../api/users'
+import { completeSignup } from '../../api/auth'
 import { uploadImage } from '../../utils/uploadImage'
 import { ApiError } from '../../lib/apiClient'
+import { setTokens } from '../../lib/tokenStorage'
 
 const NICKNAME_MAX_LENGTH = 6
 const PROFILE_IMAGE_PREFIX = 'profiles'
 // 화면 전체 흔들림은 입력창 자체보다 훨씬 은은하게 느껴지도록 진폭을 크게 줄입니다.
 const PAGE_SHAKE_AMPLITUDE = '0.4px'
 
-/** uploadImage() 실패를 updateMyProfile() 실패와 구분해 정확한 에러 메시지를 보여주기 위한 태그용 에러 */
+/** uploadImage() 실패를 completeSignup() 실패와 구분해 정확한 에러 메시지를 보여주기 위한 태그용 에러 */
 class ProfileImageUploadError extends Error {}
 
 /** 회원가입 마지막 단계: 프로필(닉네임/사진) 설정 페이지 */
@@ -27,11 +28,15 @@ export default function ProfileSetupPage() {
   const [termsOpen, setTermsOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
   const pageRef = useRef<HTMLDivElement>(null)
+  // 로그인 화면에서 소셜 로그인 응답으로 받은, 회원가입 완료용 임시 토큰 (만료 10분)
+  const signupToken = (location.state as { signupToken?: string } | null)?.signupToken
 
-  const updateProfileMutation = useMutation({
+  const completeSignupMutation = useMutation({
     mutationFn: async () => {
+      if (!signupToken) throw new Error('signupToken 없음')
       let profileImageUrl: string | undefined
       if (photoFile) {
         try {
@@ -40,9 +45,10 @@ export default function ProfileSetupPage() {
           throw new ProfileImageUploadError()
         }
       }
-      return updateMyProfile({ nickname, profileImageUrl })
+      return completeSignup({ signupToken, nickname, profileImageUrl })
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      setTokens(result.accessToken, result.refreshToken)
       login()
       setTermsOpen(false)
       navigate('/home')
@@ -60,7 +66,7 @@ export default function ProfileSetupPage() {
 
   const handleConfirm = () => {
     setErrorMessage(null)
-    updateProfileMutation.mutate()
+    completeSignupMutation.mutate()
   }
 
   return (
@@ -92,7 +98,7 @@ export default function ProfileSetupPage() {
         />
         {errorMessage && <p className="text-caption1-r text-pink-500">{errorMessage}</p>}
         <Button
-          disabled={nickname.length === 0 || updateProfileMutation.isPending}
+          disabled={nickname.length === 0 || completeSignupMutation.isPending}
           onClick={() => setTermsOpen(true)}
         >
           가입
