@@ -30,7 +30,7 @@ export default function ConfirmModal({
   title,
   description,
   agreeText,
-  cancelText,
+  cancelText = '돌아가기',
   confirmText,
   onCancel,
   onConfirm,
