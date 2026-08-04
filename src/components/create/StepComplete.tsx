@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Check, Copy, Heart, X } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
-import { CHARACTER_IMAGES, ACCENT_COLORS } from './Step5Invite';
+import { getInvitationAccent, useInvitationMeta } from './Mascot';
 
 interface Props {
   onViewFunding: () => void;
@@ -9,10 +9,13 @@ interface Props {
 }
 
 export default function StepComplete({ onViewFunding, onGoHome }: Props) {
-  const { title, inviteCharacter, inviteColor } = useFundingCreateStore();
+  const { title, inviteCharacter, inviteBackgroundId, inviteColor } = useFundingCreateStore();
   const [copied, setCopied] = useState(false);
-  const glowColor = inviteColor === '#FFFFFF' ? '#D1D5DB' : inviteColor;
-  const accentColor = ACCENT_COLORS[inviteColor] ?? '#DB2777';
+  const { backgrounds, characters } = useInvitationMeta();
+  const characterImageUrl = characters.find((item) => item.id === inviteCharacter)?.imageUrl;
+  const selectedColor = backgrounds.find((item) => item.id === inviteBackgroundId)?.hexCode ?? inviteColor;
+  const glowColor = selectedColor === '#FFFFFF' ? '#D1D5DB' : selectedColor;
+  const accentColor = getInvitationAccent(selectedColor);
 
   const slug = title
     .toLowerCase()
@@ -56,11 +59,7 @@ export default function StepComplete({ onViewFunding, onGoHome }: Props) {
           <Heart size={22} className="absolute top-8 left-4 -rotate-15 z-10" style={{ color: accentColor, fill: accentColor }} />
           <Heart size={14} className="absolute top-18 left-0 -rotate-15 z-10" style={{ color: accentColor, fill: accentColor, opacity: 0.6 }} />
           <Heart size={16} className="absolute bottom-18 right-2 -rotate-15 z-10" style={{ color: accentColor, fill: accentColor, opacity: 0.6 }} />
-          <img
-            src={CHARACTER_IMAGES[inviteCharacter - 1]}
-            alt=""
-            className="w-[190px] h-[190px] object-contain relative z-10"
-          />
+          {characterImageUrl && <img src={characterImageUrl} alt="" className="w-[190px] h-[190px] object-contain relative z-10" />}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-11 h-11 bg-pink-500 rounded-full flex items-center justify-center border-2 border-white z-20">
             <Check size={20} className="text-white" />
           </div>

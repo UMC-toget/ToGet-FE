@@ -1,14 +1,8 @@
-import { useState, useId } from 'react';
+import { useEffect, useState, useId } from 'react';
 import { X, Expand } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
-import { INVITE_COLORS, CHARACTER_COUNT } from './Mascot';
+import { getInvitationAccent, useInvitationMeta } from './Mascot';
 import { MOCK_USER } from '../../pages/my/mockUser';
-import char1 from '../../assets/invite-character1.svg';
-import char2 from '../../assets/invite-character2.svg';
-import char3 from '../../assets/invite-character3.svg';
-import char4 from '../../assets/invite-character4.svg';
-import char5 from '../../assets/invite-character5.svg';
-import char6 from '../../assets/invite-character6.svg';
 import inviteSparklesSvg from '../../assets/invite-sparkles.svg';
 
 interface Props {
@@ -24,20 +18,6 @@ const CONTENT_MAX = 60;
 
 // inviteCharacter(1~6)에 대응하는 캐릭터 이미지
 // StepComplete 등 다른 화면에서도 동일한 캐릭터 이미지를 써야 해서 export 합니다.
-export const CHARACTER_IMAGES = [char1, char2, char3, char4, char5, char6];
-
-// 초대장 색상(파스텔)마다 로고/글씨에 쓸 포인트 색상 (채도를 낮춘 톤)
-export const ACCENT_COLORS: Record<string, string> = {
-  '#FCE4F0': '#FF2D95', // pink (형광 느낌)
-  '#FFD3CC': '#FF3B30', // red (형광 느낌)
-  '#FFF7DA': '#FFC400', // yellow (형광 느낌)
-  '#EEF6DD': '#6FCF00', // green (형광 느낌)
-  '#DCEBFA': '#00C2FF', // blue (형광 느낌)
-  '#E9E3F5': '#7B2FFF', // purple (형광 느낌)
-  '#F0E5F7': '#B84DFF', // light purple (형광 느낌)
-  '#FFFFFF': '#9CA3AF', // white → 중립 회색
-};
-
 function hexToRgb(hex: string) {
   const clean = hex.replace('#', '');
   const n = parseInt(clean, 16);
@@ -102,9 +82,24 @@ export function TogetLogoMark({ accentColor, isWhite, className }: { accentColor
 }
 
 export default function Step5Invite({ onNext, submitLabel = '저장', disabled = false }: Props) {
-  const { inviteTitle, inviteContent, inviteColor, inviteCharacter, setInvite } = useFundingCreateStore();
+  const { inviteTitle, inviteContent, inviteBackgroundId, inviteColor, inviteCharacter, setInvite } = useFundingCreateStore();
   const [tab, setTab] = useState<Tab>('message');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const { backgrounds, characters, isLoading, backgroundError, characterError } = useInvitationMeta();
+
+  useEffect(() => {
+    const selectedBackground = backgrounds.find((item) => item.id === inviteBackgroundId);
+    const targetBackground = selectedBackground ?? backgrounds[0];
+    const shouldSyncBackground = Boolean(targetBackground && (targetBackground.id !== inviteBackgroundId || targetBackground.hexCode !== inviteColor));
+    const selectedCharacterExists = characters.some((item) => item.id === inviteCharacter);
+    const nextCharacter = selectedCharacterExists ? undefined : characters[0];
+    if (shouldSyncBackground || nextCharacter) {
+      setInvite({
+        ...(shouldSyncBackground && targetBackground && { inviteBackgroundId: targetBackground.id, inviteColor: targetBackground.hexCode }),
+        ...(nextCharacter && { inviteCharacter: nextCharacter.id }),
+      });
+    }
+  }, [backgrounds, characters, inviteBackgroundId, inviteColor, inviteCharacter, setInvite]);
 
   // "from." 은 선물 페이지 제목이 아니라 가입한 사용자(로그인 계정)의 닉네임으로 표시합니다.
   const previewName = MOCK_USER.name;
@@ -114,13 +109,16 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
   const isFormValid = inviteTitle.trim().length > 0 && inviteContent.trim().length > 0;
 
   const changeCharacter = (delta: number) => {
-    const next = ((inviteCharacter - 1 + delta + CHARACTER_COUNT) % CHARACTER_COUNT) + 1;
-    setInvite({ inviteCharacter: next });
+    if (!characters.length) return;
+    const currentIndex = characters.findIndex((item) => item.id === inviteCharacter);
+    const nextIndex = ((currentIndex >= 0 ? currentIndex : 0) + delta + characters.length) % characters.length;
+    setInvite({ inviteCharacter: characters[nextIndex].id });
   };
 
-  const currentCharacterImage = CHARACTER_IMAGES[inviteCharacter - 1];
+  const currentCharacter = characters.find((item) => item.id === inviteCharacter) ?? characters[0];
+  const currentCharacterImage = currentCharacter?.imageUrl;
   const isWhite = inviteColor === '#FFFFFF';
-  const accentColor = ACCENT_COLORS[inviteColor] ?? '#DB2777';
+  const accentColor = getInvitationAccent(inviteColor);
   const glowColor = isWhite ? '#D1D5DB' : inviteColor;
 
   return (
@@ -148,7 +146,7 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
             isWhite={isWhite}
             className="absolute left-1/2 top-4 -translate-x-1/2 h-12 z-0"
           />
-          <img src={currentCharacterImage} alt="" className="absolute left-1/2 top-9.5 -translate-x-1/2 h-19 z-10" />
+          {currentCharacterImage && <img src={currentCharacterImage} alt="" className="absolute left-1/2 top-9.5 -translate-x-1/2 h-19 z-10" />}
           <div className="absolute left-1/2 -translate-x-1/2 bottom-4 w-3/5 bg-white rounded-2xl px-5 py-4 shadow-sm">
             <p className="text-sm font-bold text-gray-900 truncate">{displayTitle}</p>
             <p className="text-xs text-gray-500 mt-1 line-clamp-2">{displayContent}</p>
@@ -220,23 +218,24 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">초대장 색상</p>
             <div className="grid grid-cols-8 gap-2">
-              {INVITE_COLORS.map((color) => (
+              {backgrounds.map((background) => (
                 <button
-                  key={color}
-                  onClick={() => setInvite({ inviteColor: color })}
+                  key={background.id}
+                  onClick={() => setInvite({ inviteBackgroundId: background.id, inviteColor: background.hexCode })}
                   className={`relative aspect-square rounded-[3px] transition-colors ${
-                    inviteColor === color
+                    inviteBackgroundId === background.id
                       ? 'z-10 border-2 border-[#28345A]'
-                      : color === '#FFFFFF'
+                      : background.hexCode.toUpperCase() === '#FFFFFF'
                         ? 'border border-gray-200'
                         : 'border border-transparent'
                   }`}
-                  style={{ background: color }}
-                  aria-label={`색상 ${color} 선택`}
-                  aria-pressed={inviteColor === color}
+                  style={{ background: background.hexCode }}
+                  aria-label={`${background.name} 색상 선택`}
+                  aria-pressed={inviteBackgroundId === background.id}
                 />
               ))}
             </div>
+            {!isLoading && backgroundError && <p className="mt-3 text-xs text-red-400">색상 목록을 불러오지 못했어요.</p>}
           </div>
         )}
 
@@ -252,9 +251,9 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
                 ‹
               </button>
               <div className="flex flex-col items-center gap-2">
-                <img src={currentCharacterImage} alt={`캐릭터 ${inviteCharacter}`} className="w-24 h-24 object-contain" />
+                {currentCharacterImage ? <img src={currentCharacterImage} alt={currentCharacter?.name ?? '초대장 캐릭터'} className="w-24 h-24 object-contain" /> : <div className="w-24 h-24 rounded-full bg-gray-100 animate-pulse" />}
                 <span className="text-xs font-semibold text-pink-400">
-                  No.{String(inviteCharacter).padStart(2, '0')}
+                  {currentCharacter?.name ?? (characterError ? '불러오기 실패' : '불러오는 중')}
                 </span>
               </div>
               <button
@@ -299,7 +298,7 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
               <div className="flex flex-col items-center pt-6">
                 <p className="text-base font-bold text-gray-900 px-4">따뜻한 축하를<br />함께 전해주시겠어요?</p>
                 <TogetLogoMark accentColor={accentColor} isWhite={isWhite} className="h-24 relative z-0 mt-2" />
-                <img src={currentCharacterImage} alt="" className="h-52 -mt-9 relative z-10" />
+                {currentCharacterImage && <img src={currentCharacterImage} alt="" className="h-52 -mt-9 relative z-10" />}
                 <div className="bg-white rounded-2xl p-5 w-full text-left shadow-sm mt-6">
                   <p className="text-lg font-bold text-gray-900">{displayTitle}</p>
                   <p className="text-xs text-gray-500 mt-2 whitespace-pre-line">{displayContent}</p>

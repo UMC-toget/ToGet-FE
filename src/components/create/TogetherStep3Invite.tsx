@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Expand } from 'lucide-react';
 import { useTogetherCreateStore } from '../../store/togetherCreateStore';
-import { INVITE_COLORS, CHARACTER_COUNT } from './Mascot';
-import { CHARACTER_IMAGES, ACCENT_COLORS, TogetLogoMark, InviteSparkles } from './Step5Invite';
+import { getInvitationAccent, useInvitationMeta } from './Mascot';
+import { TogetLogoMark, InviteSparkles } from './Step5Invite';
 import { MOCK_USER } from '../../pages/my/mockUser';
 
 interface Props {
@@ -15,9 +15,24 @@ const TITLE_MAX = 15;
 const CONTENT_MAX = 60;
 
 export default function TogetherStep3Invite({ onNext }: Props) {
-  const { inviteTitle, inviteContent, inviteColor, inviteCharacter, setInvite } = useTogetherCreateStore();
+  const { inviteTitle, inviteContent, inviteBackgroundId, inviteColor, inviteCharacter, setInvite } = useTogetherCreateStore();
   const [tab, setTab] = useState<Tab>('message');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const { backgrounds, characters, isLoading, backgroundError, characterError } = useInvitationMeta();
+
+  useEffect(() => {
+    const selectedBackground = backgrounds.find((item) => item.id === inviteBackgroundId);
+    const targetBackground = selectedBackground ?? backgrounds[0];
+    const shouldSyncBackground = Boolean(targetBackground && (targetBackground.id !== inviteBackgroundId || targetBackground.hexCode !== inviteColor));
+    const selectedCharacterExists = characters.some((item) => item.id === inviteCharacter);
+    const nextCharacter = selectedCharacterExists ? undefined : characters[0];
+    if (shouldSyncBackground || nextCharacter) {
+      setInvite({
+        ...(shouldSyncBackground && targetBackground && { inviteBackgroundId: targetBackground.id, inviteColor: targetBackground.hexCode }),
+        ...(nextCharacter && { inviteCharacter: nextCharacter.id }),
+      });
+    }
+  }, [backgrounds, characters, inviteBackgroundId, inviteColor, inviteCharacter, setInvite]);
 
   // "from." 은 선물 페이지 제목이 아니라 가입한 사용자(로그인 계정)의 닉네임으로 표시합니다.
   const previewName = MOCK_USER.name;
@@ -27,13 +42,16 @@ export default function TogetherStep3Invite({ onNext }: Props) {
   const isFormValid = inviteTitle.trim().length > 0 && inviteContent.trim().length > 0;
 
   const changeCharacter = (delta: number) => {
-    const next = ((inviteCharacter - 1 + delta + CHARACTER_COUNT) % CHARACTER_COUNT) + 1;
-    setInvite({ inviteCharacter: next });
+    if (!characters.length) return;
+    const currentIndex = characters.findIndex((item) => item.id === inviteCharacter);
+    const nextIndex = ((currentIndex >= 0 ? currentIndex : 0) + delta + characters.length) % characters.length;
+    setInvite({ inviteCharacter: characters[nextIndex].id });
   };
 
-  const currentCharacterImage = CHARACTER_IMAGES[inviteCharacter - 1];
+  const currentCharacter = characters.find((item) => item.id === inviteCharacter) ?? characters[0];
+  const currentCharacterImage = currentCharacter?.imageUrl;
   const isWhite = inviteColor === '#FFFFFF';
-  const accentColor = ACCENT_COLORS[inviteColor] ?? '#DB2777';
+  const accentColor = getInvitationAccent(inviteColor);
   const glowColor = isWhite ? '#D1D5DB' : inviteColor;
 
   return (
@@ -59,7 +77,7 @@ export default function TogetherStep3Invite({ onNext }: Props) {
             isWhite={isWhite}
             className="absolute left-1/2 top-4 -translate-x-1/2 h-12 z-0"
           />
-          <img src={currentCharacterImage} alt="" className="absolute left-1/2 top-9.5 -translate-x-1/2 h-19 z-10" />
+          {currentCharacterImage && <img src={currentCharacterImage} alt="" className="absolute left-1/2 top-9.5 -translate-x-1/2 h-19 z-10" />}
           <div className="absolute left-1/2 -translate-x-1/2 bottom-4 w-3/5 bg-white rounded-2xl px-5 py-4 shadow-sm">
             <p className="text-sm font-bold text-gray-900 truncate">{displayTitle}</p>
             <p className="text-xs text-gray-500 mt-1 line-clamp-2">{displayContent}</p>
@@ -131,23 +149,24 @@ export default function TogetherStep3Invite({ onNext }: Props) {
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">초대장 색상</p>
             <div className="grid grid-cols-8 gap-2">
-              {INVITE_COLORS.map((color) => (
+              {backgrounds.map((background) => (
                 <button
-                  key={color}
-                  onClick={() => setInvite({ inviteColor: color })}
+                  key={background.id}
+                  onClick={() => setInvite({ inviteBackgroundId: background.id, inviteColor: background.hexCode })}
                   className={`relative aspect-square rounded-[3px] transition-colors ${
-                    inviteColor === color
+                    inviteBackgroundId === background.id
                       ? 'z-10 border-2 border-[#28345A]'
-                      : color === '#FFFFFF'
+                      : background.hexCode.toUpperCase() === '#FFFFFF'
                         ? 'border border-gray-200'
                         : 'border border-transparent'
                   }`}
-                  style={{ background: color }}
-                  aria-label={`색상 ${color} 선택`}
-                  aria-pressed={inviteColor === color}
+                  style={{ background: background.hexCode }}
+                  aria-label={`${background.name} 색상 선택`}
+                  aria-pressed={inviteBackgroundId === background.id}
                 />
               ))}
             </div>
+            {!isLoading && backgroundError && <p className="mt-3 text-xs text-red-400">색상 목록을 불러오지 못했어요.</p>}
           </div>
         )}
 
@@ -163,9 +182,9 @@ export default function TogetherStep3Invite({ onNext }: Props) {
                 ‹
               </button>
               <div className="flex flex-col items-center gap-2">
-                <img src={currentCharacterImage} alt={`캐릭터 ${inviteCharacter}`} className="w-24 h-24 object-contain" />
+                {currentCharacterImage ? <img src={currentCharacterImage} alt={currentCharacter?.name ?? '초대장 캐릭터'} className="w-24 h-24 object-contain" /> : <div className="w-24 h-24 rounded-full bg-gray-100 animate-pulse" />}
                 <span className="text-xs font-semibold text-pink-400">
-                  No.{String(inviteCharacter).padStart(2, '0')}
+                  {currentCharacter?.name ?? (characterError ? '불러오기 실패' : '불러오는 중')}
                 </span>
               </div>
               <button
@@ -209,7 +228,7 @@ export default function TogetherStep3Invite({ onNext }: Props) {
               <div className="flex flex-col items-center pt-6">
                 <p className="text-base font-bold text-gray-900 px-4">따뜻한 축하를<br />함께 전해주시겠어요?</p>
                 <TogetLogoMark accentColor={accentColor} isWhite={isWhite} className="h-24 relative z-0 mt-2" />
-                <img src={currentCharacterImage} alt="" className="h-52 -mt-9 relative z-10" />
+                {currentCharacterImage && <img src={currentCharacterImage} alt="" className="h-52 -mt-9 relative z-10" />}
                 <div className="bg-white rounded-2xl p-5 w-full text-left shadow-sm mt-6">
                   <p className="text-lg font-bold text-gray-900">{displayTitle}</p>
                   <p className="text-xs text-gray-500 mt-2 whitespace-pre-line">{displayContent}</p>

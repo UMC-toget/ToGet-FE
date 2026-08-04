@@ -2,16 +2,19 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, Copy, Link, X } from 'lucide-react';
 import { useTogetherCreateStore } from '../../store/togetherCreateStore';
-import { CHARACTER_IMAGES, ACCENT_COLORS } from './Step5Invite';
+import { getInvitationAccent, useInvitationMeta } from './Mascot';
 import heroStars from '../../assets/hero-stars.svg';
 
 // 아직 "함께 선물" 준비방 상세 페이지가 없어서, 우선 홈으로 이동합니다.
 export default function TogetherStepComplete() {
   const navigate = useNavigate();
-  const { roomName, inviteCharacter, inviteColor } = useTogetherCreateStore();
+  const { roomName, inviteCharacter, inviteBackgroundId, inviteColor } = useTogetherCreateStore();
   const [copied, setCopied] = useState(false);
-  const glowColor = inviteColor === '#FFFFFF' ? '#D1D5DB' : inviteColor;
-  const accentColor = ACCENT_COLORS[inviteColor] ?? '#DB2777';
+  const { backgrounds, characters } = useInvitationMeta();
+  const characterImageUrl = characters.find((item) => item.id === inviteCharacter)?.imageUrl;
+  const selectedColor = backgrounds.find((item) => item.id === inviteBackgroundId)?.hexCode ?? inviteColor;
+  const glowColor = selectedColor === '#FFFFFF' ? '#D1D5DB' : selectedColor;
+  const accentColor = getInvitationAccent(selectedColor);
 
   // 한글 등 비-ASCII 문자는 slug에서 전부 제거되므로, 로마자/숫자가 없는 이름이면 하이픈만 남습니다.
   const rawSlug = roomName
@@ -73,11 +76,7 @@ export default function TogetherStepComplete() {
             aria-hidden
             className="pointer-events-none absolute left-1/2 top-1/2 w-[300px] max-w-none -translate-x-1/2 -translate-y-1/2 z-10"
           />
-          <img
-            src={CHARACTER_IMAGES[inviteCharacter - 1]}
-            alt=""
-            className="w-[190px] h-[190px] object-contain relative z-10"
-          />
+          {characterImageUrl && <img src={characterImageUrl} alt="" className="w-[190px] h-[190px] object-contain relative z-10" />}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-12 h-12 bg-pink-500 rounded-full flex items-center justify-center border-2 border-white z-20">
             <Check size={22} className="text-white" />
           </div>

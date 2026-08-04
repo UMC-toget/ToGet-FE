@@ -40,6 +40,7 @@ export function getMockEditData(): EditableSnapshot {
     selectedAccountId: 'a1',
     inviteTitle: '생일 초대장이 도착했어요!',
     inviteContent: '안녕하세요!! 내가 이번 생일에 진짜 필요한 선물을 사고 싶은데 혹시 함께해줄 수 있을까!?',
+    inviteBackgroundId: null,
     inviteColor: '#FCE4F0',
     inviteCharacter: 1,
   };
