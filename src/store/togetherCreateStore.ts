@@ -16,6 +16,7 @@ export interface TogetherCreateState {
   // Step 3: 초대장 만들기
   inviteTitle: string;
   inviteContent: string;
+  inviteBackgroundId: number | null;
   inviteColor: string;
   inviteCharacter: number;
 
@@ -26,7 +27,7 @@ export interface TogetherCreateState {
   updateAccount: (id: string, data: Partial<Omit<SavedAccount, 'id'>>) => void;
   selectAccount: (id: string) => void;
   setInvite: (
-    data: Partial<Pick<TogetherCreateState, 'inviteTitle' | 'inviteContent' | 'inviteColor' | 'inviteCharacter'>>
+    data: Partial<Pick<TogetherCreateState, 'inviteTitle' | 'inviteContent' | 'inviteBackgroundId' | 'inviteColor' | 'inviteCharacter'>>
   ) => void;
   reset: () => void;
 }
@@ -41,6 +42,7 @@ const initialState = {
   selectedAccountId: null,
   inviteTitle: '',
   inviteContent: '',
+  inviteBackgroundId: null,
   inviteColor: '#FCE4F0',
   inviteCharacter: 1,
 };
