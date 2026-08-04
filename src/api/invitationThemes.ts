@@ -11,6 +11,12 @@ export function createInvitationBackground(payload: { name: string; hexCode: str
   return unwrap<{ id: number }>(apiClient.post('/api/v1/invitation-backgrounds', payload))
 }
 
+export function updateInvitationBackground(id: number, payload: { name: string; hexCode: string }) {
+  return unwrap<{ id: number; name: string; hexCode: string }>(
+    apiClient.put(`/api/v1/invitation-backgrounds/${id}`, payload),
+  )
+}
+
 export function deleteInvitationBackground(id: number) {
   return unwrap<void>(apiClient.delete(`/api/v1/invitation-backgrounds/${id}`))
 }
