@@ -105,6 +105,9 @@ export default function DateSheet(props: DateSheetProps) {
     if (props.mode === 'single') return key === single;
     return key === rangeStart || key === rangeEnd;
   };
+  const todayKey = toKey(today.getFullYear(), today.getMonth(), today.getDate());
+  const isToday = (day: number) => toKey(viewYear, viewMonth, day) === todayKey;
+  const isPast = (day: number) => toKey(viewYear, viewMonth, day) < todayKey;
   const isRangeStart = (day: number) => props.mode === 'range' && toKey(viewYear, viewMonth, day) === rangeStart;
   const isRangeEnd = (day: number) => props.mode === 'range' && toKey(viewYear, viewMonth, day) === rangeEnd;
   const isInRange = (day: number) => {
@@ -166,12 +169,18 @@ export default function DateSheet(props: DateSheetProps) {
 
             return (
               <div key={idx} className={`relative flex flex-col items-center justify-center h-11 ${barClass}`}>
+                {isToday(day) && (
+                  <span className="absolute top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-pink-500" />
+                )}
                 <button
                   type="button"
                   onClick={() => handlePick(day)}
+                  disabled={isPast(day)}
                   className={`w-8 h-8 rounded-full text-xs flex items-center justify-center transition-colors
                     ${
-                      isSelected(day)
+                      isPast(day)
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : isSelected(day)
                         ? 'bg-pink-400 text-white font-semibold'
                         : inRange
                         ? 'text-gray-700'
@@ -180,9 +189,9 @@ export default function DateSheet(props: DateSheetProps) {
                 >
                   {day}
                 </button>
-                {(start || end) && (
+                {(start || end || (props.mode === 'single' && isSelected(day))) && (
                   <span className="text-[9px] leading-none text-pink-400 font-medium mt-0.5">
-                    {start ? '시작' : '마감'}
+                    {start ? '시작' : end ? '마감' : '선택'}
                   </span>
                 )}
               </div>
@@ -217,7 +226,7 @@ export default function DateSheet(props: DateSheetProps) {
             type="button"
             onClick={handleConfirm}
             disabled={!canConfirm}
-            className="flex-1 py-3 rounded-xl bg-gray-900 text-white text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1 py-3 rounded-xl bg-gray-900 text-white text-sm font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             {props.mode === 'single' ? '날짜 저장' : '기간 저장'}
           </button>

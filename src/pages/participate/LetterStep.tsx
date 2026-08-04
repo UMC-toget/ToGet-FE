@@ -1,6 +1,7 @@
 import type { LetterColor } from '../../components/common/letterPalette'
 import { LETTER_COLORS } from '../../components/common/letterPalette'
 import LetterCard from '../../components/common/LetterCard'
+import LetterColorPicker from '../../components/common/LetterColorPicker'
 import CheckOption from '../../components/common/CheckOption'
 
 const LETTER_MAX_LENGTH = 234
@@ -32,22 +33,7 @@ export default function LetterStep({
       <h2 className="text-h3-sb leading-normal text-black">2. 축하 메세지</h2>
 
       <div className="flex flex-col gap-4">
-        <p className="text-b1-m leading-normal text-black">편지지 색상</p>
-        <div className="flex items-center gap-3 overflow-x-auto pb-1">
-          {colors.map((color) => (
-            <button
-              key={color.id}
-              type="button"
-              aria-label={`${color.name} 편지지`}
-              onClick={() => onColorChange(color)}
-              className={`size-[35px] shrink-0 rounded-[4px] ${letterColor.id === color.id ? '' : 'opacity-60'}`}
-              style={{
-                backgroundColor: color.background,
-                ...(color.name === '화이트' && { border: '2px solid var(--color-gray-500)' }),
-              }}
-            />
-          ))}
-        </div>
+        <LetterColorPicker selectedId={letterColor.id} onSelect={onColorChange} colors={colors} />
 
         <LetterCard
           color={letterColor}

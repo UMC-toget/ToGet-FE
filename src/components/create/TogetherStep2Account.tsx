@@ -73,7 +73,7 @@ export default function TogetherStep2Account({ onNext }: Props) {
   if (view === 'list') {
     return (
       <div className="flex-1 min-h-0 flex flex-col">
-        <div className="flex-1 overflow-y-auto flex flex-col">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col">
           <div className="space-y-5 pb-5">
             <div>
               <h2 className="text-lg font-bold text-gray-900">입금받을 계좌를 등록해 주세요</h2>
@@ -145,7 +145,7 @@ export default function TogetherStep2Account({ onNext }: Props) {
         <button
           onClick={onNext}
           disabled={!selectedAccountId}
-          className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           다음
         </button>
@@ -172,7 +172,7 @@ export default function TogetherStep2Account({ onNext }: Props) {
         </p>
 
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">은행명 <span className="text-red-400">*</span></label>
+          <label className="text-xs text-gray-500 mb-2 block">은행명 <span className="text-red-400">*</span></label>
           <button
             onClick={() => setShowBankSheet(true)}
             className="w-full flex items-center justify-between rounded-xl px-4 py-3 text-sm text-left bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
@@ -185,25 +185,25 @@ export default function TogetherStep2Account({ onNext }: Props) {
         </div>
 
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">계좌번호 <span className="text-red-400">*</span></label>
+          <label className="text-xs text-gray-500 mb-2 block">계좌번호 <span className="text-red-400">*</span></label>
           <input
             type="text"
             inputMode="numeric"
             placeholder="본인의 계좌번호를 정확히 입력해주세요"
             value={form.accountNumber}
             onChange={(e) => setForm({ ...form, accountNumber: e.target.value.replace(/[^0-9]/g, '') })}
-            className="w-full rounded-xl px-4 py-3 text-sm outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
           />
         </div>
 
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">예금주 <span className="text-red-400">*</span></label>
+          <label className="text-xs text-gray-500 mb-2 block">예금주 <span className="text-red-400">*</span></label>
           <input
             type="text"
             placeholder="예금주 이름을 정확히 입력해 주세요"
             value={form.accountHolder}
             onChange={(e) => setForm({ ...form, accountHolder: e.target.value.replace(/[0-9]/g, '') })}
-            className="w-full rounded-xl px-4 py-3 text-sm outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
           />
         </div>
       </div>
@@ -211,7 +211,7 @@ export default function TogetherStep2Account({ onNext }: Props) {
       <button
         onClick={isEdit ? handleSubmitEdit : handleSubmitAdd}
         disabled={!isEdit && !isFormValid}
-        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
       >
         {isEdit ? '수정 완료' : '등록 완료'}
       </button>
@@ -229,7 +229,7 @@ export default function TogetherStep2Account({ onNext }: Props) {
                 value={bankQuery}
                 onChange={(e) => setBankQuery(e.target.value)}
                 placeholder="은행명을 검색 후 선택해주세요"
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm outline-none focus:border-gray-800 transition-colors"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none focus:border-gray-800 transition-colors"
               />
               <Search size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>

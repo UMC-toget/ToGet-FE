@@ -6,6 +6,8 @@ interface BottomSheetProps {
   onClose: () => void
   /** 시트 상단 라운드 크기. 기본 md(25px), 가격 필터 등은 lg(32px) */
   radius?: 'md' | 'lg'
+  /** 시트 최대 높이. half=50vh, auto=콘텐츠 높이만큼(기본) */
+  size?: 'half' | 'auto'
   children: ReactNode
 }
 
@@ -17,11 +19,11 @@ interface BottomSheetProps {
  *   <p className="text-h3-sb">약관 동의</p>
  * </BottomSheet>
  */
-export default function BottomSheet({ open, onClose, radius = 'md', children }: BottomSheetProps) {
+export default function BottomSheet({ open, onClose, radius = 'md', size = 'auto', children }: BottomSheetProps) {
   if (!open) return null
 
   return (
-    <div className="fixed inset-x-0 top-0 z-50 flex h-dvh flex-col justify-end">
+    <div className="fixed inset-0 z-50 flex justify-center items-end">
       <button
         type="button"
         aria-label="닫기"
@@ -29,9 +31,9 @@ export default function BottomSheet({ open, onClose, radius = 'md', children }: 
         className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
       />
       <div
-        className={`relative flex w-full max-h-full flex-col items-center overflow-y-auto bg-white px-[18px] pb-8 pt-3.5 ${
+        className={`relative flex w-full max-w-[402px] flex-col items-center overflow-y-auto bg-white px-[18px] pb-8 pt-3.5 ${
           radius === 'lg' ? 'rounded-t-[32px]' : 'rounded-t-[25px]'
-        }`}
+        } ${size === 'half' ? 'h-[calc(100dvh-250px)]' : 'max-h-full'}`}
       >
         <div className="mb-6 h-[3px] w-9 shrink-0 rounded-full bg-[#3c3c43]/30" />
         {children}

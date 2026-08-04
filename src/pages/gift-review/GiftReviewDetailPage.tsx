@@ -6,25 +6,41 @@ import LetterCard from '../../components/common/LetterCard'
 import { LETTER_COLORS } from '../../components/common/letterPalette'
 import { getMockReview } from './mockReview'
 import type { ReviewPreviewData } from './reviewTypes'
+import { useContributionBackgrounds, backgroundIdToColorId } from './useDecorations'
+import { useReview } from './useReviews'
 
 /** 스와이프로 인정할 최소 드래그 거리(px) */
 const SWIPE_THRESHOLD = 40
 
 /**
- * J01-2) 선물 후기 조회 화면 (/gift/review/:id)
- * 서버 연동 전이라 작성 → 완료 화면에서 navigate state로 넘어온 데이터를 우선 사용하고,
- * 없으면(직접 URL 접근 등) mockReview로 대체한다.
+ * J01-2) 선물 후기 조회 화면 (/gift/review/:id/:fundingId?)
+ * 우선순위: 작성 직후 navigate state → 실제 조회 API(getReview, fundingId 있을 때만) → mockReview.
+ * BE(#181)가 화~수 완료 예정이라 fundingId가 있어도 당장은 API가 실패할 수 있고, 그 경우도 mockReview로 대체된다.
  */
 export default function GiftReviewDetailPage() {
-  const { id } = useParams()
+  const { id, fundingId } = useParams()
   const location = useLocation()
   const [imageIndex, setImageIndex] = useState(0)
   const [letterOpen, setLetterOpen] = useState(false)
   const pointerStartX = useRef<number | null>(null)
 
-  const review = (location.state as ReviewPreviewData | null) ?? getMockReview(id)
+  const backgrounds = useContributionBackgrounds()
+  const { data: apiReview } = useReview(fundingId, 'review')
+
+  const previewState = location.state as ReviewPreviewData | null
+  const review: ReviewPreviewData = previewState ?? (apiReview
+    ? {
+        senderName: '',
+        title: apiReview.title ?? '',
+        content: apiReview.content,
+        colorId: backgroundIdToColorId(apiReview.backgroundId, backgrounds),
+        images: apiReview.images,
+        fundingReviewId: apiReview.fundingReviewId,
+      }
+    : getMockReview(id))
   const letterColor = LETTER_COLORS.find((c) => c.id === review.colorId) ?? LETTER_COLORS[7]
   const hasImages = review.images.length > 0
+  const heading = review.senderName ? `${review.senderName}님이 보낸 선물 후기` : '선물 후기'
 
   const goToImage = (next: number) => {
     setImageIndex(Math.min(Math.max(next, 0), review.images.length - 1))
@@ -45,10 +61,10 @@ export default function GiftReviewDetailPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-10">
-      <Header title={`${review.senderName}님이 보낸 선물 후기`} />
+      <Header title={heading} />
 
       <div className="flex flex-col gap-4 px-[18px] pt-5">
-        <h2 className="text-h3-sb text-black">{review.senderName}님이 보낸 선물 후기</h2>
+        <h2 className="text-h3-sb text-black">{heading}</h2>
 
         <div className="flex flex-col gap-2">
           {/* 피그마 기준: 대표 이미지가 있으면 실제 이미지, 없으면 placeholder (FundingDetailPage와 동일한 패턴) */}
@@ -66,7 +82,7 @@ export default function GiftReviewDetailPage() {
                   <img
                     key={index}
                     src={src}
-                    alt={`${review.senderName}님이 보낸 선물 후기 이미지 ${index + 1}`}
+                    alt={`${heading} 이미지 ${index + 1}`}
                     draggable={false}
                     className="h-full w-full shrink-0 object-cover"
                   />
@@ -97,7 +113,7 @@ export default function GiftReviewDetailPage() {
           title={review.title}
           content={review.content}
           showFrom
-          fromLabel={`from. ${review.senderName}`}
+          fromLabel={review.senderName ? `from. ${review.senderName}` : undefined}
           onToggle={() => setLetterOpen((prev) => !prev)}
         />
       </div>

@@ -8,14 +8,14 @@ import { GIFT_CREATE_CARDS } from './giftTypes'
 import type { GiftPageType } from './giftTypes'
 import { useIndividualDraft } from './useIndividualDraft'
 import { useTogetherDraft } from './useTogetherDraft'
+import { useAuth } from '../../hooks/useAuth'
 
 const CARD_ICONS: Record<GiftPageType, string> = {
   my: bannerCat,
   together: togetherCat,
 }
 
-// '내 선물 페이지'는 새로 만든 5단계 만들기 플로우(/funding/create)로 연결
-const resolveCreatePath = (type: GiftPageType) => (type === 'my' ? '/funding/create' : `/gift/create/${type}`)
+const resolveCreatePath = (type: GiftPageType) => `/gift/create/${type}`
 
 interface GiftCreateSheetProps {
   open: boolean
@@ -25,6 +25,7 @@ interface GiftCreateSheetProps {
 /** 선물 페이지 만들기 바텀시트 (C01: 홈의 + 버튼을 누르면 열림) */
 export default function GiftCreateSheet({ open, onClose }: GiftCreateSheetProps) {
   const navigate = useNavigate()
+  const { isLoggedIn } = useAuth()
   const [draftModalType, setDraftModalType] = useState<GiftPageType | null>(null)
   // '내 선물 페이지'(individual)는 실제 임시저장 API로 draft 여부를 확인
   const individualDraftQuery = useIndividualDraft()
@@ -39,7 +40,7 @@ export default function GiftCreateSheet({ open, onClose }: GiftCreateSheetProps)
         return
       }
       onClose()
-      navigate(resolveCreatePath(type))
+      navigate(isLoggedIn ? resolveCreatePath(type) : '/login')
       return
     }
 
@@ -49,21 +50,21 @@ export default function GiftCreateSheet({ open, onClose }: GiftCreateSheetProps)
       return
     }
     onClose()
-    navigate(resolveCreatePath(type))
+    navigate(isLoggedIn ? resolveCreatePath(type) : '/login')
   }
 
   const handleStartNew = () => {
     const type = draftModalType
     setDraftModalType(null)
     onClose()
-    if (type) navigate(resolveCreatePath(type))
+    if (type) navigate(isLoggedIn ? resolveCreatePath(type) : '/login')
   }
 
   const handleContinueDraft = () => {
     const type = draftModalType
     setDraftModalType(null)
     onClose()
-    if (type) navigate(resolveCreatePath(type), { state: { continueDraft: true } })
+    if (type) navigate(isLoggedIn ? resolveCreatePath(type) : '/login', { state: { continueDraft: true } })
   }
 
   const handleGuideClick = () => {
