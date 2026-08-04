@@ -134,7 +134,7 @@ export default function AdminInvitationThemesPage() {
         }
       />
 
-      <div className="flex flex-col gap-5 px-[18px] py-5">
+      <div className="flex flex-col gap-4 px-[18px] py-5">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -152,60 +152,66 @@ export default function AdminInvitationThemesPage() {
           </button>
         </div>
 
-        <div className="flex items-center justify-between">
-          <h2 className="text-h3-sb text-black">{tab === 'color' ? '초대장 색상' : '캐릭터'}</h2>
-          <span className="text-caption1-r text-gray-500">총 {itemCount}개</span>
-        </div>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <h2 className="text-b1-m text-black">{tab === 'color' ? '초대장 색상' : '캐릭터'}</h2>
+            <span className="text-b2-r text-gray-400">총 {itemCount}개</span>
+          </div>
 
-        {tab === 'color' ? (
-          <div className="flex flex-wrap gap-3">
-            {colors.map((color) => (
-              <button
-                key={color.id}
-                type="button"
-                onClick={() => selectMode && toggleSelected(color.id)}
-                className="relative size-11 shrink-0 rounded-full border border-gray-200"
-                style={{ backgroundColor: color.hexCode }}
-                aria-label={color.name}
-              >
-                {selectMode && (
-                  <span
-                    className={`absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full border border-gray-200 ${
-                      selectedIds.has(color.id) ? 'bg-gray-900 text-white' : 'bg-white text-transparent'
-                    }`}
-                  >
-                    <CheckIcon className="size-3" />
+          {tab === 'color' ? (
+            <div className="flex flex-wrap gap-3">
+              {colors.map((color) => (
+                <button
+                  key={color.id}
+                  type="button"
+                  onClick={() => selectMode && toggleSelected(color.id)}
+                  // 삭제 선택된 항목만 원색, 그 외(평소 포함)에는 opacity 0.6로 흐리게 (LetterColorPicker와 동일한 피그마 규칙)
+                  // 흰색은 배경(흰 화면)과 구분되도록 진한 테두리, 나머지는 옅은 테두리 (피그마 기준)
+                  className={`relative size-[35px] shrink-0 rounded-[4px] border ${
+                    color.hexCode.toLowerCase() === '#ffffff' ? 'border-gray-400' : 'border-gray-100'
+                  } ${selectMode && selectedIds.has(color.id) ? '' : 'opacity-60'}`}
+                  style={{ backgroundColor: color.hexCode }}
+                  aria-label={color.name}
+                >
+                  {selectMode && (
+                    <span
+                      className={`absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full border border-gray-200 ${
+                        selectedIds.has(color.id) ? 'bg-gray-900 text-white' : 'bg-white text-transparent'
+                      }`}
+                    >
+                      <CheckIcon className="size-3" />
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {characters.map((character, index) => (
+                <button
+                  key={character.id}
+                  type="button"
+                  onClick={() => selectMode && toggleSelected(character.id)}
+                  className="relative flex flex-col items-center gap-2 rounded-xl bg-background p-4"
+                >
+                  <img src={character.imageUrl} alt={character.name} className="size-24 object-contain" />
+                  <span className="rounded-full bg-pink-500 px-2 py-0.5 text-caption2-r text-white">
+                    No.{String(index + 1).padStart(2, '0')}
                   </span>
-                )}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {characters.map((character, index) => (
-              <button
-                key={character.id}
-                type="button"
-                onClick={() => selectMode && toggleSelected(character.id)}
-                className="relative flex flex-col items-center gap-2 rounded-xl bg-background p-4"
-              >
-                <img src={character.imageUrl} alt={character.name} className="size-24 object-contain" />
-                <span className="rounded-full bg-pink-500 px-2 py-0.5 text-caption2-r text-white">
-                  No.{String(index + 1).padStart(2, '0')}
-                </span>
-                {selectMode && (
-                  <span
-                    className={`absolute right-2 top-2 flex size-5 items-center justify-center rounded-full border border-gray-200 ${
-                      selectedIds.has(character.id) ? 'bg-gray-900 text-white' : 'bg-white text-transparent'
-                    }`}
-                  >
-                    <CheckIcon className="size-3" />
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
+                  {selectMode && (
+                    <span
+                      className={`absolute right-2 top-2 flex size-5 items-center justify-center rounded-full border border-gray-200 ${
+                        selectedIds.has(character.id) ? 'bg-gray-900 text-white' : 'bg-white text-transparent'
+                      }`}
+                    >
+                      <CheckIcon className="size-3" />
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <input
@@ -234,11 +240,11 @@ export default function AdminInvitationThemesPage() {
           </button>
         </div>
       ) : (
-        <div className="fixed inset-x-0 bottom-0 mx-auto flex w-full max-w-[402px] gap-3 border-t border-gray-100 bg-white px-[18px] py-4">
+        <div className="fixed inset-x-0 bottom-0 mx-auto flex w-full max-w-[402px] gap-3 bg-white px-[18px] py-4">
           <button
             type="button"
             onClick={handleDeleteClick}
-            className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-gray-300 text-sm font-semibold text-black"
+            className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-gray-600 text-sm font-semibold text-black"
           >
             삭제하기
           </button>
