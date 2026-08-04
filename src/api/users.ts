@@ -20,7 +20,7 @@ export interface UserProfileUpdateResult {
 
 /** 서버 소셜 로그인 제공자 코드 -> 화면에 표시할 한글 라벨 */
 export const OAUTH_PROVIDER_LABELS: Record<string, string> = {
-  KAKAO: '카카오',
+  KAKAO: '카카오톡',
   GOOGLE: '구글',
   APPLE: '애플',
 }
