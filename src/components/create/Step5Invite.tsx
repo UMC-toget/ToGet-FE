@@ -18,21 +18,6 @@ const CONTENT_MAX = 60;
 
 // inviteCharacter(1~6)에 대응하는 캐릭터 이미지
 // StepComplete 등 다른 화면에서도 동일한 캐릭터 이미지를 써야 해서 export 합니다.
-function hexToRgb(hex: string) {
-  const clean = hex.replace('#', '');
-  const n = parseInt(clean, 16);
-  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
-}
-
-// hex를 흰색과 섞어 밝은 톤을 만듭니다 (ratio 0~1, 1에 가까울수록 더 밝아짐)
-function lighten(hex: string, ratio: number) {
-  const c = hexToRgb(hex);
-  const r = Math.round(c.r + (255 - c.r) * ratio);
-  const g = Math.round(c.g + (255 - c.g) * ratio);
-  const b = Math.round(c.b + (255 - c.b) * ratio);
-  return `rgb(${r}, ${g}, ${b})`;
-}
-
 // 초대장 배경에 흩뿌려지는 반짝이 장식 (디자인팀 전달 SVG)
 export function InviteSparkles() {
   return (
@@ -40,7 +25,7 @@ export function InviteSparkles() {
       src={inviteSparklesSvg}
       alt=""
       aria-hidden
-      className="absolute inset-0 w-full h-full pointer-events-none select-none"
+      className="absolute left-1/2 top-3 z-[5] w-[44%] h-auto -translate-x-1/2 pointer-events-none select-none"
     />
   );
 }
@@ -63,9 +48,8 @@ export function TogetLogoMark({ accentColor, isWhite, className }: { accentColor
       {!isWhite && (
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="56.1834" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor={lighten(accentColor, 0.92)} />
-            <stop offset="55%" stopColor={lighten(accentColor, 0.35)} />
-            <stop offset="100%" stopColor={accentColor} />
+            <stop offset="0%" stopColor={accentColor} stopOpacity="1" />
+            <stop offset="100%" stopColor={accentColor} stopOpacity="0.3" />
           </linearGradient>
         </defs>
       )}
@@ -118,7 +102,7 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
   const currentCharacter = characters.find((item) => item.id === inviteCharacter) ?? characters[0];
   const currentCharacterImage = currentCharacter?.imageUrl;
   const isWhite = inviteColor === '#FFFFFF';
-  const accentColor = getInvitationAccent(inviteColor);
+  const accentColor = isWhite ? getInvitationAccent(inviteColor) : inviteColor;
   const glowColor = isWhite ? '#D1D5DB' : inviteColor;
 
   return (
@@ -138,7 +122,10 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
               흰색이 아니라 '투명'으로 빠지게 해서 카드 하단부는 아예 그라데이션 영향이 없게 함 */}
           <div
             className="absolute inset-x-0 top-0 h-40 pointer-events-none"
-            style={{ background: `radial-gradient(circle at 50% 45%, ${accentColor} 0%, ${glowColor} 20%, transparent 65%)`, opacity: 1 }}
+            style={{
+              background: `radial-gradient(circle at 50% 45%, color-mix(in srgb, ${glowColor} 50%, transparent) 0%, color-mix(in srgb, ${glowColor} 30%, transparent) 32%, transparent 68%)`,
+              filter: 'blur(33px)',
+            }}
           />
           <InviteSparkles />
           <TogetLogoMark
@@ -224,12 +211,15 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
                   onClick={() => setInvite({ inviteBackgroundId: background.id, inviteColor: background.hexCode })}
                   className={`relative aspect-square rounded-[3px] transition-colors ${
                     inviteBackgroundId === background.id
-                      ? 'z-10 border-2 border-[#28345A]'
+                      ? 'z-10 border-2'
                       : background.hexCode.toUpperCase() === '#FFFFFF'
                         ? 'border border-gray-200'
                         : 'border border-transparent'
                   }`}
-                  style={{ background: background.hexCode }}
+                  style={{
+                    background: `color-mix(in srgb, ${background.hexCode} 30%, white)`,
+                    ...(inviteBackgroundId === background.id && { borderColor: background.hexCode }),
+                  }}
                   aria-label={`${background.name} 색상 선택`}
                   aria-pressed={inviteBackgroundId === background.id}
                 />
@@ -292,7 +282,10 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
               {/* 캐릭터를 중심으로 진하게 시작해서 바깥으로 갈수록 옅어지는 글로우 - 작은 미리보기 카드와 동일한 톤 */}
               <div
                 className="absolute inset-x-0 top-0 h-96 pointer-events-none"
-                style={{ background: `radial-gradient(circle at 50% 65%, ${accentColor} 0%, ${glowColor} 25%, transparent 65%)`, opacity: 1 }}
+                style={{
+                  background: `radial-gradient(circle at 50% 65%, color-mix(in srgb, ${glowColor} 50%, transparent) 0%, color-mix(in srgb, ${glowColor} 30%, transparent) 32%, transparent 68%)`,
+                  filter: 'blur(33px)',
+                }}
               />
               <InviteSparkles />
               <div className="flex flex-col items-center pt-6">

@@ -51,7 +51,7 @@ export default function TogetherStep3Invite({ onNext }: Props) {
   const currentCharacter = characters.find((item) => item.id === inviteCharacter) ?? characters[0];
   const currentCharacterImage = currentCharacter?.imageUrl;
   const isWhite = inviteColor === '#FFFFFF';
-  const accentColor = getInvitationAccent(inviteColor);
+  const accentColor = isWhite ? getInvitationAccent(inviteColor) : inviteColor;
   const glowColor = isWhite ? '#D1D5DB' : inviteColor;
 
   return (
@@ -69,7 +69,10 @@ export default function TogetherStep3Invite({ onNext }: Props) {
         >
           <div
             className="absolute inset-x-0 top-0 h-40 pointer-events-none"
-            style={{ background: `radial-gradient(circle at 50% 45%, ${accentColor} 0%, ${glowColor} 20%, transparent 65%)`, opacity: 1 }}
+            style={{
+              background: `radial-gradient(circle at 50% 45%, color-mix(in srgb, ${glowColor} 50%, transparent) 0%, color-mix(in srgb, ${glowColor} 30%, transparent) 32%, transparent 68%)`,
+              filter: 'blur(33px)',
+            }}
           />
           <InviteSparkles />
           <TogetLogoMark
@@ -155,12 +158,15 @@ export default function TogetherStep3Invite({ onNext }: Props) {
                   onClick={() => setInvite({ inviteBackgroundId: background.id, inviteColor: background.hexCode })}
                   className={`relative aspect-square rounded-[3px] transition-colors ${
                     inviteBackgroundId === background.id
-                      ? 'z-10 border-2 border-[#28345A]'
+                      ? 'z-10 border-2'
                       : background.hexCode.toUpperCase() === '#FFFFFF'
                         ? 'border border-gray-200'
                         : 'border border-transparent'
                   }`}
-                  style={{ background: background.hexCode }}
+                  style={{
+                    background: `color-mix(in srgb, ${background.hexCode} 30%, white)`,
+                    ...(inviteBackgroundId === background.id && { borderColor: background.hexCode }),
+                  }}
                   aria-label={`${background.name} 색상 선택`}
                   aria-pressed={inviteBackgroundId === background.id}
                 />
@@ -222,7 +228,10 @@ export default function TogetherStep3Invite({ onNext }: Props) {
             <div className="relative rounded-2xl overflow-hidden border border-black/5 shadow-[0_6px_24px_rgba(0,0,0,0.12)] bg-white">
               <div
                 className="absolute inset-x-0 top-0 h-96 pointer-events-none"
-                style={{ background: `radial-gradient(circle at 50% 65%, ${accentColor} 0%, ${glowColor} 25%, transparent 65%)`, opacity: 1 }}
+                style={{
+                  background: `radial-gradient(circle at 50% 65%, color-mix(in srgb, ${glowColor} 50%, transparent) 0%, color-mix(in srgb, ${glowColor} 30%, transparent) 32%, transparent 68%)`,
+                  filter: 'blur(33px)',
+                }}
               />
               <InviteSparkles />
               <div className="flex flex-col items-center pt-6">
