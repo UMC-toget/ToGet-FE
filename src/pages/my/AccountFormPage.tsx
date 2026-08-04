@@ -8,12 +8,14 @@ import ConfirmModal from '../../components/common/ConfirmModal'
 import SearchIcon from '../../components/icons/SearchIcon'
 import BankSelectSheet from './BankSelectSheet'
 import { useUserAccounts, USER_ACCOUNTS_QUERY_KEY } from '../../hooks/useUserAccounts'
+import { useRequireAuth } from '../../hooks/useRequireAuth'
 import { createUserAccount, updateUserAccount, BANK_NAME_LABELS } from '../../api/userAccounts'
 import type { BankName } from '../../api/userAccounts'
 import { ApiError } from '../../lib/apiClient'
 
 /** 계좌 등록/수정 폼 (I. 마이 > 계좌). id가 있으면 수정, 없으면 새 계좌 등록입니다. */
 export default function AccountFormPage() {
+  useRequireAuth()
   const navigate = useNavigate()
   const { id } = useParams()
   const { data: accounts } = useUserAccounts()

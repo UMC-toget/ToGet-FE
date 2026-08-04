@@ -5,6 +5,7 @@ import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import EditPencilIcon from '../../components/icons/EditPencilIcon'
 import BankIcon from '../../components/icons/BankIcon'
 import { useUserAccounts } from '../../hooks/useUserAccounts'
+import { useRequireAuth } from '../../hooks/useRequireAuth'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
 import bankShinhan from '../../assets/bank-shinhan.png'
 import bankKakao from '../../assets/bank-kakao.png'
@@ -23,6 +24,7 @@ function formatAccountNumber(account: string): string {
 
 /** 등록된 나의 계좌 목록 (I. 마이 > 계좌) */
 export default function AccountListPage() {
+  useRequireAuth()
   const navigate = useNavigate()
   const { data: accounts } = useUserAccounts()
   const accountList = accounts ?? []

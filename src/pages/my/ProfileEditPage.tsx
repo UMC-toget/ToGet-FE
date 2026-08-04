@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Header from '../../components/common/Header'
@@ -11,6 +11,7 @@ import Toast from '../../components/common/Toast'
 import ProfileAvatar from '../signup/ProfileAvatar'
 import { useAuth } from '../../hooks/useAuth'
 import { useMyProfile } from '../../hooks/useMyProfile'
+import { useRequireAuth } from '../../hooks/useRequireAuth'
 import { updateMyProfile, withdrawMe, deleteMyProfileImage } from '../../api/users'
 import { uploadImage } from '../../utils/uploadImage'
 import { logoutRequest } from '../../api/auth'
@@ -34,15 +35,12 @@ export default function ProfileEditPage() {
   const [logoutModalOpen, setLogoutModalOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deletePhotoModalOpen, setDeletePhotoModalOpen] = useState(false)
-  const { isLoggedIn, logout } = useAuth()
+  const { logout } = useAuth()
   const navigate = useNavigate()
   const pageRef = useRef<HTMLDivElement>(null)
   const queryClient = useQueryClient()
 
-  // 비로그인 상태로 URL을 직접 입력해 들어온 경우, 로그인 화면으로 보냅니다.
-  useEffect(() => {
-    if (!isLoggedIn) navigate('/login', { replace: true })
-  }, [isLoggedIn, navigate])
+  useRequireAuth()
 
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null)
   const [photoToastOpen, setPhotoToastOpen] = useState(false)
