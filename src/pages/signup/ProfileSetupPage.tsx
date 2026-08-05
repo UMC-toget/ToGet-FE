@@ -8,6 +8,7 @@ import ProfileAvatar from './ProfileAvatar'
 import TermsBottomSheet from './TermsBottomSheet'
 import { useAuth } from '../../hooks/useAuth'
 import { replayShake } from '../../utils/shake'
+import { consumeReturnUrl } from '../../utils/returnUrl'
 import { completeSignup } from '../../api/auth'
 import { uploadImage } from '../../utils/uploadImage'
 import { ApiError } from '../../lib/apiClient'
@@ -51,7 +52,8 @@ export default function ProfileSetupPage() {
       setTokens(result.accessToken, result.refreshToken)
       login()
       setTermsOpen(false)
-      navigate('/home')
+      // 회원가입까지 마친 신규 유저도 H 참여 등 복귀 경로가 있으면 그리로
+      navigate(consumeReturnUrl() ?? '/home')
     },
     onError: (error) => {
       setTermsOpen(false)
