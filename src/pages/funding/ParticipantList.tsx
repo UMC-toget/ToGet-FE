@@ -13,21 +13,21 @@ type View = 'list' | 'search'
 
 function ParticipantCard({ participant, onEdit }: { participant: Participant; onEdit: (p: Participant) => void }) {
   return (
-    <div className="rounded-xl border border-gray-100 p-3">
+    <div className="rounded-xl border border-gray-100 px-[14px] py-3">
       <div className="flex items-center gap-3">
-        <DefaultAvatar className="size-9 shrink-0" />
+        <DefaultAvatar className="size-[52px] shrink-0" />
         <div className="min-w-0 flex-1">
-          <p className="text-b2-m leading-normal text-black">{participant.name}</p>
-          <p className="text-caption2-r leading-normal text-gray-500">{participant.dateLabel}</p>
+          <p className="text-b1-m leading-normal text-black">{participant.name}</p>
+          <p className="text-caption1-r leading-normal text-gray-500">{participant.dateLabel}</p>
         </div>
-        <p className="text-b2-m leading-normal text-black">{participant.amount.toLocaleString()}원</p>
+        <p className="text-b1-m font-semibold leading-normal text-black">{participant.amount.toLocaleString()}원</p>
       </div>
       <button
         type="button"
         onClick={() => onEdit(participant)}
-        className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg bg-background-2 py-2 text-caption1-m text-gray-600 transition-colors hover:bg-gray-100"
+        className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-gray-100 py-2 text-caption1-m text-black transition-colors hover:bg-gray-200"
       >
-        <Pencil size={12} /> 금액 수정
+        <Pencil size={16} /> 금액 수정
       </button>
     </div>
   )
@@ -183,16 +183,16 @@ export default function ParticipantList() {
   // ── 목록 화면 ──────────────────────────────────────────────
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex flex-col gap-2 pb-3">
+      <div className="flex flex-col gap-3 pb-4">
         <div className="flex items-center justify-between">
-          <span className="text-b2-m leading-normal text-gray-700">참여 인원</span>
-          <span className="rounded bg-pink-100 px-2 py-0.5 text-b2-m leading-normal text-pink-500">
+          <span className="text-h3-sb text-black">참여 인원</span>
+          <span className="rounded bg-pink-100 px-2.5 py-1 text-h3-sb text-pink-500">
             {participants.length}명
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-b2-m leading-normal text-gray-700">참여 금액</span>
-          <span className="rounded bg-pink-100 px-2 py-0.5 text-b2-m leading-normal text-pink-500">
+          <span className="text-h3-sb text-black">참여 금액</span>
+          <span className="rounded bg-pink-100 px-2.5 py-1 text-h3-sb text-pink-500">
             {totalAmount.toLocaleString()}원
           </span>
         </div>
