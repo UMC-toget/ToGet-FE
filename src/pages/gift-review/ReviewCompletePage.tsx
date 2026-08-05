@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useRequireAuth } from '../../hooks/useRequireAuth'
 import Button from '../../components/common/Button'
 import Toast from '../../components/common/Toast'
 import CloseIcon from '../../components/icons/CloseIcon'
@@ -12,6 +13,8 @@ const TOAST_DURATION_MS = 2000
 
 /** J파트 작성물 3종 공용 완료 화면 (/gift/review/complete/:type, 피그마 #1933:103464 외) */
 export default function ReviewCompletePage() {
+  useRequireAuth()
+
   const { type } = useParams<{ type: string }>()
   const navigate = useNavigate()
   const location = useLocation()
