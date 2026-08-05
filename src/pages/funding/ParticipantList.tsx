@@ -186,13 +186,13 @@ export default function ParticipantList() {
       <div className="flex flex-col gap-3 pb-4">
         <div className="flex items-center justify-between opacity-80">
           <span className="text-h3-sb text-black">참여 인원</span>
-          <span className="rounded bg-[#FFF1F6] px-2.5 py-1 text-h3-sb text-pink-500">
+          <span className="rounded bg-[#FFF1F6] px-2.5 pt-1 pb-1.5 text-h3-sb text-pink-500">
             {participants.length}명
           </span>
         </div>
         <div className="flex items-center justify-between opacity-80">
           <span className="text-h3-sb text-black">참여 금액</span>
-          <span className="rounded bg-[#FFF1F6] px-2.5 py-1 text-h3-sb text-pink-500">
+          <span className="rounded bg-[#FFF1F6] px-2.5 pt-1 pb-1.5 text-h3-sb text-pink-500">
             {totalAmount.toLocaleString()}원
           </span>
         </div>
