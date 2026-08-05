@@ -24,6 +24,8 @@ export default function LetterPage() {
   const [content, setContent] = useState('')
   const [isPrivate, setIsPrivate] = useState(false)
   const [showLeaveModal, setShowLeaveModal] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [doneOpen, setDoneOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   const selectedColor = LETTER_COLORS.find(c => c.id === colorId) ?? LETTER_COLORS[7]
@@ -36,21 +38,27 @@ export default function LetterPage() {
     }
   }
 
-  const handleComplete = async () => {
+  // 이 화면 제출이 곧 입금 완료 신고(POST /members/me/contributions) — 편지는 선택.
+  // 입금완료 진입점을 여기 하나로 모아 중복 호출(FUNDING409_2)을 방지한다.
+  const submitContribution = async () => {
     if (submitting) return
     setSubmitting(true)
-    try {
-      await postSettlementContribution(id!, {
-        backgroundId: selectedColor.backgroundId,
-        content,
-        isPrivate,
-      })
-    } catch (e) {
-      console.error('편지 전송 실패', e)
-    } finally {
-      setSubmitting(false)
+    setConfirmOpen(false)
+    if (!import.meta.env.DEV && id) {
+      try {
+        await postSettlementContribution(id, {
+          backgroundId: selectedColor.backgroundId,
+          content,
+          isPrivate,
+        })
+      } catch (e) {
+        // 이미 입금 완료(409)면 결과적으로 PAID 상태라 정상 취급, 그 외만 로그
+        const status = (e as { response?: { status?: number } }).response?.status
+        if (status !== 409) console.error('입금 완료 신고 실패', e)
+      }
     }
-    navigate(`/group/${id}`)
+    setSubmitting(false)
+    setDoneOpen(true)
   }
 
   return (
@@ -83,10 +91,10 @@ export default function LetterPage() {
       <StickyBottomBar>
         <Button
           className="pointer-events-auto"
-          disabled={content.trim().length === 0 || submitting}
-          onClick={handleComplete}
+          disabled={submitting}
+          onClick={() => setConfirmOpen(true)}
         >
-          완료하기
+          입금 완료
         </Button>
       </StickyBottomBar>
 
@@ -100,6 +108,26 @@ export default function LetterPage() {
           { label: '이어서 작성하기', variant: 'primary', onClick: () => setShowLeaveModal(false) },
         ]}
         onDimClick={() => setShowLeaveModal(false)}
+      />
+
+      {/* 입금 완료 확인 — 제출 시 PAID로 확정되고 변경 불가 */}
+      <EmojiPopup
+        open={confirmOpen}
+        title="입금을 완료하셨나요?"
+        description="완료하기를 누르면, 변경이 불가해요."
+        buttons={[
+          { label: '완료하기', variant: 'secondary', onClick: submitContribution },
+          { label: '변경하기', variant: 'primary', onClick: () => setConfirmOpen(false) },
+        ]}
+        onDimClick={() => setConfirmOpen(false)}
+      />
+
+      {/* 입금 완료 완료 — 체크 아이콘 + 홈으로 */}
+      <EmojiPopup
+        open={doneOpen}
+        icon="success"
+        title="입금 완료되었습니다"
+        buttons={[{ label: '홈으로 돌아가기', variant: 'primary', onClick: () => navigate('/home') }]}
       />
     </div>
   )

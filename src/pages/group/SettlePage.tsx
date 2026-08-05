@@ -7,7 +7,6 @@ import Toast from '../../components/common/Toast'
 import {
   getFundingSettlements,
   getTogetherGiftDashboard,
-  postSettlementContribution,
   type ConfirmedGift,
 } from '../../api/groupFundings'
 import { getFundingAccount, type FundingAccount } from '../../api/fundings'
@@ -15,7 +14,6 @@ import { BANK_NAME_LABELS } from '../../api/userAccounts'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import { MOCK_SETTLEMENTS, MOCK_ACCOUNT, MOCK_DASHBOARD } from './groupMock'
 import { copyToClipboard } from '../../utils/clipboard'
-import EmojiPopup from '../../components/common/EmojiPopup'
 
 // 접근: 로그인한 모든 역할 | 정산하기 — 계좌 조회 및 입금 확인 요청 (참여자 뷰)
 interface InfoRowProps {
@@ -46,9 +44,6 @@ export default function SettlePage() {
   const [participantCount, setParticipantCount] = useState(0)
   const [myShare, setMyShare] = useState(0)
   const [toastOpen, setToastOpen] = useState(false)
-  const [depositConfirmOpen, setDepositConfirmOpen] = useState(false)
-  const [depositDoneOpen, setDepositDoneOpen] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -96,22 +91,6 @@ export default function SettlePage() {
     await copyToClipboard(accountNumber)
     setToastOpen(true)
     setTimeout(() => setToastOpen(false), 2000)
-  }
-
-  // 입금 완료 신고 — 이 화면엔 편지 입력이 없어 기본 배경(1)·비공개 해제로 제출. 편지는 별도 '편지 남기기'로.
-  const handleDepositComplete = async () => {
-    if (submitting) return
-    setSubmitting(true)
-    setDepositConfirmOpen(false)
-    if (!import.meta.env.DEV && id) {
-      try {
-        await postSettlementContribution(id, { backgroundId: 1, isPrivate: false })
-      } catch (e) {
-        console.error('입금 완료 신고 실패', e)
-      }
-    }
-    setSubmitting(false)
-    setDepositDoneOpen(true)
   }
 
   if (loading) {
@@ -207,64 +186,23 @@ export default function SettlePage() {
         </section>
 
         {recipientName && (
-          <section className="flex flex-col gap-3">
-            <div className="flex flex-col gap-2">
-              <h2 className="text-h3-sb text-black">편지 남기기</h2>
-              <p className="text-caption1-r text-gray-600">
-                편지를 남기면 {recipientName}님에게 함께 전달해요
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => navigate(`/group/${id}/letter`, { state: { recipientName } })}
-              className="flex items-center gap-3 rounded-xl border border-gray-100 px-[14px] py-3"
-            >
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-[6px] bg-background">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                  <path d="M12 4.94531V12.0041M3 12.0041H12M12 12.0041V19.063M12 12.0041H21" stroke="#1E1D1E" strokeWidth="1.5" strokeLinejoin="round" />
-                </svg>
-              </span>
-              <span className="text-b2-m text-black">편지 남기기</span>
-            </button>
-          </section>
+          <p className="text-caption1-r text-gray-600">
+            아래 &lsquo;입금 완료&rsquo;에서 {recipientName}님에게 보낼 편지도 함께 남길 수 있어요
+          </p>
         )}
       </div>
 
-      {/* 하단 고정 CTA */}
+      {/* 하단 고정 CTA — 입금 완료 신고(+편지)는 LetterPage 한 곳에서만 제출해 중복 호출(409) 방지 */}
       <StickyBottomBar>
         <Button
           className="pointer-events-auto"
-          onClick={() => setDepositConfirmOpen(true)}
+          onClick={() => navigate(`/group/${id}/letter`, { state: { recipientName } })}
         >
           입금 완료
         </Button>
       </StickyBottomBar>
 
       <Toast open={toastOpen} message="계좌번호 복사되었습니다" variant="pink" bottomClass="bottom-[102px]" />
-
-      {/* 입금 완료 확인 — 완료하기(좌·회색)/변경하기(우·검정), 배경 탭은 닫힘(변경, 안전) */}
-      <EmojiPopup
-        open={depositConfirmOpen}
-        title="입금을 완료하셨나요?"
-        description="완료하기 버튼을 누르면, 변경이 불가해요."
-        buttons={[
-          {
-            label: '완료하기',
-            variant: 'secondary',
-            onClick: handleDepositComplete,
-          },
-          { label: '변경하기', variant: 'primary', onClick: () => setDepositConfirmOpen(false) },
-        ]}
-        onDimClick={() => setDepositConfirmOpen(false)}
-      />
-
-      {/* 입금 완료 완료 — 체크 아이콘 + 홈으로 돌아가기 */}
-      <EmojiPopup
-        open={depositDoneOpen}
-        icon="success"
-        title="입금 완료되었습니다"
-        buttons={[{ label: '홈으로 돌아가기', variant: 'primary', onClick: () => navigate('/home') }]}
-      />
     </div>
   )
 }
