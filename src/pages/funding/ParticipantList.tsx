@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom'
 import { ChevronDown, ChevronLeft, Search, Pencil, Check } from 'lucide-react'
 import Toast from '../../components/common/Toast'
 import DefaultAvatar from '../../components/common/DefaultAvatar'
-import { getMockParticipants } from './participantMock'
 import type { Participant } from './participantMock'
 import { getFundingContributionList, updateContributionAmount } from '../../api/fundings'
 
@@ -40,8 +39,10 @@ function ParticipantCard({ participant, onEdit }: { participant: Participant; on
  */
 export default function ParticipantList() {
   const { id } = useParams()
-  const [participants, setParticipants] = useState<Participant[]>(() => getMockParticipants())
-  const [totalAmount, setTotalAmount] = useState(() => getMockParticipants().reduce((s, p) => s + p.amount, 0))
+  const [participants, setParticipants] = useState<Participant[]>([])
+  const [participantCount, setParticipantCount] = useState(0)
+  const [totalAmount, setTotalAmount] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest')
   const [showSortSheet, setShowSortSheet] = useState(false)
   const [view, setView] = useState<View>('list')
@@ -51,8 +52,17 @@ export default function ParticipantList() {
   const [toast, setToast] = useState<{ id: string; contributionId: number; previousAmount: number } | null>(null)
 
   useEffect(() => {
-    if (!id) return
+    if (!id) {
+      setIsLoading(false)
+      return
+    }
+
+    let isActive = true
+    setIsLoading(true)
+
     getFundingContributionList(id).then((res) => {
+      if (!isActive) return
+      setParticipantCount(res.participantCount)
       setTotalAmount(res.totalAmount)
       setParticipants(res.contributions.map((c) => {
         const date = new Date(c.createdAt)
@@ -65,7 +75,19 @@ export default function ParticipantList() {
           amount: c.amount,
         }
       }))
-    }).catch(console.error)
+    }).catch((error) => {
+      if (!isActive) return
+      console.error(error)
+      setParticipantCount(0)
+      setTotalAmount(0)
+      setParticipants([])
+    }).finally(() => {
+      if (isActive) setIsLoading(false)
+    })
+
+    return () => {
+      isActive = false
+    }
   }, [id])
 
   useEffect(() => {
@@ -187,7 +209,7 @@ export default function ParticipantList() {
         <div className="flex items-center justify-between">
           <span className="text-b2-m leading-normal text-gray-700">참여 인원</span>
           <span className="rounded bg-pink-100 px-2 py-0.5 text-b2-m leading-normal text-pink-500">
-            {participants.length}명
+            {participantCount}명
           </span>
         </div>
         <div className="flex items-center justify-between">
@@ -212,9 +234,9 @@ export default function ParticipantList() {
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto pb-2">
-        {sortedParticipants.map((p) => (
-          <ParticipantCard key={p.id} participant={p} onEdit={openEdit} />
-        ))}
+        {!isLoading && (
+          sortedParticipants.map((p) => <ParticipantCard key={p.id} participant={p} onEdit={openEdit} />)
+        )}
       </div>
 
       {sortSheet()}

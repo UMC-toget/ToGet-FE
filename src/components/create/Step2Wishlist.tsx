@@ -66,6 +66,7 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
       price: Number(form.price),
       link: form.link || undefined,
       imageUrl: formImage ? URL.createObjectURL(formImage) : undefined,
+      imageFile: formImage ?? undefined,
     });
     setForm(emptyForm);
     setFormImage(null);
