@@ -6,6 +6,7 @@ import TextField from '../../components/common/TextField'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import Toast from '../../components/common/Toast'
 import PhotoActionSheet from '../../components/create/PhotoActionSheet'
+import { useRequireAuth } from '../../hooks/useRequireAuth'
 import ChevronLeftIcon from '../../components/icons/ChevronLeftIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import ExpandIcon from '../../components/icons/ExpandIcon'
@@ -117,6 +118,8 @@ function TogetLogoMark({ accentHex, isWhite, className }: { accentHex: string; i
 
 /** J파트 작성물 3종 공용 작성 화면 (/gift/review/write/:type, 피그마 "J01-1) 후기: 초대장 만들기" 외) */
 export default function ReviewWritePage() {
+  useRequireAuth()
+
   const { type, fundingId } = useParams<{ type: string; fundingId?: string }>()
   const resolvedFundingId = fundingId ?? FALLBACK_FUNDING_ID
   const navigate = useNavigate()
