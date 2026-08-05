@@ -3,6 +3,7 @@ import type { LetterColor } from '../../components/common/letterPalette'
 import LetterCard from '../../components/common/LetterCard'
 import { getFundingAccount } from '../../api/fundings'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
+import Toast from '../../components/common/Toast'
 
 const MOCK_ACCOUNT = {
   bankName: '카카오뱅크',
@@ -110,13 +111,12 @@ export default function DepositStep({ hostName, letter, letterColor, amount, fun
             >
               계좌번호 복사
             </button>
-            {copied && (
-              <p className="text-caption1-m leading-normal text-pink-500">계좌번호가 복사되었습니다.</p>
-            )}
           </div>
         </div>
       )}
       </div>
+
+      <Toast open={copied} message="계좌번호가 복사되었습니다" variant="pink" bottomClass="bottom-[95px]" />
     </div>
   )
 }
