@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom'
 import { ChevronDown, ChevronLeft, Search, Pencil, Check } from 'lucide-react'
 import Toast from '../../components/common/Toast'
 import DefaultAvatar from '../../components/common/DefaultAvatar'
-import { getMockParticipants } from './participantMock'
 import type { Participant } from './participantMock'
 import { getFundingContributionList, updateContributionAmount } from '../../api/fundings'
 
@@ -40,8 +39,9 @@ function ParticipantCard({ participant, onEdit }: { participant: Participant; on
  */
 export default function ParticipantList() {
   const { id } = useParams()
-  const [participants, setParticipants] = useState<Participant[]>(() => getMockParticipants())
-  const [totalAmount, setTotalAmount] = useState(() => getMockParticipants().reduce((s, p) => s + p.amount, 0))
+  const [participants, setParticipants] = useState<Participant[]>([])
+  const [totalAmount, setTotalAmount] = useState(0)
+  const [loading, setLoading] = useState(true)
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest')
   const [showSortSheet, setShowSortSheet] = useState(false)
   const [view, setView] = useState<View>('list')
@@ -65,7 +65,7 @@ export default function ParticipantList() {
           amount: c.amount,
         }
       }))
-    }).catch(console.error)
+    }).catch(console.error).finally(() => setLoading(false))
   }, [id])
 
   useEffect(() => {
@@ -212,9 +212,13 @@ export default function ParticipantList() {
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto pb-2">
-        {sortedParticipants.map((p) => (
-          <ParticipantCard key={p.id} participant={p} onEdit={openEdit} />
-        ))}
+        {loading ? (
+          <p className="py-8 text-center text-caption1-r text-gray-400">불러오는 중...</p>
+        ) : sortedParticipants.length === 0 ? (
+          <p className="py-8 text-center text-caption1-r text-gray-400">아직 참여한 친구가 없어요</p>
+        ) : (
+          sortedParticipants.map((p) => <ParticipantCard key={p.id} participant={p} onEdit={openEdit} />)
+        )}
       </div>
 
       {sortSheet()}
