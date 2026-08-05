@@ -14,7 +14,7 @@ import CloseIcon from '../../components/icons/CloseIcon'
 import PlusIcon from '../../components/icons/PlusIcon'
 import { LETTER_COLORS } from '../../components/common/letterPalette'
 import { uploadImage } from '../../utils/uploadImage'
-import { REVIEW_CHARACTERS } from './reviewCharacters'
+import { FALLBACK_CHARACTER_IMAGE } from './reviewCharacters'
 import { REVIEW_WRITE_TYPES, REVIEW_TITLE_MAX_LENGTH, REVIEW_CONTENT_MAX_LENGTH } from './reviewTypes'
 import type { ReviewWriteType, ReviewPreviewData } from './reviewTypes'
 import { useContributionBackgrounds, useCharacters, colorIdToBackgroundId } from './useDecorations'
@@ -161,13 +161,16 @@ export default function ReviewWritePage() {
   const isWhite = letterColor.id === 'white'
   const accentHex = LETTER_ACCENT_HEX[letterColor.id] ?? LETTER_ACCENT_HEX.pink
   const glowColor = isWhite ? 'var(--color-gray-200)' : letterColor.background
-  const characterImage = REVIEW_CHARACTERS[characterIndex]
+  // characters 로딩이 늦거나 목록이 줄어들어도 characterIndex가 범위를 벗어나지 않도록 매번 렌더 시점에 보정
+  const safeCharacterIndex = characters.length > 0 ? characterIndex % characters.length : 0
+  const characterImage = characters[safeCharacterIndex]?.imageUrl ?? FALLBACK_CHARACTER_IMAGE
   const displayTitle = title || config.titlePlaceholder
   const displayContent = content || config.contentPlaceholder
   const canSubmit = title.trim() !== '' && content.trim() !== '' && !submitting
 
   const changeCharacter = (delta: number) => {
-    const count = REVIEW_CHARACTERS.length
+    const count = characters.length
+    if (count === 0) return
     setCharacterIndex((prev) => (prev + delta + count) % count)
   }
 
@@ -180,9 +183,8 @@ export default function ReviewWritePage() {
     setSubmitting(true)
     try {
       const imageUrls = await Promise.all(images.map((file) => uploadImage(REVIEW_IMAGE_PREFIX, file)))
-      // ⚠️ 배경색·캐릭터는 로컬 팔레트 순서가 서버 리소스 순서와 같다고 가정한 임시 매핑 (colorIdToBackgroundId 참고)
       const backgroundId = colorIdToBackgroundId(colorId, backgrounds) ?? backgrounds[0]?.id ?? 1
-      const characterId = characters[characterIndex]?.id ?? characters[0]?.id ?? 1
+      const characterId = characters[safeCharacterIndex]?.id ?? characters[0]?.id ?? 1
 
       let fundingReviewId: number
       // 작성 화면엔 메시지 입력(제목·내용)이 하나뿐이라, 후기 본문과 초대장 문구를 동일한 값으로 채운다
@@ -375,11 +377,11 @@ export default function ReviewWritePage() {
               <div className="flex flex-col items-center gap-2">
                 <img
                   src={characterImage}
-                  alt={`캐릭터 No.${String(characterIndex + 1).padStart(2, '0')}`}
+                  alt={`캐릭터 No.${String(safeCharacterIndex + 1).padStart(2, '0')}`}
                   className="h-24 w-24 object-contain"
                 />
                 <span className="rounded bg-pink-500 px-2 py-0.5 text-caption1-r font-medium text-white">
-                  No.{String(characterIndex + 1).padStart(2, '0')}
+                  No.{String(safeCharacterIndex + 1).padStart(2, '0')}
                 </span>
               </div>
               <button
