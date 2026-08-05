@@ -8,7 +8,7 @@ import ConfirmStep1 from './ConfirmStep1'
 import ConfirmStep2 from './ConfirmStep2'
 import ConfirmStep3 from './ConfirmStep3'
 import ConfirmStep4 from './ConfirmStep4'
-import { getTogetherGiftDashboard, getGiftCandidates, type GiftCandidateItem, type MemberSummary } from '../../api/groupFundings'
+import { getTogetherGiftDashboard, getGiftCandidates, postFinalSelections, type GiftCandidateItem, type MemberSummary } from '../../api/groupFundings'
 import { getFundingAccount, type FundingAccount } from '../../api/fundings'
 import { MOCK_CANDIDATES, MOCK_DASHBOARD, MOCK_ACCOUNT } from './groupMock'
 
@@ -121,12 +121,19 @@ export default function ConfirmPage() {
       setStep((step + 1) as 2 | 3 | 4)
       return
     }
-    // 4단계: 정산 시작 API 호출 (BE 미구현 → 홈으로 이동)
+    // 4단계: 선물·정산 참여자 확정 → SETTLING 전환 후 홈으로
     if (submitting) return
     setSubmitting(true)
     try {
-      // TODO: await confirmGiftsAndStartSettlement(id!, { ... })
+      if (!import.meta.env.DEV && id) {
+        await postFinalSelections(id, {
+          giftIds: confirmedGifts.map(g => g.id),
+          settlementMemberIds: includedMembers.map(m => m.fundingMemberId),
+        })
+      }
       navigate(`/group/${id}`)
+    } catch (e) {
+      console.error('선물 확정 실패', e)
     } finally {
       setSubmitting(false)
     }

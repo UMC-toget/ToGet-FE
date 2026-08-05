@@ -7,6 +7,7 @@ import Toast from '../../components/common/Toast'
 import {
   getFundingSettlements,
   getTogetherGiftDashboard,
+  postSettlementContribution,
   type ConfirmedGift,
 } from '../../api/groupFundings'
 import { getFundingAccount, type FundingAccount } from '../../api/fundings'
@@ -47,6 +48,7 @@ export default function SettlePage() {
   const [toastOpen, setToastOpen] = useState(false)
   const [depositConfirmOpen, setDepositConfirmOpen] = useState(false)
   const [depositDoneOpen, setDepositDoneOpen] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -94,6 +96,22 @@ export default function SettlePage() {
     await copyToClipboard(accountNumber)
     setToastOpen(true)
     setTimeout(() => setToastOpen(false), 2000)
+  }
+
+  // 입금 완료 신고 — 이 화면엔 편지 입력이 없어 기본 배경(1)·비공개 해제로 제출. 편지는 별도 '편지 남기기'로.
+  const handleDepositComplete = async () => {
+    if (submitting) return
+    setSubmitting(true)
+    setDepositConfirmOpen(false)
+    if (!import.meta.env.DEV && id) {
+      try {
+        await postSettlementContribution(id, { backgroundId: 1, isPrivate: false })
+      } catch (e) {
+        console.error('입금 완료 신고 실패', e)
+      }
+    }
+    setSubmitting(false)
+    setDepositDoneOpen(true)
   }
 
   if (loading) {
@@ -233,10 +251,7 @@ export default function SettlePage() {
           {
             label: '완료하기',
             variant: 'secondary',
-            onClick: () => {
-              setDepositConfirmOpen(false)
-              setDepositDoneOpen(true)
-            },
+            onClick: handleDepositComplete,
           },
           { label: '변경하기', variant: 'primary', onClick: () => setDepositConfirmOpen(false) },
         ]}

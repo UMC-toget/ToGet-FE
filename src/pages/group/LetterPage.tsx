@@ -8,8 +8,7 @@ import CheckOption from '../../components/common/CheckOption'
 import LetterCard from '../../components/common/LetterCard'
 import LetterColorPicker from '../../components/common/LetterColorPicker'
 import { LETTER_COLORS } from '../../components/common/letterPalette'
-import { useMyProfile } from '../../hooks/useMyProfile'
-import { postContribution } from '../../api/contributions'
+import { postSettlementContribution } from '../../api/groupFundings'
 
 // 접근: 로그인한 모든 역할 | 편지 남기기
 const LETTER_MAX_LENGTH = 234
@@ -18,7 +17,6 @@ export default function LetterPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const { data: profile } = useMyProfile()
 
   const recipientName = (location.state as { recipientName?: string } | null)?.recipientName ?? '받는 분'
 
@@ -42,11 +40,8 @@ export default function LetterPage() {
     if (submitting) return
     setSubmitting(true)
     try {
-      await postContribution(id!, {
-        senderName: profile?.nickname ?? '참여자',
+      await postSettlementContribution(id!, {
         backgroundId: selectedColor.backgroundId,
-        isAnonymous: false,
-        amount: 0,
         content,
         isPrivate,
       })
