@@ -116,6 +116,17 @@ export function getGiftCandidateDetail(fundingId: number | string, giftId: numbe
   )
 }
 
+/** H02) 선물 후보 의견(댓글) 작성 (로그인, POST /api/v1/fundings/{fundingId}/gift-candidates/{giftId}/comments) */
+export function postGiftCandidateComment(
+  fundingId: number | string,
+  giftId: number | string,
+  content: string,
+) {
+  return unwrap<{ commentId: number }>(
+    apiClient.post(`/api/v1/fundings/${fundingId}/gift-candidates/${giftId}/comments`, { content }),
+  )
+}
+
 // ─── H06: 선물 후보 등록 ──────────────────────────────────────
 
 export interface GiftCandidateCreateRequest {
@@ -228,6 +239,23 @@ export function postFinalSelections(
 ) {
   return unwrap<void>(
     apiClient.post(`/api/v1/fundings/${fundingId}/final-selections`, payload),
+  )
+}
+
+/** 구매내역 업로드 (HOST 전용, POST /api/v1/fundings/{fundingId}/gifts/{giftId}/purchase)
+ *  ENDED 단계에서 펀딩금으로 구매한 선물의 구매처 링크·영수증 이미지를 등록. 둘 다 필수. */
+export interface GiftPurchaseRequest {
+  purchaseUrl: string
+  receiptImageUrl: string
+}
+
+export function postGiftPurchase(
+  fundingId: number | string,
+  giftId: number | string,
+  payload: GiftPurchaseRequest,
+) {
+  return unwrap<void>(
+    apiClient.post(`/api/v1/fundings/${fundingId}/gifts/${giftId}/purchase`, payload),
   )
 }
 

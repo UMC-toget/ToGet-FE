@@ -1,28 +1,60 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
 import PlusIcon from '../../components/icons/PlusIcon'
 import PhotoActionSheet from '../../components/create/PhotoActionSheet'
+import { getTogetherGiftDashboard, postGiftPurchase } from '../../api/groupFundings'
+import { uploadImage } from '../../utils/uploadImage'
+import { MOCK_DASHBOARD } from './groupMock'
+
+const PURCHASE_IMAGE_PREFIX = 'purchases'
 
 // 접근: 개설자 (HOST) | ENDED 상태에서 선물별 구매내역(링크·이미지) 업로드
 export default function PurchaseUploadPage() {
+  const { id } = useParams()
   const navigate = useNavigate()
 
   const [link, setLink] = useState('')
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [giftId, setGiftId] = useState<number | null>(null)
   const [showPhotoSheet, setShowPhotoSheet] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
-  const canSubmit = link.trim().length > 0 || imagePreview !== null
+  // 구매내역은 선물별로 등록 — 확정된 선물 id를 대시보드에서 가져옴
+  useEffect(() => {
+    if (!id) return
+    getTogetherGiftDashboard(id)
+      .then(d => setGiftId(d.confirmedGifts?.[0]?.fundingGiftId ?? null))
+      .catch(() => {
+        if (import.meta.env.DEV) setGiftId(MOCK_DASHBOARD.confirmedGifts?.[0]?.fundingGiftId ?? null)
+      })
+  }, [id])
+
+  // BE 스펙상 구매링크·영수증 이미지 둘 다 필수 + 등록 대상 giftId가 있어야 함
+  // (giftId 미로딩/조회 실패면 버튼 비활성 → 업로드 없이 뒤로가는 가짜 성공 방지)
+  const canSubmit = link.trim().length > 0 && imageFile !== null && giftId !== null
 
   const handlePhotoSelect = (file: File) => {
+    setImageFile(file)
     setImagePreview(URL.createObjectURL(file))
   }
 
-  const handleSubmit = () => {
-    if (!canSubmit) return
-    // TODO: 구매내역 업로드 API 연동 (링크 + 이미지)
-    navigate(-1)
+  const handleSubmit = async () => {
+    if (!canSubmit || submitting) return
+    setSubmitting(true)
+    try {
+      if (!import.meta.env.DEV && id && giftId != null && imageFile) {
+        const receiptImageUrl = await uploadImage(PURCHASE_IMAGE_PREFIX, imageFile)
+        await postGiftPurchase(id, giftId, { purchaseUrl: link.trim(), receiptImageUrl })
+      }
+      navigate(-1)
+    } catch (e) {
+      console.error('구매내역 업로드 실패', e)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -69,7 +101,7 @@ export default function PurchaseUploadPage() {
 
       {/* 하단 저장하기 */}
       <div className="px-[18px] pb-8">
-        <Button disabled={!canSubmit} onClick={handleSubmit}>
+        <Button disabled={!canSubmit || submitting} onClick={handleSubmit}>
           저장하기
         </Button>
       </div>
