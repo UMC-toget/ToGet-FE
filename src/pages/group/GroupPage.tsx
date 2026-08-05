@@ -28,7 +28,7 @@ import { copyToClipboard } from '../../utils/clipboard'
 export default function GroupPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  useMyProfile()
+  const { data: profile } = useMyProfile()
   const { isLoggedIn } = useAuth()
 
   const [group, setGroup] = useState<TogetherGiftDashboard | null>(null)
@@ -89,9 +89,9 @@ export default function GroupPage() {
   const diffDays = Math.round((anniversary.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
   const dDayLabel = diffDays > 0 ? `D-${diffDays}` : diffDays === 0 ? 'D-Day' : `D+${Math.abs(diffDays)}`
 
-  // TODO: 테스트용 임시 고정 — 확인 후 아래 원래 줄로 교체
-  const myRole: 'HOST' | 'CO_HOST' | 'MEMBER' = 'HOST'
-  // const myRole = group.members.find(m => m.userId === profile?.userId)?.role
+  // 내 역할 = 대시보드 members[]에서 내 userId 매칭. 판별 불가(비로그인/미참여)면 최소 권한 MEMBER로 취급
+  const myRole: 'HOST' | 'CO_HOST' | 'MEMBER' =
+    group.members.find(m => m.userId === profile?.userId)?.role ?? 'MEMBER'
   const isHost = myRole === 'HOST'
   const isSettlingOrLater = group.status === 'SETTLING' || group.status === 'PURCHASING' || group.status === 'DELIVERING' || group.status === 'ENDED'
   const settleRoute = isHost ? `/group/${id}/settle/host` : `/group/${id}/settle`
