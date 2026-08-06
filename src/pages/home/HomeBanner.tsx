@@ -62,9 +62,9 @@ export default function HomeBanner({ isLoggedIn, onCreateClick }: HomeBannerProp
           ) : (
             <div className="flex flex-col gap-1.5">
               <p className="whitespace-nowrap text-h3-sb leading-normal text-black">
-                나를 위한 선물도,
+                마음을 모아, 원하는 선물을
                 <br />
-                친구를 위한 마음도
+                함께 준비하는 서비스
               </p>
               <p className="whitespace-nowrap text-caption1-r leading-normal text-gray-700">
                 선물을 담고 친구들과 함께

@@ -42,7 +42,7 @@ export function withdrawMe() {
   return unwrap<void>(apiClient.delete('/api/v1/users/me'))
 }
 
-export type FundingType = string
+export type FundingType = 'MY_GIFT' | 'TOGETHER_GIFT'
 export type FundingStatus = string
 
 export interface MyFunding {

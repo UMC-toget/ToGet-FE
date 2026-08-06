@@ -255,7 +255,7 @@ export default function CandidateNewPage() {
       {pageStep === 'direct' && (
         <div className="flex flex-1 flex-col overflow-y-auto px-[18px] pb-8 pt-7">
           <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2.5">
               <h2 className="text-h3-sb text-black">후보 선물을 등록해주세요</h2>
               <p className="text-caption1-r text-[#797378]">등록자 이름이 함께 표시돼요</p>
             </div>

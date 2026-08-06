@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useGoogleLogin } from '@react-oauth/google'
 import CloseIcon from '../../components/icons/CloseIcon'
 import Toast from '../../components/common/Toast'
@@ -16,6 +16,7 @@ import { postSocialLogin } from '../../api/auth'
 import type { SocialLoginProvider } from '../../api/auth'
 import { setTokens, getLastLoginProvider, setLastLoginProvider } from '../../lib/tokenStorage'
 import { kakaoAuthorize, exchangeKakaoCode } from '../../lib/kakao'
+import { consumeReturnUrl } from '../../utils/returnUrl'
 
 const LOGIN_FAIL_MESSAGE = '로그인에 실패했어요. 다시 시도해 주세요.'
 /** 카카오 authorize()가 로그인 완료 후 돌아오는 주소. 카카오 디벨로퍼스에 등록된 Redirect URI와 정확히 일치해야 함 */
@@ -53,7 +54,8 @@ export default function LoginPage() {
       setTokens(result.accessToken, result.refreshToken)
       setLastLoginProvider(provider)
       login()
-      navigate('/home', { replace: true })
+      // 로그인 전에 저장해둔 복귀 경로(H 참여 등)가 있으면 그리로, 없으면 홈
+      navigate(consumeReturnUrl() ?? '/home', { replace: true })
     } catch {
       setErrorMessage(LOGIN_FAIL_MESSAGE)
     }
@@ -145,9 +147,16 @@ export default function LoginPage() {
       </div>
 
       <p className="mt-5 text-center text-caption2-r leading-normal text-gray-700">
-        카카오 또는 구글 계정으로 시작하면
+        카카오 또는 구글 계정으로 시작하면 회원 식별을 위한 계정 식별값만 사용되며
         <br />
-        서비스 이용약관과 개인정보처리방침에 동의하게 됩니다.
+        <Link to="/terms" className="underline">
+          서비스 이용약관
+        </Link>
+        과{" "}
+        <Link to="/privacy-policy" className="underline">
+          개인정보처리방침
+        </Link>
+        에 동의하게 됩니다.
       </p>
 
       <Toast open={errorMessage !== null} message={errorMessage ?? ''} standalone />

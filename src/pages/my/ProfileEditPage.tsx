@@ -113,14 +113,10 @@ export default function ProfileEditPage() {
     onError: () => setDeletePhotoModalOpen(false),
   })
 
+  // 서버 로그아웃 요청이 실패해도(네트워크 오류 등) 클라이언트는 항상 로그아웃 처리하므로,
+  // API 응답을 기다리지 않고 fire-and-forget으로 호출합니다.
   const logoutMutation = useMutation({
     mutationFn: logoutRequest,
-    // 서버 로그아웃 요청이 실패해도(네트워크 오류 등) 클라이언트는 항상 로그아웃 처리합니다.
-    onSettled: () => {
-      clearTokens()
-      logout()
-      navigate('/my', { state: { toast: '로그아웃이 완료 되었습니다' } })
-    },
   })
 
   const withdrawMutation = useMutation({
@@ -142,6 +138,9 @@ export default function ProfileEditPage() {
   }
 
   const handleLogout = () => {
+    navigate('/my', { state: { toast: '로그아웃이 완료 되었습니다' } })
+    clearTokens()
+    logout()
     logoutMutation.mutate()
   }
 
