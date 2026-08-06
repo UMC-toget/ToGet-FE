@@ -21,7 +21,6 @@ export default function CandidatesPage() {
   const [togglingId, setTogglingId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [members, setMembers] = useState<MemberSummary[]>([])
-  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -45,13 +44,9 @@ export default function CandidatesPage() {
       .finally(() => setLoading(false))
   }, [id])
 
-  useEffect(() => {
-    // TODO: 테스트용 임시 고정 — 확인 후 원래 코드로 교체
-    setIsAdmin(true)
-    // if (!profile || members.length === 0) return
-    // const myRole = members.find(m => m.userId === profile.userId)?.role
-    // setIsAdmin(myRole === 'HOST' || myRole === 'CO_HOST')
-  }, [profile, members])
+  // 후보 등록 권한 = 내 역할이 HOST/CO_HOST. members[]에서 내 userId 매칭 (비로그인/미참여면 false)
+  const myRole = members.find(m => m.userId === profile?.userId)?.role
+  const isAdmin = myRole === 'HOST' || myRole === 'CO_HOST'
 
   const voteCount = votedIds.size
   const atMax = voteCount >= MAX_VOTES
