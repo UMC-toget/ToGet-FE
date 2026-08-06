@@ -21,7 +21,12 @@ const MENU_SECTIONS: { title: string; items: { label: string; path?: string }[] 
   { title: '계좌', items: [{ label: '등록된 나의 계좌', path: '/my/accounts' }] },
   {
     title: '설정',
-    items: [{ label: '알림 설정' }, { label: '고객 문의' }, { label: '이용약관' }, { label: '개인정보 처리 방침' }],
+    items: [
+      { label: '알림 설정' },
+      { label: '고객 문의' },
+      { label: '이용약관', path: '/terms' },
+      { label: '개인정보 처리 방침', path: '/privacy-policy' },
+    ],
   },
 ]
 
