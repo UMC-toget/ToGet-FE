@@ -40,6 +40,8 @@ import GroupMessagesPage from './pages/group/GroupMessagesPage'
 import ReviewWritePage from './pages/gift-review/ReviewWritePage'
 import ReviewCompletePage from './pages/gift-review/ReviewCompletePage'
 import GiftReviewDetailPage from './pages/gift-review/GiftReviewDetailPage'
+import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage'
+import TermsOfServicePage from './pages/legal/TermsOfServicePage'
 
 function App() {
   return (
@@ -48,6 +50,8 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup/profile" element={<ProfileSetupPage />} />
       <Route path="/home" element={<HomePage />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms" element={<TermsOfServicePage />} />
       <Route path="/wish" element={<WishPage />} />
       <Route path="/wish/:id/edit" element={<WishEditPage />} />
       <Route path="/my" element={<MyPage />} />
