@@ -1,0 +1,17 @@
+{
+  "name": "To Get",
+  "short_name": "To Get",
+  "description": "To Get(투겟)은 친구, 가족과 마음을 모아 함께 선물을 준비하는 선물 펀딩 서비스입니다. Google 계정으로 로그인하면 별도 회원가입 절차 없이 본인을 식별해 서비스를 이용할 수 있습니다.",
+  "start_url": "/home",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
