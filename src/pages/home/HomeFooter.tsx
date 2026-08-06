@@ -6,7 +6,7 @@ const CONTACT_EMAIL = 'hello.toget.team@gmail.com'
 export default function HomeFooter() {
   return (
     // 하단 pb는 플로팅 BottomNav(고정 위치)에 링크가 가리지 않도록 그만큼의 여유를 둡니다 (피그마 기준).
-    <div className="flex items-center gap-2 bg-background px-[18px] pb-24 pt-6">
+    <div className="mt-14 flex items-center gap-2 bg-background px-[18px] pb-24 pt-6">
       <a
         href={PRIVACY_POLICY_URL}
         target="_blank"
