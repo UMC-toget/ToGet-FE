@@ -151,18 +151,18 @@ export default function FundingDetailPage() {
 
       <div className={`flex flex-1 flex-col ${isLoading ? 'invisible' : ''}`}>
       {funding.isOwner && (
-        <div className="mx-[18px] mt-3 flex gap-1 rounded-lg bg-gray-100 p-1">
+        <div className="mx-[18px] mt-6 flex gap-1 rounded-lg bg-gray-100 p-[5px] text-center text-gray-600">
           <button
             type="button"
             onClick={() => setActiveTab('mine')}
-            className={`flex-1 rounded-[4px] py-2 text-b2-m transition-colors ${activeTab === 'mine' ? 'bg-white text-black' : 'text-gray-600'}`}
+            className={`flex-1 rounded-[4px] py-2.5 text-b2-m transition-colors ${activeTab === 'mine' ? 'bg-white text-black' : 'text-gray-600'}`}
           >
             내 선물 페이지
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('participants')}
-            className={`flex-1 rounded-[4px] py-2 text-b2-m transition-colors ${activeTab === 'participants' ? 'bg-white text-black' : 'text-gray-600'}`}
+            className={`flex-1 rounded-[4px] py-2.5 text-b2-m transition-colors ${activeTab === 'participants' ? 'bg-white text-black' : 'text-gray-600'}`}
           >
             참여자 목록
           </button>
