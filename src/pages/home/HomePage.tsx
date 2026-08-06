@@ -42,7 +42,10 @@ export default function HomePage() {
         <img src={togetLogo} alt="To Get" className="h-6" />
       </header>
 
-      <div className={`mt-6 flex flex-col px-[18px] ${isLoggedIn ? 'gap-10' : 'gap-4'}`}>
+      {/* 로그인이어도 진행 중인 선물이 없으면 MyFundingsSection이 렌더링되지 않아 배너 바로
+          뒤에 GiftBrowseSection이 오는 비로그인과 동일한 레이아웃이 되므로, gap도 그 경우엔
+          비로그인과 같은 값을 써야 시각적으로 맞습니다. */}
+      <div className={`mt-6 flex flex-col px-[18px] ${isLoggedIn && myFundings.length > 0 ? 'gap-10' : 'gap-4'}`}>
         <HomeBanner isLoggedIn={isLoggedIn} onCreateClick={() => setCreateSheetOpen(true)} />
         <div className="flex flex-col gap-3">
           {isLoggedIn && (
