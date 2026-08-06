@@ -89,7 +89,7 @@ export default function MyPage() {
           ) : (
             <DefaultAvatar className="size-[52px]" />
           )}
-          <span className="flex flex-col items-start gap-1 text-left">
+          <span className="flex flex-col items-start gap-2 text-left">
             <span className="text-b1-m text-black">
               {isLoggedIn ? (profile?.nickname ?? '회원') : '로그인 및 회원가입'}
             </span>
