@@ -157,7 +157,7 @@ export default function ProfileEditPage() {
     >
       <Header title="내 정보" />
 
-      <div className="mt-6 flex flex-col items-center gap-2">
+      <div className="mt-6 flex flex-col items-center gap-3">
         <ProfileAvatar imageUrl={profile?.profileImageUrl} onSelect={setPhotoFile} />
         <p className="text-h3-sb text-black">{profile?.nickname ?? '회원'}</p>
         {profile?.profileImageUrl && (
