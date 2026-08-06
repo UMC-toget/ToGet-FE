@@ -67,8 +67,8 @@ export default function GiftBrowseSection() {
 
   return (
     <section className="flex flex-col gap-3">
-      {/* 상품 카드를 스크롤해도 카테고리를 언제든 바꿀 수 있도록 상단에 고정 (피그마 기준) */}
-      <div className="sticky top-0 z-10 flex flex-col gap-3 bg-white pb-1">
+      {/* 상품 카드를 스크롤해도 카테고리를 언제든 바꿀 수 있도록 상단 로고 헤더(h-[50px]) 바로 아래에 고정 (피그마 기준) */}
+      <div className="sticky top-[50px] z-10 flex flex-col gap-3 bg-white pb-1">
         <div className="flex flex-col gap-4">
           <h2 className="text-h3-sb text-black">선물 둘러보기</h2>
           <div className="flex items-center gap-2">
