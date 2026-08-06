@@ -116,6 +116,17 @@ export function getGiftCandidateDetail(fundingId: number | string, giftId: numbe
   )
 }
 
+/** H02) 선물 후보 의견(댓글) 작성 (로그인, POST /api/v1/fundings/{fundingId}/gift-candidates/{giftId}/comments) */
+export function postGiftCandidateComment(
+  fundingId: number | string,
+  giftId: number | string,
+  content: string,
+) {
+  return unwrap<{ commentId: number }>(
+    apiClient.post(`/api/v1/fundings/${fundingId}/gift-candidates/${giftId}/comments`, { content }),
+  )
+}
+
 // ─── H06: 선물 후보 등록 ──────────────────────────────────────
 
 export interface GiftCandidateCreateRequest {
@@ -171,6 +182,26 @@ export function getGroupMembers(fundingId: number | string) {
   )
 }
 
+/** H05) 참여자 입금 완료 신고 (로그인, POST /api/v1/fundings/{fundingId}/members/me/contributions)
+ *  정산 참여자 전용 — 정산액은 이미 확정돼 있어 금액(amount)은 안 보냄. 편지(content)는 선택.
+ *  E섹션 개인펀딩 후원 POST /contributions(MY_GIFT)와는 별개 엔드포인트. */
+export interface SettlementContributionRequest {
+  /** 축하 카드 배경 ID (편지 없을 땐 기본 1) */
+  backgroundId: number
+  /** 편지 내용 (선택) */
+  content?: string
+  isPrivate: boolean
+}
+
+export function postSettlementContribution(
+  fundingId: number | string,
+  payload: SettlementContributionRequest,
+) {
+  return unwrap<void>(
+    apiClient.post(`/api/v1/fundings/${fundingId}/members/me/contributions`, payload),
+  )
+}
+
 /** H05) 정산 입금 상태 수정 (HOST, PATCH /api/v1/fundings/{fundingId}/members/{memberId}/settlement-status) */
 export function updateSettlementStatus(
   fundingId: number | string,
@@ -192,6 +223,39 @@ export function updateMemberRole(
 ) {
   return unwrap<MemberSummary>(
     apiClient.patch(`/api/v1/fundings/${fundingId}/members/${memberId}/role`, { role }),
+  )
+}
+
+/** 선물·정산 참여자 확정 (HOST 전용, POST /api/v1/fundings/{fundingId}/final-selections)
+ *  최종 선물 목록 + 정산에 포함할 참여자를 확정하며 SELECTING → SETTLING으로 넘어감. */
+export interface FinalSelectionsRequest {
+  giftIds: number[]
+  settlementMemberIds: number[]
+}
+
+export function postFinalSelections(
+  fundingId: number | string,
+  payload: FinalSelectionsRequest,
+) {
+  return unwrap<void>(
+    apiClient.post(`/api/v1/fundings/${fundingId}/final-selections`, payload),
+  )
+}
+
+/** 구매내역 업로드 (HOST 전용, POST /api/v1/fundings/{fundingId}/gifts/{giftId}/purchase)
+ *  ENDED 단계에서 펀딩금으로 구매한 선물의 구매처 링크·영수증 이미지를 등록. 둘 다 필수. */
+export interface GiftPurchaseRequest {
+  purchaseUrl: string
+  receiptImageUrl: string
+}
+
+export function postGiftPurchase(
+  fundingId: number | string,
+  giftId: number | string,
+  payload: GiftPurchaseRequest,
+) {
+  return unwrap<void>(
+    apiClient.post(`/api/v1/fundings/${fundingId}/gifts/${giftId}/purchase`, payload),
   )
 }
 
