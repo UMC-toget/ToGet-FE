@@ -67,29 +67,32 @@ export default function GiftBrowseSection() {
 
   return (
     <section className="flex flex-col gap-3">
-      <div className="flex flex-col gap-4">
-        <h2 className="text-h3-sb text-black">선물 둘러보기</h2>
-        <div className="flex items-center gap-2">
-          {GIFT_CATEGORIES.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => handleCategoryChange(c)}
-              className={`rounded-full px-4 py-2 text-b2-m ${
-                c === category ? 'bg-gray-900 text-white' : 'border border-gray-300 bg-white text-gray-700'
-              }`}
-            >
-              {c}
-            </button>
-          ))}
+      {/* 상품 카드를 스크롤해도 카테고리를 언제든 바꿀 수 있도록 상단에 고정 (피그마 기준) */}
+      <div className="sticky top-0 z-10 flex flex-col gap-3 bg-white pb-1">
+        <div className="flex flex-col gap-4">
+          <h2 className="text-h3-sb text-black">선물 둘러보기</h2>
+          <div className="flex items-center gap-2">
+            {GIFT_CATEGORIES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => handleCategoryChange(c)}
+                className={`rounded-full px-4 py-2 text-b2-m ${
+                  c === category ? 'bg-gray-900 text-white' : 'border border-gray-300 bg-white text-gray-700'
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="flex items-center justify-between">
-        <p className="text-caption1-r text-gray-500">{formatDateDots(new Date())} 기준</p>
-        <button type="button" onClick={() => setFilterOpen(true)} className="flex items-center gap-1">
-          <span className="text-caption1-m text-black">{priceFilter.label}</span>
-          <CaretDownIcon className="size-6 text-black" />
-        </button>
+        <div className="flex items-center justify-between">
+          <p className="text-caption1-r text-gray-500">{formatDateDots(new Date())} 기준</p>
+          <button type="button" onClick={() => setFilterOpen(true)} className="flex items-center gap-1">
+            <span className="text-caption1-m text-black">{priceFilter.label}</span>
+            <CaretDownIcon className="size-6 text-black" />
+          </button>
+        </div>
       </div>
       {visibleProducts.length > 0 ? (
         <div className="grid grid-cols-2 gap-x-4 gap-y-4">
