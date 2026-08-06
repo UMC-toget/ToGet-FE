@@ -1,13 +1,14 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import BottomSheet from '../../components/common/BottomSheet'
 import Button from '../../components/common/Button'
 import CheckIcon from '../../components/icons/CheckIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 
 const TERMS = [
-  { id: 'service', label: '[필수] 이용약관 동의', required: true, hasDetail: true },
-  { id: 'privacy', label: '[필수] 개인정보 처리방침', required: true, hasDetail: true },
-  { id: 'marketing', label: '[선택] 마케팅 정보 수신 동의', required: false, hasDetail: false },
+  { id: 'service', label: '[필수] 이용약관 동의', required: true, detailPath: '/terms' },
+  { id: 'privacy', label: '[필수] 개인정보 처리방침', required: true, detailPath: '/privacy-policy' },
+  { id: 'marketing', label: '[선택] 마케팅 정보 수신 동의', required: false, detailPath: null },
 ] as const
 
 type TermId = (typeof TERMS)[number]['id']
@@ -17,26 +18,42 @@ interface TermsBottomSheetProps {
   onClose: () => void
   /** 필수 약관 동의 후 "동의하고 시작하기" 클릭 시 호출 */
   onConfirm: () => void
+  /** 약관 상세 페이지 이동 후 돌아와도 체크 상태가 유지되도록 세션에 저장할 때 쓰는 키 (보통 signupToken) */
+  persistKey?: string
+}
+
+function readPersistedAgreed(storageKey: string | null): Set<TermId> {
+  if (!storageKey) return new Set()
+  try {
+    const stored = sessionStorage.getItem(storageKey)
+    return stored ? new Set(JSON.parse(stored) as TermId[]) : new Set()
+  } catch {
+    return new Set()
+  }
 }
 
 /** 소셜 로그인 시 노출되는 약관 동의 바텀시트 */
-export default function TermsBottomSheet({ open, onClose, onConfirm }: TermsBottomSheetProps) {
-  const [agreed, setAgreed] = useState<Set<TermId>>(new Set())
+export default function TermsBottomSheet({ open, onClose, onConfirm, persistKey }: TermsBottomSheetProps) {
+  const storageKey = persistKey ? `signup:agreedTerms:${persistKey}` : null
+  const [agreed, setAgreed] = useState<Set<TermId>>(() => readPersistedAgreed(storageKey))
 
   const allAgreed = agreed.size === TERMS.length
   const requiredAgreed = TERMS.filter((t) => t.required).every((t) => agreed.has(t.id))
 
+  const applyAgreed = (next: Set<TermId>) => {
+    setAgreed(next)
+    if (storageKey) sessionStorage.setItem(storageKey, JSON.stringify([...next]))
+  }
+
   const toggleAll = () => {
-    setAgreed(allAgreed ? new Set() : new Set(TERMS.map((t) => t.id)))
+    applyAgreed(allAgreed ? new Set() : new Set(TERMS.map((t) => t.id)))
   }
 
   const toggle = (id: TermId) => {
-    setAgreed((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
+    const next = new Set(agreed)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    applyAgreed(next)
   }
 
   return (
@@ -63,11 +80,10 @@ export default function TermsBottomSheet({ open, onClose, onConfirm }: TermsBott
                   <CheckIcon className={`size-4 ${agreed.has(term.id) ? 'text-gray-900' : 'text-gray-300'}`} />
                   <span className="text-b2-r text-gray-700">{term.label}</span>
                 </button>
-                {term.hasDetail && (
-                  /* TODO: 약관 상세 페이지 연결 */
-                  <button type="button" aria-label={`${term.label} 자세히 보기`} className="text-gray-700">
+                {term.detailPath && (
+                  <Link to={term.detailPath} aria-label={`${term.label} 자세히 보기`} className="text-gray-700">
                     <ChevronRightIcon className="size-4" />
-                  </button>
+                  </Link>
                 )}
               </li>
             ))}
