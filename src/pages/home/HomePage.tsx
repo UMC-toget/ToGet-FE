@@ -37,7 +37,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-32">
+    <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
       <header className="flex h-[50px] shrink-0 items-center px-[18px]">
         <img src={togetLogo} alt="To Get" className="h-6" />
       </header>
