@@ -42,9 +42,9 @@ export default function HomePage() {
         <img src={togetLogo} alt="To Get" className="h-6" />
       </header>
 
-      <div className="mt-6 flex flex-col gap-9 px-[18px]">
+      <div className={`mt-6 flex flex-col px-[18px] ${isLoggedIn ? 'gap-10' : 'gap-4'}`}>
         <HomeBanner isLoggedIn={isLoggedIn} onCreateClick={() => setCreateSheetOpen(true)} />
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-3">
           {isLoggedIn && (
             <MyFundingsSection fundings={myFundings} onShareInvite={handleShareInvite} />
           )}
