@@ -117,7 +117,7 @@ export default function GiftBrowseSection() {
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="flex h-[42px] items-center justify-center gap-2 rounded-xl border border-gray-600 bg-white"
+          className="mt-7 flex h-[42px] items-center justify-center gap-2 rounded-xl border border-gray-600 bg-white"
         >
           <span className="text-b2-m font-semibold text-black">더보기</span>
           <ChevronRightIcon className="size-5 rotate-90 text-black" />
