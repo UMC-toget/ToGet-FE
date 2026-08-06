@@ -1,24 +1,26 @@
 import { useState } from 'react';
-import { Check, Copy, Heart, X } from 'lucide-react';
+import { Check, Heart, X } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
-import { CHARACTER_IMAGES, ACCENT_COLORS } from './Step5Invite';
+import { getInvitationAccent, useInvitationMeta } from './Mascot';
 
 interface Props {
+  fundingId: number;
   onViewFunding: () => void;
   onGoHome: () => void;
 }
 
-export default function StepComplete({ onViewFunding, onGoHome }: Props) {
-  const { title, inviteCharacter, inviteColor } = useFundingCreateStore();
+export default function StepComplete({ fundingId, onViewFunding, onGoHome }: Props) {
+  const { inviteCharacter, inviteBackgroundId, inviteColor } = useFundingCreateStore();
   const [copied, setCopied] = useState(false);
-  const glowColor = inviteColor === '#FFFFFF' ? '#D1D5DB' : inviteColor;
-  const accentColor = ACCENT_COLORS[inviteColor] ?? '#DB2777';
+  const { backgrounds, characters } = useInvitationMeta();
+  const characterImageUrl = characters.find((item) => item.id === inviteCharacter)?.imageUrl;
+  const selectedColor = backgrounds.find((item) => item.id === inviteBackgroundId)?.hexCode ?? inviteColor;
+  const glowColor = selectedColor === '#FFFFFF' ? '#D1D5DB' : selectedColor;
+  const accentColor = getInvitationAccent(selectedColor);
+  const decorationColor = selectedColor === '#FFFFFF' ? accentColor : selectedColor;
 
-  const slug = title
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w-]/g, '') || 'my-funding';
-  const shareLink = `toget.kr/p/${slug}`;
+  const invitationPath = `/funding/${fundingId}/invitation`;
+  const shareLink = `${window.location.origin}${invitationPath}`;
 
   const handleCopy = async () => {
     try {
@@ -31,11 +33,13 @@ export default function StepComplete({ onViewFunding, onGoHome }: Props) {
   };
 
   return (
-    <div className="flex flex-col items-center h-full relative">
+    <div className="flex-1 min-h-0 flex flex-col items-center relative">
       {/* 페이지 전체 배경 그라데이션 - 캐릭터를 중심으로 진하게 시작해서 아래로 갈수록 옅어짐 */}
       <div
         className="absolute inset-x-0 top-0 h-96 pointer-events-none"
-        style={{ background: `radial-gradient(circle at 50% 25%, ${accentColor} 0%, ${glowColor} 15%, transparent 60%)`, opacity: 0.5 }}
+        style={{
+          background: `radial-gradient(circle at 50% 62%, color-mix(in srgb, ${glowColor} 28%, transparent) 0%, color-mix(in srgb, ${glowColor} 16%, transparent) 38%, transparent 68%)`,
+        }}
       />
       <button
         onClick={onGoHome}
@@ -45,24 +49,26 @@ export default function StepComplete({ onViewFunding, onGoHome }: Props) {
         <X size={20} />
       </button>
 
-      <div className="flex-1 flex flex-col items-center justify-center w-full gap-6">
+      <div className="flex flex-col items-center w-full pt-24 gap-5">
         {/* 완료 아이콘 - 초대장에서 고른 캐릭터/색상을 그대로 사용해 일관성 유지 */}
-        <div className="relative flex items-center justify-center w-64 h-64">
+        <div className="relative flex items-center justify-center w-64 h-72 shrink-0">
           {/* 캐릭터 바로 뒤 글로우 - 페이지 배경 그라데이션 위에 한 번 더 진하게 */}
           <div
             className="absolute inset-0 rounded-full blur-2xl pointer-events-none"
-            style={{ background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`, opacity: 0.8 }}
+            style={{
+              background: `radial-gradient(circle, color-mix(in srgb, ${glowColor} 30%, transparent) 0%, transparent 70%)`,
+              opacity: 0.55,
+            }}
           />
-          <Heart size={22} className="absolute top-8 left-4 -rotate-15 z-10" style={{ color: accentColor, fill: accentColor }} />
-          <Heart size={14} className="absolute top-18 left-0 -rotate-15 z-10" style={{ color: accentColor, fill: accentColor, opacity: 0.6 }} />
-          <Heart size={16} className="absolute bottom-18 right-2 -rotate-15 z-10" style={{ color: accentColor, fill: accentColor, opacity: 0.6 }} />
-          <img
-            src={CHARACTER_IMAGES[inviteCharacter - 1]}
-            alt=""
-            className="w-[190px] h-[190px] object-contain relative z-10"
-          />
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-11 h-11 bg-pink-500 rounded-full flex items-center justify-center border-2 border-white z-20">
-            <Check size={20} className="text-white" />
+          <Heart size={24} className="absolute top-4 -left-7 -rotate-12 z-10" style={{ color: decorationColor, fill: decorationColor }} />
+          <Heart size={36} className="absolute top-12 -left-6 -rotate-12 z-10" style={{ color: decorationColor, fill: decorationColor }} />
+          <Heart size={30} className="absolute bottom-14 -right-5 rotate-12 z-10" style={{ color: decorationColor, fill: decorationColor }} />
+          {characterImageUrl && <img src={characterImageUrl} alt="" className="w-[230px] h-[230px] object-contain relative z-10" />}
+          <div
+            className="absolute bottom-1 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full flex items-center justify-center border-2 border-white z-20"
+            style={{ backgroundColor: decorationColor }}
+          >
+            <Check size={28} strokeWidth={2.5} className="text-white" />
           </div>
         </div>
 
@@ -74,26 +80,24 @@ export default function StepComplete({ onViewFunding, onGoHome }: Props) {
           </p>
         </div>
 
-        <div className="w-full space-y-2">
+        <div className="w-full space-y-2 mt-5">
           <p className="text-sm font-semibold text-gray-700">초대장 링크</p>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-600 truncate bg-gray-50">
-              {shareLink}
+          <div className="border border-gray-200 rounded-xl p-3 bg-white">
+            <div className="flex h-14 items-center gap-2 rounded-lg bg-gray-100 px-4">
+              <div className="flex-1 text-sm text-gray-400 truncate">{shareLink}</div>
+              <button
+                onClick={handleCopy}
+                className={`h-9 px-4 rounded text-sm font-medium transition-colors whitespace-nowrap
+                  ${copied ? 'bg-gray-800 text-white' : 'bg-gray-600 text-white hover:bg-gray-700'}`}
+              >
+                {copied ? '복사 완료' : '링크 복사'}
+              </button>
             </div>
-            <button
-              onClick={handleCopy}
-              className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors whitespace-nowrap
-                ${copied ? 'bg-gray-800 text-white' : 'bg-gray-900 text-white hover:bg-gray-700'}`}
-            >
-              {copied ? '복사 완료' : (
-                <span className="flex items-center gap-1"><Copy size={14} />링크 복사</span>
-              )}
-            </button>
           </div>
         </div>
       </div>
 
-      <div className="w-full mt-4">
+      <div className="w-full mt-24 pb-2">
         <button
           onClick={onViewFunding}
           className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-colors"

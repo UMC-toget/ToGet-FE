@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { X, Expand } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, Expand, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTogetherCreateStore } from '../../store/togetherCreateStore';
-import { INVITE_COLORS, CHARACTER_COUNT } from './Mascot';
-import { CHARACTER_IMAGES, ACCENT_COLORS, TogetLogoMark, InviteSparkles } from './Step5Invite';
-import { MOCK_USER } from '../../pages/my/mockUser';
+import { getInvitationAccent, useInvitationMeta } from './Mascot';
+import { TogetLogoMark, InviteSparkles } from './Step5Invite';
+import { useMyProfile } from '../../hooks/useMyProfile';
 
 interface Props {
   onNext: () => void;
@@ -15,25 +15,46 @@ const TITLE_MAX = 15;
 const CONTENT_MAX = 60;
 
 export default function TogetherStep3Invite({ onNext }: Props) {
-  const { inviteTitle, inviteContent, inviteColor, inviteCharacter, setInvite } = useTogetherCreateStore();
+  const { inviteTitle, inviteContent, inviteBackgroundId, inviteColor, inviteCharacter, setInvite } = useTogetherCreateStore();
   const [tab, setTab] = useState<Tab>('message');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const { backgrounds, characters, isLoading, backgroundError, characterError } = useInvitationMeta();
+  const { data: profile } = useMyProfile();
+
+  useEffect(() => {
+    const selectedBackground = backgrounds.find((item) => item.id === inviteBackgroundId);
+    const targetBackground = selectedBackground ?? backgrounds[0];
+    const shouldSyncBackground = Boolean(targetBackground && (targetBackground.id !== inviteBackgroundId || targetBackground.hexCode !== inviteColor));
+    const selectedCharacterExists = characters.some((item) => item.id === inviteCharacter);
+    const nextCharacter = selectedCharacterExists ? undefined : characters[0];
+    if (shouldSyncBackground || nextCharacter) {
+      setInvite({
+        ...(shouldSyncBackground && targetBackground && { inviteBackgroundId: targetBackground.id, inviteColor: targetBackground.hexCode }),
+        ...(nextCharacter && { inviteCharacter: nextCharacter.id }),
+      });
+    }
+  }, [backgrounds, characters, inviteBackgroundId, inviteColor, inviteCharacter, setInvite]);
 
   // "from." 은 선물 페이지 제목이 아니라 가입한 사용자(로그인 계정)의 닉네임으로 표시합니다.
-  const previewName = MOCK_USER.name;
+  const previewName = profile?.nickname ?? '회원';
   // 아직 입력 전이면(필수값) 안내 문구 대신 라벨 그대로 자리표시용으로 보여줍니다.
   const displayTitle = inviteTitle || '초대장 제목';
   const displayContent = inviteContent || '초대장 내용';
   const isFormValid = inviteTitle.trim().length > 0 && inviteContent.trim().length > 0;
 
   const changeCharacter = (delta: number) => {
-    const next = ((inviteCharacter - 1 + delta + CHARACTER_COUNT) % CHARACTER_COUNT) + 1;
-    setInvite({ inviteCharacter: next });
+    if (!characters.length) return;
+    const currentIndex = characters.findIndex((item) => item.id === inviteCharacter);
+    const nextIndex = ((currentIndex >= 0 ? currentIndex : 0) + delta + characters.length) % characters.length;
+    setInvite({ inviteCharacter: characters[nextIndex].id });
   };
 
-  const currentCharacterImage = CHARACTER_IMAGES[inviteCharacter - 1];
+  const currentCharacter = characters.find((item) => item.id === inviteCharacter) ?? characters[0];
+  const currentCharacterIndex = Math.max(0, characters.findIndex((item) => item.id === currentCharacter?.id));
+  const currentCharacterNumber = String(currentCharacterIndex + 1).padStart(2, '0');
+  const currentCharacterImage = currentCharacter?.imageUrl;
   const isWhite = inviteColor === '#FFFFFF';
-  const accentColor = ACCENT_COLORS[inviteColor] ?? '#DB2777';
+  const accentColor = isWhite ? getInvitationAccent(inviteColor) : inviteColor;
   const glowColor = isWhite ? '#D1D5DB' : inviteColor;
 
   return (
@@ -51,7 +72,10 @@ export default function TogetherStep3Invite({ onNext }: Props) {
         >
           <div
             className="absolute inset-x-0 top-0 h-40 pointer-events-none"
-            style={{ background: `radial-gradient(circle at 50% 45%, ${accentColor} 0%, ${glowColor} 20%, transparent 65%)`, opacity: 1 }}
+            style={{
+              background: `radial-gradient(circle at 50% 45%, color-mix(in srgb, ${glowColor} 50%, transparent) 0%, color-mix(in srgb, ${glowColor} 30%, transparent) 32%, transparent 68%)`,
+              filter: 'blur(33px)',
+            }}
           />
           <InviteSparkles />
           <TogetLogoMark
@@ -59,7 +83,7 @@ export default function TogetherStep3Invite({ onNext }: Props) {
             isWhite={isWhite}
             className="absolute left-1/2 top-4 -translate-x-1/2 h-12 z-0"
           />
-          <img src={currentCharacterImage} alt="" className="absolute left-1/2 top-9.5 -translate-x-1/2 h-19 z-10" />
+          {currentCharacterImage && <img src={currentCharacterImage} alt="" className="absolute left-1/2 top-9.5 -translate-x-1/2 h-19 z-10" />}
           <div className="absolute left-1/2 -translate-x-1/2 bottom-4 w-3/5 bg-white rounded-2xl px-5 py-4 shadow-sm">
             <p className="text-sm font-bold text-gray-900 truncate">{displayTitle}</p>
             <p className="text-xs text-gray-500 mt-1 line-clamp-2">{displayContent}</p>
@@ -131,49 +155,55 @@ export default function TogetherStep3Invite({ onNext }: Props) {
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">초대장 색상</p>
             <div className="grid grid-cols-8 gap-2">
-              {INVITE_COLORS.map((color) => (
+              {backgrounds.map((background) => (
                 <button
-                  key={color}
-                  onClick={() => setInvite({ inviteColor: color })}
+                  key={background.id}
+                  onClick={() => setInvite({ inviteBackgroundId: background.id, inviteColor: background.hexCode })}
                   className={`relative aspect-square rounded-[3px] transition-colors ${
-                    inviteColor === color
-                      ? 'z-10 border-2 border-[#28345A]'
-                      : color === '#FFFFFF'
+                    inviteBackgroundId === background.id
+                      ? 'z-10 border-2'
+                      : background.hexCode.toUpperCase() === '#FFFFFF'
                         ? 'border border-gray-200'
                         : 'border border-transparent'
                   }`}
-                  style={{ background: color }}
-                  aria-label={`색상 ${color} 선택`}
-                  aria-pressed={inviteColor === color}
+                  style={{
+                    background: `color-mix(in srgb, ${background.hexCode} 30%, white)`,
+                    ...(inviteBackgroundId === background.id && { borderColor: background.hexCode }),
+                  }}
+                  aria-label={`${background.name} 색상 선택`}
+                  aria-pressed={inviteBackgroundId === background.id}
                 />
               ))}
             </div>
+            {!isLoading && backgroundError && <p className="mt-3 text-xs text-red-400">색상 목록을 불러오지 못했어요.</p>}
           </div>
         )}
 
         {tab === 'character' && (
           <div>
             <p className="text-sm font-medium text-gray-700 mb-3">캐릭터 선택</p>
-            <div className="flex items-center justify-center gap-6">
+            <div className="flex items-center justify-between px-2">
               <button
                 onClick={() => changeCharacter(-1)}
                 aria-label="이전 캐릭터"
-                className="text-gray-400 text-2xl px-2 hover:text-gray-700 transition-colors"
+                className="w-14 h-14 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition-colors"
               >
-                ‹
+                <ChevronLeft size={28} />
               </button>
               <div className="flex flex-col items-center gap-2">
-                <img src={currentCharacterImage} alt={`캐릭터 ${inviteCharacter}`} className="w-24 h-24 object-contain" />
-                <span className="text-xs font-semibold text-pink-400">
-                  No.{String(inviteCharacter).padStart(2, '0')}
-                </span>
+                {currentCharacterImage ? <img src={currentCharacterImage} alt={currentCharacter?.name ?? '초대장 캐릭터'} className="w-32 h-32 object-contain" /> : <div className="w-32 h-32 rounded-full bg-gray-100 animate-pulse" />}
+                {currentCharacter ? (
+                  <span className="px-3 py-1.5 rounded-md bg-pink-400 text-sm font-semibold text-white">No.{currentCharacterNumber}</span>
+                ) : (
+                  <span className="text-xs font-semibold text-pink-400">{characterError ? '불러오기 실패' : '불러오는 중'}</span>
+                )}
               </div>
               <button
                 onClick={() => changeCharacter(1)}
                 aria-label="다음 캐릭터"
-                className="text-gray-400 text-2xl px-2 hover:text-gray-700 transition-colors"
+                className="w-14 h-14 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition-colors"
               >
-                ›
+                <ChevronRight size={28} />
               </button>
             </div>
           </div>
@@ -203,13 +233,16 @@ export default function TogetherStep3Invite({ onNext }: Props) {
             <div className="relative rounded-2xl overflow-hidden border border-black/5 shadow-[0_6px_24px_rgba(0,0,0,0.12)] bg-white">
               <div
                 className="absolute inset-x-0 top-0 h-96 pointer-events-none"
-                style={{ background: `radial-gradient(circle at 50% 65%, ${accentColor} 0%, ${glowColor} 25%, transparent 65%)`, opacity: 1 }}
+                style={{
+                  background: `radial-gradient(circle at 50% 65%, color-mix(in srgb, ${glowColor} 50%, transparent) 0%, color-mix(in srgb, ${glowColor} 30%, transparent) 32%, transparent 68%)`,
+                  filter: 'blur(33px)',
+                }}
               />
               <InviteSparkles />
               <div className="flex flex-col items-center pt-6">
                 <p className="text-base font-bold text-gray-900 px-4">따뜻한 축하를<br />함께 전해주시겠어요?</p>
                 <TogetLogoMark accentColor={accentColor} isWhite={isWhite} className="h-24 relative z-0 mt-2" />
-                <img src={currentCharacterImage} alt="" className="h-52 -mt-9 relative z-10" />
+                {currentCharacterImage && <img src={currentCharacterImage} alt="" className="h-52 -mt-9 relative z-10" />}
                 <div className="bg-white rounded-2xl p-5 w-full text-left shadow-sm mt-6">
                   <p className="text-lg font-bold text-gray-900">{displayTitle}</p>
                   <p className="text-xs text-gray-500 mt-2 whitespace-pre-line">{displayContent}</p>

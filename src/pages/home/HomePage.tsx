@@ -3,6 +3,7 @@ import BottomNav from "../../components/common/BottomNav";
 import Toast from "../../components/common/Toast";
 import HomeBanner from "./HomeBanner";
 import GiftBrowseSection from "./GiftBrowseSection";
+import HomeFooter from "./HomeFooter";
 import MyFundingsSection from "./MyFundingsSection";
 import togetLogo from "../../assets/toget-logo.svg";
 import GiftCreateSheet from "../gift-create/GiftCreateSheet";
@@ -36,20 +37,25 @@ export default function HomePage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-32">
-      <header className="flex h-[50px] shrink-0 items-center px-[18px]">
+    <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
+      <header className="sticky top-0 z-20 flex h-[50px] shrink-0 items-center bg-white px-[18px]">
         <img src={togetLogo} alt="To Get" className="h-6" />
       </header>
 
-      <div className="mt-6 flex flex-col gap-9 px-[18px]">
+      {/* 로그인이어도 진행 중인 선물이 없으면 MyFundingsSection이 렌더링되지 않아 배너 바로
+          뒤에 GiftBrowseSection이 오는 비로그인과 동일한 레이아웃이 되므로, gap도 그 경우엔
+          비로그인과 같은 값을 써야 시각적으로 맞습니다. */}
+      <div className={`mt-6 flex flex-col px-[18px] ${isLoggedIn && myFundings.length > 0 ? 'gap-10' : 'gap-4'}`}>
         <HomeBanner isLoggedIn={isLoggedIn} onCreateClick={() => setCreateSheetOpen(true)} />
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-3">
           {isLoggedIn && (
             <MyFundingsSection fundings={myFundings} onShareInvite={handleShareInvite} />
           )}
           <GiftBrowseSection />
         </div>
       </div>
+
+      <HomeFooter />
 
       <BottomNav active="home" />
       <GiftCreateSheet

@@ -1,14 +1,8 @@
-import { useState, useId } from 'react';
-import { X, Expand } from 'lucide-react';
+import { useEffect, useState, useId } from 'react';
+import { X, Expand, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
-import { INVITE_COLORS, CHARACTER_COUNT } from './Mascot';
-import { MOCK_USER } from '../../pages/my/mockUser';
-import char1 from '../../assets/invite-character1.svg';
-import char2 from '../../assets/invite-character2.svg';
-import char3 from '../../assets/invite-character3.svg';
-import char4 from '../../assets/invite-character4.svg';
-import char5 from '../../assets/invite-character5.svg';
-import char6 from '../../assets/invite-character6.svg';
+import { getInvitationAccent, useInvitationMeta } from './Mascot';
+import { useMyProfile } from '../../hooks/useMyProfile';
 import inviteSparklesSvg from '../../assets/invite-sparkles.svg';
 
 interface Props {
@@ -24,35 +18,6 @@ const CONTENT_MAX = 60;
 
 // inviteCharacter(1~6)에 대응하는 캐릭터 이미지
 // StepComplete 등 다른 화면에서도 동일한 캐릭터 이미지를 써야 해서 export 합니다.
-export const CHARACTER_IMAGES = [char1, char2, char3, char4, char5, char6];
-
-// 초대장 색상(파스텔)마다 로고/글씨에 쓸 포인트 색상 (채도를 낮춘 톤)
-export const ACCENT_COLORS: Record<string, string> = {
-  '#FCE4F0': '#FF2D95', // pink (형광 느낌)
-  '#FFD3CC': '#FF3B30', // red (형광 느낌)
-  '#FFF7DA': '#FFC400', // yellow (형광 느낌)
-  '#EEF6DD': '#6FCF00', // green (형광 느낌)
-  '#DCEBFA': '#00C2FF', // blue (형광 느낌)
-  '#E9E3F5': '#7B2FFF', // purple (형광 느낌)
-  '#F0E5F7': '#B84DFF', // light purple (형광 느낌)
-  '#FFFFFF': '#9CA3AF', // white → 중립 회색
-};
-
-function hexToRgb(hex: string) {
-  const clean = hex.replace('#', '');
-  const n = parseInt(clean, 16);
-  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
-}
-
-// hex를 흰색과 섞어 밝은 톤을 만듭니다 (ratio 0~1, 1에 가까울수록 더 밝아짐)
-function lighten(hex: string, ratio: number) {
-  const c = hexToRgb(hex);
-  const r = Math.round(c.r + (255 - c.r) * ratio);
-  const g = Math.round(c.g + (255 - c.g) * ratio);
-  const b = Math.round(c.b + (255 - c.b) * ratio);
-  return `rgb(${r}, ${g}, ${b})`;
-}
-
 // 초대장 배경에 흩뿌려지는 반짝이 장식 (디자인팀 전달 SVG)
 export function InviteSparkles() {
   return (
@@ -60,7 +25,7 @@ export function InviteSparkles() {
       src={inviteSparklesSvg}
       alt=""
       aria-hidden
-      className="absolute inset-0 w-full h-full pointer-events-none select-none"
+      className="absolute left-1/2 top-3 z-[5] w-[44%] h-auto -translate-x-1/2 pointer-events-none select-none"
     />
   );
 }
@@ -83,9 +48,8 @@ export function TogetLogoMark({ accentColor, isWhite, className }: { accentColor
       {!isWhite && (
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="56.1834" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor={lighten(accentColor, 0.92)} />
-            <stop offset="55%" stopColor={lighten(accentColor, 0.35)} />
-            <stop offset="100%" stopColor={accentColor} />
+            <stop offset="0%" stopColor={accentColor} stopOpacity="1" />
+            <stop offset="100%" stopColor={accentColor} stopOpacity="0.3" />
           </linearGradient>
         </defs>
       )}
@@ -102,25 +66,46 @@ export function TogetLogoMark({ accentColor, isWhite, className }: { accentColor
 }
 
 export default function Step5Invite({ onNext, submitLabel = '저장', disabled = false }: Props) {
-  const { inviteTitle, inviteContent, inviteColor, inviteCharacter, setInvite } = useFundingCreateStore();
+  const { inviteTitle, inviteContent, inviteBackgroundId, inviteColor, inviteCharacter, setInvite } = useFundingCreateStore();
   const [tab, setTab] = useState<Tab>('message');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const { backgrounds, characters, isLoading, backgroundError, characterError } = useInvitationMeta();
+  const { data: profile } = useMyProfile();
+
+  useEffect(() => {
+    const selectedBackground = backgrounds.find((item) => item.id === inviteBackgroundId);
+    const targetBackground = selectedBackground ?? backgrounds[0];
+    const shouldSyncBackground = Boolean(targetBackground && (targetBackground.id !== inviteBackgroundId || targetBackground.hexCode !== inviteColor));
+    const selectedCharacterExists = characters.some((item) => item.id === inviteCharacter);
+    const nextCharacter = selectedCharacterExists ? undefined : characters[0];
+    if (shouldSyncBackground || nextCharacter) {
+      setInvite({
+        ...(shouldSyncBackground && targetBackground && { inviteBackgroundId: targetBackground.id, inviteColor: targetBackground.hexCode }),
+        ...(nextCharacter && { inviteCharacter: nextCharacter.id }),
+      });
+    }
+  }, [backgrounds, characters, inviteBackgroundId, inviteColor, inviteCharacter, setInvite]);
 
   // "from." 은 선물 페이지 제목이 아니라 가입한 사용자(로그인 계정)의 닉네임으로 표시합니다.
-  const previewName = MOCK_USER.name;
+  const previewName = profile?.nickname ?? '회원';
   // 아직 입력 전이면(필수값) 안내 문구 대신 라벨 그대로 자리표시용으로 보여줍니다.
   const displayTitle = inviteTitle || '초대장 제목';
   const displayContent = inviteContent || '초대장 내용';
   const isFormValid = inviteTitle.trim().length > 0 && inviteContent.trim().length > 0;
 
   const changeCharacter = (delta: number) => {
-    const next = ((inviteCharacter - 1 + delta + CHARACTER_COUNT) % CHARACTER_COUNT) + 1;
-    setInvite({ inviteCharacter: next });
+    if (!characters.length) return;
+    const currentIndex = characters.findIndex((item) => item.id === inviteCharacter);
+    const nextIndex = ((currentIndex >= 0 ? currentIndex : 0) + delta + characters.length) % characters.length;
+    setInvite({ inviteCharacter: characters[nextIndex].id });
   };
 
-  const currentCharacterImage = CHARACTER_IMAGES[inviteCharacter - 1];
+  const currentCharacter = characters.find((item) => item.id === inviteCharacter) ?? characters[0];
+  const currentCharacterIndex = Math.max(0, characters.findIndex((item) => item.id === currentCharacter?.id));
+  const currentCharacterNumber = String(currentCharacterIndex + 1).padStart(2, '0');
+  const currentCharacterImage = currentCharacter?.imageUrl;
   const isWhite = inviteColor === '#FFFFFF';
-  const accentColor = ACCENT_COLORS[inviteColor] ?? '#DB2777';
+  const accentColor = isWhite ? getInvitationAccent(inviteColor) : inviteColor;
   const glowColor = isWhite ? '#D1D5DB' : inviteColor;
 
   return (
@@ -140,7 +125,10 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
               흰색이 아니라 '투명'으로 빠지게 해서 카드 하단부는 아예 그라데이션 영향이 없게 함 */}
           <div
             className="absolute inset-x-0 top-0 h-40 pointer-events-none"
-            style={{ background: `radial-gradient(circle at 50% 45%, ${accentColor} 0%, ${glowColor} 20%, transparent 65%)`, opacity: 1 }}
+            style={{
+              background: `radial-gradient(circle at 50% 45%, color-mix(in srgb, ${glowColor} 50%, transparent) 0%, color-mix(in srgb, ${glowColor} 30%, transparent) 32%, transparent 68%)`,
+              filter: 'blur(33px)',
+            }}
           />
           <InviteSparkles />
           <TogetLogoMark
@@ -148,7 +136,7 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
             isWhite={isWhite}
             className="absolute left-1/2 top-4 -translate-x-1/2 h-12 z-0"
           />
-          <img src={currentCharacterImage} alt="" className="absolute left-1/2 top-9.5 -translate-x-1/2 h-19 z-10" />
+          {currentCharacterImage && <img src={currentCharacterImage} alt="" className="absolute left-1/2 top-9.5 -translate-x-1/2 h-19 z-10" />}
           <div className="absolute left-1/2 -translate-x-1/2 bottom-4 w-3/5 bg-white rounded-2xl px-5 py-4 shadow-sm">
             <p className="text-sm font-bold text-gray-900 truncate">{displayTitle}</p>
             <p className="text-xs text-gray-500 mt-1 line-clamp-2">{displayContent}</p>
@@ -220,49 +208,55 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">초대장 색상</p>
             <div className="grid grid-cols-8 gap-2">
-              {INVITE_COLORS.map((color) => (
+              {backgrounds.map((background) => (
                 <button
-                  key={color}
-                  onClick={() => setInvite({ inviteColor: color })}
+                  key={background.id}
+                  onClick={() => setInvite({ inviteBackgroundId: background.id, inviteColor: background.hexCode })}
                   className={`relative aspect-square rounded-[3px] transition-colors ${
-                    inviteColor === color
-                      ? 'z-10 border-2 border-[#28345A]'
-                      : color === '#FFFFFF'
+                    inviteBackgroundId === background.id
+                      ? 'z-10 border-2'
+                      : background.hexCode.toUpperCase() === '#FFFFFF'
                         ? 'border border-gray-200'
                         : 'border border-transparent'
                   }`}
-                  style={{ background: color }}
-                  aria-label={`색상 ${color} 선택`}
-                  aria-pressed={inviteColor === color}
+                  style={{
+                    background: `color-mix(in srgb, ${background.hexCode} 30%, white)`,
+                    ...(inviteBackgroundId === background.id && { borderColor: background.hexCode }),
+                  }}
+                  aria-label={`${background.name} 색상 선택`}
+                  aria-pressed={inviteBackgroundId === background.id}
                 />
               ))}
             </div>
+            {!isLoading && backgroundError && <p className="mt-3 text-xs text-red-400">색상 목록을 불러오지 못했어요.</p>}
           </div>
         )}
 
         {tab === 'character' && (
           <div>
             <p className="text-sm font-medium text-gray-700 mb-3">캐릭터 선택</p>
-            <div className="flex items-center justify-center gap-6">
+            <div className="flex items-center justify-between px-2">
               <button
                 onClick={() => changeCharacter(-1)}
                 aria-label="이전 캐릭터"
-                className="text-gray-400 text-2xl px-2 hover:text-gray-700 transition-colors"
+                className="w-14 h-14 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition-colors"
               >
-                ‹
+                <ChevronLeft size={28} />
               </button>
               <div className="flex flex-col items-center gap-2">
-                <img src={currentCharacterImage} alt={`캐릭터 ${inviteCharacter}`} className="w-24 h-24 object-contain" />
-                <span className="text-xs font-semibold text-pink-400">
-                  No.{String(inviteCharacter).padStart(2, '0')}
-                </span>
+                {currentCharacterImage ? <img src={currentCharacterImage} alt={currentCharacter?.name ?? '초대장 캐릭터'} className="w-32 h-32 object-contain" /> : <div className="w-32 h-32 rounded-full bg-gray-100 animate-pulse" />}
+                {currentCharacter ? (
+                  <span className="px-3 py-1.5 rounded-md bg-pink-400 text-sm font-semibold text-white">No.{currentCharacterNumber}</span>
+                ) : (
+                  <span className="text-xs font-semibold text-pink-400">{characterError ? '불러오기 실패' : '불러오는 중'}</span>
+                )}
               </div>
               <button
                 onClick={() => changeCharacter(1)}
                 aria-label="다음 캐릭터"
-                className="text-gray-400 text-2xl px-2 hover:text-gray-700 transition-colors"
+                className="w-14 h-14 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition-colors"
               >
-                ›
+                <ChevronRight size={28} />
               </button>
             </div>
           </div>
@@ -293,13 +287,16 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
               {/* 캐릭터를 중심으로 진하게 시작해서 바깥으로 갈수록 옅어지는 글로우 - 작은 미리보기 카드와 동일한 톤 */}
               <div
                 className="absolute inset-x-0 top-0 h-96 pointer-events-none"
-                style={{ background: `radial-gradient(circle at 50% 65%, ${accentColor} 0%, ${glowColor} 25%, transparent 65%)`, opacity: 1 }}
+                style={{
+                  background: `radial-gradient(circle at 50% 65%, color-mix(in srgb, ${glowColor} 50%, transparent) 0%, color-mix(in srgb, ${glowColor} 30%, transparent) 32%, transparent 68%)`,
+                  filter: 'blur(33px)',
+                }}
               />
               <InviteSparkles />
               <div className="flex flex-col items-center pt-6">
                 <p className="text-base font-bold text-gray-900 px-4">따뜻한 축하를<br />함께 전해주시겠어요?</p>
                 <TogetLogoMark accentColor={accentColor} isWhite={isWhite} className="h-24 relative z-0 mt-2" />
-                <img src={currentCharacterImage} alt="" className="h-52 -mt-9 relative z-10" />
+                {currentCharacterImage && <img src={currentCharacterImage} alt="" className="h-52 -mt-9 relative z-10" />}
                 <div className="bg-white rounded-2xl p-5 w-full text-left shadow-sm mt-6">
                   <p className="text-lg font-bold text-gray-900">{displayTitle}</p>
                   <p className="text-xs text-gray-500 mt-2 whitespace-pre-line">{displayContent}</p>

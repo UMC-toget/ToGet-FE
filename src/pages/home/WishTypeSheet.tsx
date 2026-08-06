@@ -1,15 +1,14 @@
-import { useState } from 'react'
 import BottomSheet from '../../components/common/BottomSheet'
 import CheckIcon from '../../components/icons/CheckIcon'
 import type { WishType } from '../../store/wishStore'
 
 interface WishTypeSheetProps {
   open: boolean
-  /** 이미 위시 등록된 상품이면 현재 유형, 아니면 null */
-  selected: WishType | null
+  /** 이 상품에 현재 등록된 위시 유형 목록 (0~2개) */
+  selected: WishType[]
   onClose: () => void
-  /** 유형을 선택하면 해당 유형으로, 이미 선택된 유형을 다시 누르면 null(위시 해제)로 호출됩니다 */
-  onSelect: (type: WishType | null) => void
+  /** 유형을 누르면 그 유형만 켜짐/꺼짐이 토글됩니다. 둘 다 켤 수 있습니다 */
+  onToggle: (type: WishType) => void
 }
 
 const OPTIONS: { type: WishType; label: string }[] = [
@@ -17,22 +16,8 @@ const OPTIONS: { type: WishType; label: string }[] = [
   { type: 'give', label: '주고 싶은' },
 ]
 
-// 체크 표시가 눈에 보일 정도로 유지된 뒤 시트가 닫히도록 주는 지연 시간
-const SELECT_CLOSE_DELAY_MS = 350
-
-/** 상품 카드에서 위시 등록 시 유형(받고 싶은/주고 싶은)을 고르는 바텀시트 (피그마 기준) */
-export default function WishTypeSheet({ open, selected, onClose, onSelect }: WishTypeSheetProps) {
-  // BottomSheet는 open=false일 때 children을 언마운트하므로, 다시 열릴 때마다
-  // 이 state는 selected(현재 위시 유형)로 새로 시작됩니다.
-  const [picked, setPicked] = useState<WishType | null>(selected)
-
-  const handlePick = (type: WishType) => {
-    // 이미 체크된 항목을 다시 누르면 선택 해제(위시 해제)로 처리합니다.
-    const next = picked === type ? null : type
-    setPicked(next)
-    setTimeout(() => onSelect(next), SELECT_CLOSE_DELAY_MS)
-  }
-
+/** 상품 카드에서 위시 등록 시 유형(받고 싶은/주고 싶은)을 고르는 바텀시트 (피그마 기준). 둘 다 선택 가능합니다 */
+export default function WishTypeSheet({ open, selected, onClose, onToggle }: WishTypeSheetProps) {
   return (
     <BottomSheet open={open} onClose={onClose}>
       <div className="flex w-full flex-col items-start gap-6">
@@ -42,14 +27,14 @@ export default function WishTypeSheet({ open, selected, onClose, onSelect }: Wis
             <li key={option.type} className="w-full">
               <button
                 type="button"
-                onClick={() => handlePick(option.type)}
+                onClick={() => onToggle(option.type)}
                 className="flex w-full items-center justify-between py-3"
               >
                 <span className="text-b1-m text-black">{option.label}</span>
                 {/* 체크 표시 유무와 무관하게 항상 같은 자리를 차지해야 텍스트 위치가 흔들리지 않습니다 */}
                 <span
                   className={`flex size-6 shrink-0 items-center justify-center rounded-full bg-black text-white ${
-                    picked === option.type ? 'opacity-100' : 'opacity-0'
+                    selected.includes(option.type) ? 'opacity-100' : 'opacity-0'
                   }`}
                 >
                   <CheckIcon className="size-3.5" />

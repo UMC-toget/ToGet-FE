@@ -2,6 +2,95 @@ import { apiClient, unwrap } from '../lib/apiClient'
 import type { BankName } from './userAccounts'
 import type { FundingDetail, FundingMessage, WishlistItem } from '../types/funding'
 
+export interface CreateFundingRequest {
+  fundingType: 'MY_GIFT' | 'TOGETHER_GIFT'
+  title: string
+  recipientName: string
+  anniversaryDate: string
+  startDate: string
+  endDate: string
+  introduction: string
+  thumbnailImageUrl: string | null
+  targetAmount: number
+  userAccountId: number
+  invitation: {
+    characterId: number
+    backgroundId: number
+    title: string
+    content: string
+  }
+  visibility: {
+    isProgressVisible: boolean
+    isParticipantCountVisible: boolean
+    isParticipantNameVisible: boolean
+    isMessageVisible: boolean
+    isCollectedAmountVisible: boolean
+  }
+  gifts: Array<{
+    giftName: string
+    giftPrice: number
+    giftPurchaseUrl: string | null
+    giftImageUrl: string | null
+  }>
+}
+
+/** 작성한 선물 페이지를 실제 펀딩으로 개설합니다. */
+export function createFunding(payload: CreateFundingRequest) {
+  return unwrap<{ fundingId: number }>(apiClient.post('/api/v1/fundings', payload))
+}
+
+export type UpdateFundingBasicInfoRequest = Pick<
+  CreateFundingRequest,
+  'title' | 'anniversaryDate' | 'startDate' | 'endDate' | 'introduction' | 'thumbnailImageUrl'
+>
+
+export function updateFundingBasicInfo(fundingId: number | string, payload: UpdateFundingBasicInfoRequest) {
+  return unwrap<void>(apiClient.put(`/api/v1/fundings/${fundingId}/basic-info`, payload))
+}
+
+export interface UpdateFundingGiftRequest {
+  fundingGiftId: number | null
+  giftName: string
+  giftPrice: number
+  giftPurchaseUrl: string | null
+  giftImageUrl: string | null
+}
+
+export function updateFundingGifts(fundingId: number | string, gifts: UpdateFundingGiftRequest[]) {
+  return unwrap<UpdateFundingGiftRequest[]>(apiClient.put(`/api/v1/fundings/${fundingId}/gifts`, gifts))
+}
+
+export interface UpdateFundingVisibilityRequest {
+  showProgress: boolean
+  showParticipantCount: boolean
+  showParticipantNames: boolean
+  showMessages: boolean
+  showAmount: boolean
+}
+
+export function updateFundingVisibility(fundingId: number | string, visibility: UpdateFundingVisibilityRequest) {
+  return unwrap<void>(apiClient.put(`/api/v1/fundings/${fundingId}/visibility-settings`, visibility))
+}
+
+export function updateFundingAccount(fundingId: number | string, userAccountId: number) {
+  return unwrap<{ fundingId: number; userAccountId: number }>(
+    apiClient.put(`/api/v1/fundings/${fundingId}/account`, { userAccountId }),
+  )
+}
+
+export function updateFundingInvitation(
+  fundingId: number | string,
+  invitation: CreateFundingRequest['invitation'],
+) {
+  return unwrap<{
+    invitationCardId: number
+    characterId: number
+    backgroundId: number
+    title: string
+    content: string
+  }>(apiClient.put(`/api/v1/fundings/${fundingId}/invitations`, invitation))
+}
+
 // ─── my-gift 대시보드 (개설자 전용) ────────────────────────────
 
 export interface MyGiftDashboardResponse {

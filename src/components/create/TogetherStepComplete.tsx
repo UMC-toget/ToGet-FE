@@ -1,17 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Copy, Link, X } from 'lucide-react';
+import { Check, Link, X } from 'lucide-react';
 import { useTogetherCreateStore } from '../../store/togetherCreateStore';
-import { CHARACTER_IMAGES, ACCENT_COLORS } from './Step5Invite';
+import { getInvitationAccent, useInvitationMeta } from './Mascot';
 import heroStars from '../../assets/hero-stars.svg';
 
 // 아직 "함께 선물" 준비방 상세 페이지가 없어서, 우선 홈으로 이동합니다.
 export default function TogetherStepComplete() {
   const navigate = useNavigate();
-  const { roomName, inviteCharacter, inviteColor } = useTogetherCreateStore();
+  const { roomName, inviteCharacter, inviteBackgroundId, inviteColor } = useTogetherCreateStore();
   const [copied, setCopied] = useState(false);
-  const glowColor = inviteColor === '#FFFFFF' ? '#D1D5DB' : inviteColor;
-  const accentColor = ACCENT_COLORS[inviteColor] ?? '#DB2777';
+  const { backgrounds, characters } = useInvitationMeta();
+  const characterImageUrl = characters.find((item) => item.id === inviteCharacter)?.imageUrl;
+  const selectedColor = backgrounds.find((item) => item.id === inviteBackgroundId)?.hexCode ?? inviteColor;
+  const glowColor = selectedColor === '#FFFFFF' ? '#D1D5DB' : selectedColor;
+  const accentColor = getInvitationAccent(selectedColor);
+  const decorationColor = selectedColor === '#FFFFFF' ? accentColor : selectedColor;
 
   // 한글 등 비-ASCII 문자는 slug에서 전부 제거되므로, 로마자/숫자가 없는 이름이면 하이픈만 남습니다.
   const rawSlug = roomName
@@ -46,11 +50,11 @@ export default function TogetherStepComplete() {
   const handleGoHome = () => navigate('/home');
 
   return (
-    <div className="flex flex-col items-center h-full relative">
+    <div className="flex-1 min-h-0 w-full max-w-[350px] mx-auto flex flex-col items-center relative">
       {/* 페이지 전체 배경 그라데이션 - 캐릭터를 중심으로 진하게 시작해서 아래로 갈수록 옅어짐 */}
       <div
         className="absolute inset-x-0 top-0 h-96 pointer-events-none"
-        style={{ background: `radial-gradient(circle at 50% 25%, ${accentColor} 0%, ${glowColor} 15%, transparent 60%)`, opacity: 0.55 }}
+        style={{ background: `radial-gradient(circle at 50% 38%, color-mix(in srgb, ${glowColor} 26%, transparent) 0%, color-mix(in srgb, ${glowColor} 14%, transparent) 38%, transparent 68%)` }}
       />
       <button
         onClick={handleGoHome}
@@ -60,63 +64,60 @@ export default function TogetherStepComplete() {
         <X size={20} />
       </button>
 
-      <div className="flex-1 flex flex-col items-center justify-center w-full gap-6">
+      <div className="flex flex-col items-center w-full pt-7 gap-4">
         {/* 완료 아이콘 - 초대장에서 고른 캐릭터를 그대로 사용해 일관성 유지 */}
-        <div className="relative flex items-center justify-center w-64 h-64">
+        <div className="relative flex items-center justify-center w-64 h-64 shrink-0">
           <div
             className="absolute inset-0 rounded-full blur-2xl pointer-events-none"
-            style={{ background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`, opacity: 0.9 }}
+            style={{ background: `radial-gradient(circle, color-mix(in srgb, ${glowColor} 28%, transparent) 0%, transparent 70%)`, opacity: 0.55 }}
           />
           <img
             src={heroStars}
             alt=""
             aria-hidden
-            className="pointer-events-none absolute left-1/2 top-1/2 w-[300px] max-w-none -translate-x-1/2 -translate-y-1/2 z-10"
+            className="pointer-events-none absolute left-1/2 top-1/2 w-[430px] max-w-none -translate-x-1/2 -translate-y-1/2 z-10"
           />
-          <img
-            src={CHARACTER_IMAGES[inviteCharacter - 1]}
-            alt=""
-            className="w-[190px] h-[190px] object-contain relative z-10"
-          />
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-12 h-12 bg-pink-500 rounded-full flex items-center justify-center border-2 border-white z-20">
-            <Check size={22} className="text-white" />
+          {characterImageUrl && <img src={characterImageUrl} alt="" className="w-[210px] h-[210px] object-contain relative z-10" />}
+          <div
+            className="absolute bottom-7 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full flex items-center justify-center border-2 border-white z-20"
+            style={{ backgroundColor: decorationColor }}
+          >
+            <Check size={26} className="text-white" />
           </div>
         </div>
 
         <div className="text-center">
-          <h2 className="text-xl font-bold text-gray-900">준비방이 만들어졌어요!</h2>
-          <p className="text-sm text-gray-500 mt-2">
+          <h2 className="text-base font-bold text-gray-900">준비방이 만들어졌어요!</h2>
+          <p className="text-xs text-gray-500 mt-2 leading-relaxed">
             링크를 공유해서 친구들을 초대하고<br />
             함께 선물을 준비해보세요.
           </p>
         </div>
 
-        <div className="w-full border border-gray-100 rounded-2xl p-4 bg-white shadow-sm space-y-3">
+        <div className="w-full space-y-2 mt-3">
           <p className="text-sm font-semibold text-gray-700">초대장 링크</p>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-600 truncate bg-gray-100">
-              {shareLink}
+          <div className="border border-gray-200 rounded-xl p-3 bg-white space-y-2">
+            <div className="flex h-12 items-center gap-2 rounded-lg bg-gray-100 px-3">
+              <div className="flex-1 text-sm text-gray-400 truncate">{shareLink}</div>
+              <button
+                onClick={handleCopy}
+                className={`h-8 px-3 rounded text-xs font-medium transition-colors whitespace-nowrap
+                  ${copied ? 'bg-gray-800 text-white' : 'bg-gray-600 text-white hover:bg-gray-700'}`}
+              >
+                {copied ? '복사 완료' : '링크 복사'}
+              </button>
             </div>
             <button
-              onClick={handleCopy}
-              className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors whitespace-nowrap
-                ${copied ? 'bg-gray-800 text-white' : 'bg-gray-900 text-white hover:bg-gray-700'}`}
+              onClick={handleShare}
+              className="w-full h-10 bg-gray-100 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
             >
-              {copied ? '복사 완료' : (
-                <span className="flex items-center gap-1"><Copy size={14} />링크 복사</span>
-              )}
+              <Link size={14} /> 초대장 공유
             </button>
           </div>
-          <button
-            onClick={handleShare}
-            className="w-full py-2 bg-gray-100 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-200 transition-colors flex items-center justify-center gap-1"
-          >
-            <Link size={14} /> 초대장 공유
-          </button>
         </div>
       </div>
 
-      <div className="w-full mt-8">
+      <div className="w-full mt-8 pb-2">
         <button
           onClick={handleGoHome}
           className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-colors"

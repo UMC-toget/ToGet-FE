@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import CaretDownIcon from '../../components/icons/CaretDownIcon'
+import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import ProductCard from './ProductCard'
 import PriceFilterSheet from './PriceFilterSheet'
 import WishTypeSheet from './WishTypeSheet'
@@ -14,77 +15,92 @@ import type { WishType } from '../../store/wishStore'
 
 type Category = (typeof GIFT_CATEGORIES)[number]
 
+const POPULAR_CATEGORY: Category = '요즘 인기'
+/** 상단에 상시 노출하는 카드 개수. '요즘 인기'는 이 개수로 고정, 그 외 카테고리는 더보기로 확장 가능 */
+const VISIBLE_COUNT = 10
+
 /** 홈 선물 둘러보기 섹션: 카테고리 칩 + 기준일/가격 필터 + 상품 그리드 */
 export default function GiftBrowseSection() {
   const navigate = useNavigate()
   const { isLoggedIn } = useAuth()
   const { wishes, addWish, removeWish } = useWishStore()
-  const [category, setCategory] = useState<Category>('요즘 인기')
+  const [category, setCategory] = useState<Category>(POPULAR_CATEGORY)
   const [priceFilter, setPriceFilter] = useState<PriceFilter>(PRICE_FILTERS[0])
   const [filterOpen, setFilterOpen] = useState(false)
   const [wishSheetProductId, setWishSheetProductId] = useState<number | null>(null)
+  const [expanded, setExpanded] = useState(false)
+
+  const handleCategoryChange = (next: Category) => {
+    setCategory(next)
+    setExpanded(false)
+  }
 
   // 비로그인 상태에서 상품 카드/위시 등록 버튼을 선택하면 로그인 화면으로 보냅니다 (피그마 B01 기준).
   const handleLoginRequired = () => navigate('/login')
 
   // TODO: 위시 등록/해제 API 연동 후 addWish/removeWish 호출을 실제 서버 요청으로 교체 (useWishStore 참고)
-  const handleSelectWishType = (type: WishType | null) => {
-    if (wishSheetProductId != null) {
-      if (type === null) {
-        removeWish(wishSheetProductId)
-      } else {
-        addWish(wishSheetProductId, type)
-      }
+  const handleToggleWishType = (type: WishType) => {
+    if (wishSheetProductId == null) return
+    const current = wishes[wishSheetProductId] ?? []
+    if (current.includes(type)) {
+      removeWish(wishSheetProductId, type)
+    } else {
+      addWish(wishSheetProductId, type)
     }
-    setWishSheetProductId(null)
   }
 
   // 카테고리와 가격대 필터는 교집합으로 함께 서버에 전달합니다.
-  // '요즘 인기'는 특정 상황(occasion) 태그가 아니라 전체를 인기순으로 보여주는 탭이라 카테고리 조건을 걸지 않습니다.
-  // TODO: '요즘 인기'의 정렬은 사용자별 위시 등록 통계를 내림차순 집계한 순위여야 하는데, 아직 그런 정렬
-  // 옵션이 API에 없어 우선 최신순(LATEST)으로 대체합니다.
+  // '요즘 인기'는 특정 상황(occasion) 태그가 아니라 사용자별 위시 등록 통계 내림차순(WISHLIST_DESC)으로
+  // 전체 상품을 보여주는 탭이라 카테고리 조건을 걸지 않습니다.
+  const isPopular = category === POPULAR_CATEGORY
   const { products: filteredProducts } = useProducts({
-    category: category === '요즘 인기' ? undefined : category,
+    category: isPopular ? undefined : category,
     minPrice: priceFilter.min > 0 ? priceFilter.min : undefined,
     maxPrice: Number.isFinite(priceFilter.max) ? priceFilter.max : undefined,
-    sort: 'LATEST',
+    sort: isPopular ? 'WISHLIST_DESC' : 'LATEST',
   })
+
+  // '요즘 인기'는 상시 10개만 노출. 그 외 카테고리는 10개까지만 보여주고 더보기로 전체 노출.
+  const visibleProducts =
+    isPopular || !expanded ? filteredProducts.slice(0, VISIBLE_COUNT) : filteredProducts
+  const hasMore = !isPopular && !expanded && filteredProducts.length > VISIBLE_COUNT
 
   return (
     <section className="flex flex-col gap-3">
-      <div className="flex flex-col gap-4">
-        <h2 className="text-h3-sb text-black">선물 둘러보기</h2>
-        <div className="flex items-center gap-2">
-          {GIFT_CATEGORIES.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setCategory(c)}
-              className={`rounded-full px-4 py-2 text-b2-m ${
-                c === category ? 'bg-gray-900 text-white' : 'border border-gray-300 bg-white text-gray-700'
-              }`}
-            >
-              {c}
-            </button>
-          ))}
+      {/* 상품 카드를 스크롤해도 카테고리를 언제든 바꿀 수 있도록 상단 로고 헤더(h-[50px]) 바로 아래에 고정 (피그마 기준) */}
+      <div className="sticky top-[50px] z-10 flex flex-col gap-3 bg-white pb-1 pt-6">
+        <div className="flex flex-col gap-4">
+          <h2 className="text-h3-sb text-black">선물 둘러보기</h2>
+          <div className="flex items-center gap-2">
+            {GIFT_CATEGORIES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => handleCategoryChange(c)}
+                className={`rounded-full px-4 py-3 text-b2-m ${
+                  c === category ? 'bg-gray-900 text-white' : 'border border-gray-300 bg-white text-gray-700'
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <p className="text-caption1-r text-gray-500">{formatDateDots(new Date())} 기준</p>
+          <button type="button" onClick={() => setFilterOpen(true)} className="flex items-center gap-1">
+            <span className="text-caption1-m text-black">{priceFilter.label}</span>
+            <CaretDownIcon className="size-6 text-black" />
+          </button>
         </div>
       </div>
-      <div className="flex items-center justify-between">
-        <p className="text-caption1-r text-gray-500">{formatDateDots(new Date())} 기준</p>
-        <button type="button" onClick={() => setFilterOpen(true)} className="flex items-center gap-1">
-          <span className="text-caption1-m text-black">{priceFilter.label}</span>
-          <CaretDownIcon className="size-6 text-black" />
-        </button>
-      </div>
-      {filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-4">
-          {/* TODO: 순위 API 연동 시 index+1이 아니라 서버가 내려주는 순위를 사용해야 함.
-              '요즘 인기' 카테고리는 사용자별 위시 등록 통계를 내림차순 집계한 순위입니다. */}
-          {filteredProducts.map((product, index) => (
+      {visibleProducts.length > 0 ? (
+        <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+          {visibleProducts.map((product, index) => (
             <ProductCard
               key={product.id}
               product={product}
-              rank={index + 1}
+              rank={isPopular ? index + 1 : undefined}
               isLoggedIn={isLoggedIn}
               wished={product.id in wishes}
               onLoginRequired={handleLoginRequired}
@@ -97,6 +113,16 @@ export default function GiftBrowseSection() {
           해당 가격대의 선물이 아직 없어요
         </p>
       )}
+      {hasMore && (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="mt-7 flex h-[42px] items-center justify-center gap-2 rounded-xl border border-gray-600 bg-white"
+        >
+          <span className="text-b2-m font-semibold text-black">더보기</span>
+          <ChevronRightIcon className="size-5 rotate-90 text-black" />
+        </button>
+      )}
 
       <PriceFilterSheet
         open={filterOpen}
@@ -106,9 +132,9 @@ export default function GiftBrowseSection() {
       />
       <WishTypeSheet
         open={wishSheetProductId != null}
-        selected={wishSheetProductId != null ? (wishes[wishSheetProductId] ?? null) : null}
+        selected={wishSheetProductId != null ? (wishes[wishSheetProductId] ?? []) : []}
         onClose={() => setWishSheetProductId(null)}
-        onSelect={handleSelectWishType}
+        onToggle={handleToggleWishType}
       />
     </section>
   )
