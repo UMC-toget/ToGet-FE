@@ -32,7 +32,7 @@ export default function ProductCard({ product, rank, isLoggedIn, wished, onLogin
   }
 
   return (
-    <button type="button" onClick={handleCardClick} className="flex flex-col gap-2 text-left">
+    <button type="button" onClick={handleCardClick} className="flex flex-col text-left">
       <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-background p-3">
         {product.image && (
           <img src={product.image} alt={product.name} className="max-h-[75%] max-w-[80%] object-contain" />
@@ -61,14 +61,14 @@ export default function ProductCard({ product, rank, isLoggedIn, wished, onLogin
           <GiftIcon className="size-4" />
         </span>
       </div>
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-1">
+      <div className="mt-2 flex flex-col">
+        <div className="flex items-center gap-2">
           <span className="text-caption1-r text-gray-700">{product.brand}</span>
-          <ChevronRightIcon className="size-5 text-gray-700" />
+          <ChevronRightIcon className="size-3 translate-y-0.5 text-gray-700" />
         </div>
-        <p className="text-b2-m leading-normal text-black">{product.name}</p>
+        <p className="mt-3 min-h-[36px] leading-[1.5] text-b2-m text-black">{product.name}</p>
       </div>
-      <p className="text-b2-m text-black">
+      <p className="mt-6 text-b2-m text-black">
         <span className="font-semibold">{product.price.toLocaleString()}</span>원
       </p>
     </button>
