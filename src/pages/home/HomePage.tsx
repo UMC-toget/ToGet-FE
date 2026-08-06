@@ -39,7 +39,12 @@ export default function HomePage() {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
       <header className="sticky top-0 z-20 flex h-[50px] shrink-0 items-center bg-white px-[18px]">
-        <img src={togetLogo} alt="To Get" className="h-6" />
+        {/* 로고는 이미지라 실제 텍스트가 없어 구글 OAuth 브랜딩 심사가 "홈페이지 앱 이름 불일치"로
+            잘못 판단했습니다. 시각 디자인은 유지하고 스크린리더/크롤러가 읽을 수 있는 실제 텍스트를 추가합니다. */}
+        <h1>
+          <img src={togetLogo} alt="" className="h-6" />
+          <span className="sr-only">To Get</span>
+        </h1>
       </header>
 
       {/* 로그인이어도 진행 중인 선물이 없으면 MyFundingsSection이 렌더링되지 않아 배너 바로
