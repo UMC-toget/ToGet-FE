@@ -131,7 +131,7 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
                         </button>
                         <button
                           onClick={() => openEdit(acc)}
-                          className="w-full mt-3 py-2 text-xs font-medium text-gray-500 bg-gray-100 rounded-lg flex items-center justify-center gap-1 hover:bg-gray-200 transition-colors"
+                          className="w-full mt-4 py-2 text-xs font-medium text-gray-500 bg-gray-100 rounded-lg flex items-center justify-center gap-1 hover:bg-gray-200 transition-colors"
                         >
                           <Pencil size={12} /> 계좌 수정하기
                         </button>

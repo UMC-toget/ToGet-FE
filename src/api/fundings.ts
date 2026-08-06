@@ -7,11 +7,11 @@ export interface CreateFundingRequest {
   title: string
   recipientName: string
   anniversaryDate: string
-  startDate: string
-  endDate: string
+  startDate: string | null
+  endDate: string | null
   introduction: string
   thumbnailImageUrl: string | null
-  targetAmount: number
+  targetAmount: number | null
   userAccountId: number
   invitation: {
     characterId: number
@@ -25,7 +25,7 @@ export interface CreateFundingRequest {
     isParticipantNameVisible: boolean
     isMessageVisible: boolean
     isCollectedAmountVisible: boolean
-  }
+  } | null
   gifts: Array<{
     giftName: string
     giftPrice: number
@@ -39,10 +39,14 @@ export function createFunding(payload: CreateFundingRequest) {
   return unwrap<{ fundingId: number }>(apiClient.post('/api/v1/fundings', payload))
 }
 
-export type UpdateFundingBasicInfoRequest = Pick<
-  CreateFundingRequest,
-  'title' | 'anniversaryDate' | 'startDate' | 'endDate' | 'introduction' | 'thumbnailImageUrl'
->
+export interface UpdateFundingBasicInfoRequest {
+  title: string
+  anniversaryDate: string
+  startDate: string
+  endDate: string
+  introduction: string
+  thumbnailImageUrl: string | null
+}
 
 export function updateFundingBasicInfo(fundingId: number | string, payload: UpdateFundingBasicInfoRequest) {
   return unwrap<void>(apiClient.put(`/api/v1/fundings/${fundingId}/basic-info`, payload))
