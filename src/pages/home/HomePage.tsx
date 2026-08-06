@@ -3,6 +3,7 @@ import BottomNav from "../../components/common/BottomNav";
 import Toast from "../../components/common/Toast";
 import HomeBanner from "./HomeBanner";
 import GiftBrowseSection from "./GiftBrowseSection";
+import HomeFooter from "./HomeFooter";
 import MyFundingsSection from "./MyFundingsSection";
 import togetLogo from "../../assets/toget-logo.svg";
 import GiftCreateSheet from "../gift-create/GiftCreateSheet";
@@ -50,6 +51,8 @@ export default function HomePage() {
           <GiftBrowseSection />
         </div>
       </div>
+
+      <HomeFooter />
 
       <BottomNav active="home" />
       <GiftCreateSheet
