@@ -8,6 +8,8 @@ import MyPage from './pages/my/MyPage'
 import ProfileEditPage from './pages/my/ProfileEditPage'
 import AccountListPage from './pages/my/AccountListPage'
 import AccountFormPage from './pages/my/AccountFormPage'
+import MyGiftListPage from './pages/my/MyGiftListPage'
+import TogetherGiftListPage from './pages/my/TogetherGiftListPage'
 import FundingCreatePage from './pages/FundingCreatePage';
 import GiftAboutPage from './pages/gift-about/GiftAboutPage'
 import GiftCreateTogetherPage from './pages/gift-create/GiftCreateTogetherPage'
@@ -58,6 +60,8 @@ function App() {
       <Route path="/my/accounts" element={<AccountListPage />} />
       <Route path="/my/accounts/new" element={<AccountFormPage />} />
       <Route path="/my/accounts/:id/edit" element={<AccountFormPage />} />
+      <Route path="/my/fundings/my" element={<MyGiftListPage />} />
+      <Route path="/my/fundings/together" element={<TogetherGiftListPage />} />
       <Route path="/gift/about" element={<GiftAboutPage />} />
       <Route path="/gift/create/my" element={<FundingCreatePage />} />
       <Route path="/gift/create/together" element={<GiftCreateTogetherPage />} />

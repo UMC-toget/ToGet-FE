@@ -16,7 +16,10 @@ const IN_DEVELOPMENT_MESSAGE = '아직 개발 중인 기능이에요'
 const MENU_SECTIONS: { title: string; items: { label: string; path?: string }[] }[] = [
   {
     title: '선물 페이지',
-    items: [{ label: '내 선물 페이지' }, { label: '함께 선물 페이지' }],
+    items: [
+      { label: '내 선물 페이지', path: '/my/fundings/my' },
+      { label: '함께 선물 페이지', path: '/my/fundings/together' },
+    ],
   },
   { title: '계좌', items: [{ label: '등록된 나의 계좌', path: '/my/accounts' }] },
   {
