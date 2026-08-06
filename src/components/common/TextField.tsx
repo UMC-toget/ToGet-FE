@@ -69,7 +69,7 @@ export default function TextField({
   }
 
   return (
-    <div className={`flex w-full flex-col gap-2 ${className}`}>
+    <div className={`flex w-full flex-col gap-3 ${className}`}>
       {label && (
         <label htmlFor={inputId} className="text-b1-m text-black">
           {label}
