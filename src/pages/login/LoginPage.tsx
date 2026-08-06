@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useGoogleLogin } from '@react-oauth/google'
 import CloseIcon from '../../components/icons/CloseIcon'
 import Toast from '../../components/common/Toast'
@@ -147,9 +147,16 @@ export default function LoginPage() {
       </div>
 
       <p className="mt-5 text-center text-caption2-r leading-normal text-gray-700">
-        카카오 또는 구글 계정으로 시작하면
+        카카오 또는 구글 계정으로 시작하면 회원 식별을 위한 계정 식별값만 사용되며
         <br />
-        서비스 이용약관과 개인정보처리방침에 동의하게 됩니다.
+        <Link to="/terms" className="underline">
+          서비스 이용약관
+        </Link>
+        과{" "}
+        <Link to="/privacy-policy" className="underline">
+          개인정보처리방침
+        </Link>
+        에 동의하게 됩니다.
       </p>
 
       <Toast open={errorMessage !== null} message={errorMessage ?? ''} standalone />
