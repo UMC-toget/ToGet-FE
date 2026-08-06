@@ -78,8 +78,9 @@ function ParticipantCard({ participant, onEdit }: { participant: Participant; on
 export default function ParticipantList() {
   const { id } = useParams()
   const [participants, setParticipants] = useState<Participant[]>([])
+  const [participantCount, setParticipantCount] = useState(0)
   const [totalAmount, setTotalAmount] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(Boolean(id))
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest')
   const [showSortSheet, setShowSortSheet] = useState(false)
   const [view, setView] = useState<View>('list')
@@ -90,7 +91,12 @@ export default function ParticipantList() {
 
   useEffect(() => {
     if (!id) return
+
+    let isActive = true
+
     getFundingContributionList(id).then((res) => {
+      if (!isActive) return
+      setParticipantCount(res.participantCount)
       setTotalAmount(res.totalAmount)
       setParticipants(res.contributions.map((c) => {
         const date = new Date(c.createdAt)
@@ -103,7 +109,19 @@ export default function ParticipantList() {
           amount: c.amount,
         }
       }))
-    }).catch(console.error).finally(() => setLoading(false))
+    }).catch((error) => {
+      if (!isActive) return
+      console.error(error)
+      setParticipantCount(0)
+      setTotalAmount(0)
+      setParticipants([])
+    }).finally(() => {
+      if (isActive) setIsLoading(false)
+    })
+
+    return () => {
+      isActive = false
+    }
   }, [id])
 
   useEffect(() => {
@@ -225,7 +243,7 @@ export default function ParticipantList() {
         <div className="flex items-center justify-between opacity-80">
           <span className="text-h3-sb text-black">참여 인원</span>
           <span className="rounded bg-[#FFF1F6] px-2.5 pt-1 pb-1.5 text-h3-sb text-pink-500">
-            {participants.length}명
+            {participantCount}명
           </span>
         </div>
         <div className="flex items-center justify-between opacity-80">
@@ -251,7 +269,7 @@ export default function ParticipantList() {
         </div>
 
         <div className="flex-1 space-y-3 overflow-y-auto pb-2">
-          {loading ? (
+          {isLoading ? (
             <p className="py-8 text-center text-caption1-r text-gray-400">불러오는 중...</p>
           ) : sortedParticipants.length === 0 ? (
             <p className="py-8 text-center text-caption1-r text-gray-400">아직 참여한 친구가 없어요</p>

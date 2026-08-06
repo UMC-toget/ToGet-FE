@@ -2,7 +2,7 @@ import { useEffect, useState, useId } from 'react';
 import { X, Expand, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import { getInvitationAccent, useInvitationMeta } from './Mascot';
-import { MOCK_USER } from '../../pages/my/mockUser';
+import { useMyProfile } from '../../hooks/useMyProfile';
 import inviteSparklesSvg from '../../assets/invite-sparkles.svg';
 
 interface Props {
@@ -70,6 +70,7 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
   const [tab, setTab] = useState<Tab>('message');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const { backgrounds, characters, isLoading, backgroundError, characterError } = useInvitationMeta();
+  const { data: profile } = useMyProfile();
 
   useEffect(() => {
     const selectedBackground = backgrounds.find((item) => item.id === inviteBackgroundId);
@@ -86,7 +87,7 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
   }, [backgrounds, characters, inviteBackgroundId, inviteColor, inviteCharacter, setInvite]);
 
   // "from." 은 선물 페이지 제목이 아니라 가입한 사용자(로그인 계정)의 닉네임으로 표시합니다.
-  const previewName = MOCK_USER.name;
+  const previewName = profile?.nickname ?? '회원';
   // 아직 입력 전이면(필수값) 안내 문구 대신 라벨 그대로 자리표시용으로 보여줍니다.
   const displayTitle = inviteTitle || '초대장 제목';
   const displayContent = inviteContent || '초대장 내용';

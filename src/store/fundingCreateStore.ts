@@ -6,6 +6,8 @@ export interface WishlistItem {
   price: number;
   link?: string;
   imageUrl?: string;
+  /** 새로 등록한 선물 이미지를 펀딩 생성 시 S3에 업로드하기 위한 원본 파일 */
+  imageFile?: File;
 }
 
 export interface SavedAccount {
