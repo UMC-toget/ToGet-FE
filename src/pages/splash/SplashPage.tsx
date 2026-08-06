@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import splashVideo from '../../assets/splash.mp4'
+import splashGif from '../../assets/splash.gif'
 
-// 영상이 재생되지 않거나 ended가 발생하지 않는 경우를 대비한 안전장치 (영상 길이 4초보다 넉넉하게)
-const SPLASH_FALLBACK_MS = 6000
+// GIF는 영상과 달리 재생 종료를 알려주는 이벤트가 없어(onEnded 같은 게 없음), 타이머로만
+// 홈 이동을 트리거합니다. GIF 1회 재생 길이에 맞춰 조정하세요.
+const SPLASH_DURATION_MS = 4000
 
 /**
- * 서비스 진입 시 처음 표시되는 스플래시 화면. 디자이너 제공 영상 재생이 끝나면 홈 화면으로 이동합니다.
+ * 서비스 진입 시 처음 표시되는 스플래시 화면. GIF 재생 후 홈 화면으로 이동합니다.
  *
  * 로그인 화면으로 바로 보내지 않는 이유: 구글 OAuth 브랜딩 인증 요건상 비로그인 사용자도
  * 로그인 없이 서비스 내용을 볼 수 있는 홈페이지가 로그인 화면보다 먼저 노출돼야 한다.
@@ -23,22 +24,13 @@ export default function SplashPage() {
   }, [navigate])
 
   useEffect(() => {
-    const timer = setTimeout(goToHome, SPLASH_FALLBACK_MS)
+    const timer = setTimeout(goToHome, SPLASH_DURATION_MS)
     return () => clearTimeout(timer)
   }, [goToHome])
 
   return (
     <div className="mx-auto flex h-svh w-full max-w-[402px] items-center justify-center overflow-hidden bg-white">
-      <video
-        autoPlay
-        muted
-        playsInline
-        onEnded={goToHome}
-        onError={goToHome}
-        className="size-full object-cover"
-      >
-        <source src={splashVideo} type="video/mp4" />
-      </video>
+      <img src={splashGif} alt="" onError={goToHome} className="size-full object-cover" />
     </div>
   )
 }
