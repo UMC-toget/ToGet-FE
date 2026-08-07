@@ -18,8 +18,11 @@ interface ProductCardProps {
 /** 선물 둘러보기 상품 카드. 좌상단에 순위 번호, 우상단 버튼으로 위시 등록을 토글합니다. */
 export default function ProductCard({ product, rank, isLoggedIn, wished, onLoginRequired, onWishClick }: ProductCardProps) {
   const handleCardClick = () => {
-    if (!isLoggedIn) onLoginRequired()
-    // TODO: 상품 상세 화면 구현 후 로그인 상태일 때 해당 화면으로 라우팅
+    if (!isLoggedIn) {
+      onLoginRequired()
+      return
+    }
+    if (product.link) window.open(product.link, '_blank', 'noopener,noreferrer')
   }
 
   const handleWishClick = (e: { stopPropagation: () => void }) => {
