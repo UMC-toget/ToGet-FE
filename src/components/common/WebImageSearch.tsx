@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ChevronLeftIcon from "../icons/ChevronLeftIcon";
 import SearchIcon from "../icons/SearchIcon";
 import CloseIcon from "../icons/CloseIcon";
@@ -49,6 +49,50 @@ export default function WebImageSearch({
   const [loading, setLoading] = useState(false);
   const [applying, setApplying] = useState(false);
   const [openMenuIndex, setOpenMenuIndex] = useState<number | null>(null);
+  const activeMenuRef = useRef<HTMLDivElement | null>(null);
+
+  // 더보기(⋮) 메뉴가 열려 있을 때, 메뉴/토글 버튼이 아닌 다른 영역을 누르면 닫습니다.
+  useEffect(() => {
+    if (openMenuIndex === null) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (activeMenuRef.current && !activeMenuRef.current.contains(e.target as Node)) {
+        setOpenMenuIndex(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openMenuIndex]);
+
+  // 최근 검색어 한 줄 스크롤: 모바일은 네이티브 스와이프로 이미 되고, 데스크톱은 마우스
+  // 드래그로도 스크롤할 수 있게 보조합니다. 드래그 중이었다면 클릭(검색어 선택)은 무시합니다.
+  const recentDragStart = useRef<{ x: number; scrollLeft: number } | null>(null);
+  const recentDragMoved = useRef(false);
+
+  const handleRecentPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== "mouse") return;
+    recentDragStart.current = { x: e.clientX, scrollLeft: e.currentTarget.scrollLeft };
+    recentDragMoved.current = false;
+  };
+
+  const handleRecentPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const start = recentDragStart.current;
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    if (Math.abs(dx) > 4) recentDragMoved.current = true;
+    if (recentDragMoved.current) e.currentTarget.scrollLeft = start.scrollLeft - dx;
+  };
+
+  const handleRecentPointerUp = () => {
+    recentDragStart.current = null;
+  };
+
+  const handleRecentClickCapture = (e: React.MouseEvent) => {
+    if (recentDragMoved.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      recentDragMoved.current = false;
+    }
+  };
 
   const runSearch = async (keyword: string) => {
     const trimmed = keyword.trim();
@@ -164,11 +208,18 @@ export default function WebImageSearch({
               )}
             </div>
             {recentSearches.length > 0 ? (
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div
+                className="no-scrollbar mt-4 flex gap-2 overflow-x-auto"
+                onPointerDown={handleRecentPointerDown}
+                onPointerMove={handleRecentPointerMove}
+                onPointerUp={handleRecentPointerUp}
+                onPointerLeave={handleRecentPointerUp}
+                onClickCapture={handleRecentClickCapture}
+              >
                 {recentSearches.map((keyword) => (
                   <div
                     key={keyword}
-                    className="flex items-center gap-0.5 rounded-full border border-gray-300 py-2 pl-4 pr-2.5"
+                    className="flex shrink-0 items-center gap-0.5 rounded-full border border-gray-300 py-2 pl-4 pr-2.5"
                   >
                     <button
                       type="button"
@@ -181,9 +232,9 @@ export default function WebImageSearch({
                       type="button"
                       aria-label={`${keyword} 삭제`}
                       onClick={() => handleRemoveRecent(keyword)}
-                      className="text-gray-500"
+                      className="flex size-5 items-center justify-center text-gray-500"
                     >
-                      <CloseIcon className="size-5" />
+                      <CloseIcon className="size-3.5" />
                     </button>
                   </div>
                 ))}
@@ -202,9 +253,13 @@ export default function WebImageSearch({
                 검색 중이에요...
               </p>
             ) : results.length > 0 ? (
-              <div className="columns-2 gap-4 [&>*]:mb-4 [&>*]:break-inside-avoid">
+              <div className="columns-2 gap-4 [&>*]:mb-3 [&>*]:break-inside-avoid">
                 {results.map((image, index) => (
-                  <div key={image.imageUrl} className="relative">
+                  <div
+                    key={image.imageUrl}
+                    className="relative"
+                    ref={index === openMenuIndex ? activeMenuRef : undefined}
+                  >
                     <button
                       type="button"
                       onClick={() => handleUseImage(image)}
@@ -223,7 +278,7 @@ export default function WebImageSearch({
                       onClick={() =>
                         setOpenMenuIndex(openMenuIndex === index ? null : index)
                       }
-                      className="mt-1 flex size-5 items-center justify-center text-gray-600"
+                      className="ml-auto mt-1 flex size-5 items-center justify-center text-gray-600"
                     >
                       <MoreVerticalIcon className="size-5" />
                     </button>
@@ -240,6 +295,7 @@ export default function WebImageSearch({
                         >
                           이미지 사용하기
                         </button>
+                        <div className="mx-2 border-b-[0.6px] border-gray-200" />
                         <button
                           type="button"
                           onClick={() => {
