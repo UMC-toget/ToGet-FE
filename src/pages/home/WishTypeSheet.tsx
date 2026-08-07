@@ -28,9 +28,13 @@ export default function WishTypeSheet({ open, selected, onClose, onToggle }: Wis
               <button
                 type="button"
                 onClick={() => onToggle(option.type)}
-                className="flex w-full items-center justify-between py-3"
+                className="flex w-full items-center justify-between py-2"
               >
-                <span className="text-b1-m text-black">{option.label}</span>
+                <span
+                  className={`text-b1-m ${selected.includes(option.type) ? 'text-black' : 'text-gray-600'}`}
+                >
+                  {option.label}
+                </span>
                 {/* 체크 표시 유무와 무관하게 항상 같은 자리를 차지해야 텍스트 위치가 흔들리지 않습니다 */}
                 <span
                   className={`flex size-6 shrink-0 items-center justify-center rounded-full bg-black text-white ${

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useWishForm } from './hooks/useWishForm'
 import { WishForm } from './components/WishForm'
+import { setPendingToast } from './hooks/useWishToast'
 import { createWishlistItem } from '../../api/wishlists'
 import { uploadImage } from '../../utils/uploadImage'
 
@@ -33,12 +34,16 @@ export default function WishCreatePage() {
     const numericPrice = Number(price.replace(/\D/g, ''))
     try {
       const imageUrl = imageFile ? await uploadImage(WISH_IMAGE_PREFIX, imageFile) : image || undefined
-      await createWishlistItem({
+      const created = await createWishlistItem({
         name,
         price: numericPrice,
         purchaseUrl,
         imageUrl,
         type: wishType === 'receive' ? 'RECEIVE' : 'GIVE',
+      })
+      setPendingToast('1개의 선물이 등록 되었습니다', {
+        type: 'create',
+        wishlistItemId: created.wishlistItemId,
       })
       navigate('/wish')
     } catch (err) {

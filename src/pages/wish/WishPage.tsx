@@ -12,7 +12,8 @@ import { useWishedProducts } from './hooks/useWishedProducts'
 import type { SortOrder } from './hooks/useWishedProducts'
 import { useWishSelection } from './hooks/useWishSelection'
 import { useWishToast } from './hooks/useWishToast'
-import { deleteWishlistItem } from '../../api/wishlists'
+import { createWishlistItem, deleteWishlistItem } from '../../api/wishlists'
+import type { WishlistItemResponse } from '../../api/wishlists'
 import type { WishType } from '../../store/wishStore'
 
 const TABS: { id: WishType | 'all'; label: string }[] = [
@@ -30,7 +31,7 @@ export default function WishPage() {
   const [giftCreateSheetOpen, setGiftCreateSheetOpen] = useState(false)
 
   // Custom Hooks
-  const { wishedProducts, refetch } = useWishedProducts(tab, sortOrder)
+  const { wishedProducts, rawItems, refetch } = useWishedProducts(tab, sortOrder)
   const {
     isEditMode,
     selectedIds,
@@ -40,7 +41,7 @@ export default function WishPage() {
     handleToggleEditMode,
     clearSelection,
   } = useWishSelection()
-  const { toastMessage, toastActionLabel, showToast, handleUndo } = useWishToast()
+  const { toastMessage, toastActionLabel, showToast, handleToastAction } = useWishToast(refetch)
 
   // Delete Confirmation Modal state (EmojiPopup)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
@@ -51,12 +52,40 @@ export default function WishPage() {
     setDeleteConfirmOpen(true)
   }, [])
 
+  const recreateDeletedItems = useCallback(
+    async (items: WishlistItemResponse[]) => {
+      try {
+        await Promise.all(
+          items.map((item) =>
+            createWishlistItem({
+              productId: item.productId,
+              name: item.name,
+              price: item.price,
+              purchaseUrl: item.purchaseUrl,
+              imageUrl: item.imageUrl,
+              type: item.type,
+            }),
+          ),
+        )
+        refetch()
+      } catch (err) {
+        console.error('위시 삭제 취소 실패:', err)
+      }
+    },
+    [refetch],
+  )
+
   const handleConfirmDelete = useCallback(async () => {
     if (pendingDeleteId !== null) {
+      const deletedItem = rawItems.find((item) => item.wishlistItemId === pendingDeleteId)
       try {
         await deleteWishlistItem(pendingDeleteId)
         refetch()
-        showToast('1개의 선물을 삭제 했습니다')
+        showToast(
+          '1개의 선물을 삭제했습니다.',
+          deletedItem ? '실행취소' : undefined,
+          deletedItem ? () => recreateDeletedItems([deletedItem]) : undefined,
+        )
       } catch (err) {
         console.error('위시 삭제 실패:', err)
       } finally {
@@ -64,21 +93,26 @@ export default function WishPage() {
         setDeleteConfirmOpen(false)
       }
     }
-  }, [pendingDeleteId, refetch, showToast])
+  }, [pendingDeleteId, rawItems, refetch, showToast, recreateDeletedItems])
 
   const handleBulkDelete = useCallback(async () => {
     if (selectedIds.length === 0) return
     const count = selectedIds.length
+    const deletedItems = rawItems.filter((item) => selectedIds.includes(item.wishlistItemId))
     try {
       await Promise.all(selectedIds.map((id) => deleteWishlistItem(id)))
       refetch()
       clearSelection()
       handleToggleEditMode()
-      showToast(`${count}개의 선물을 삭제 했습니다`)
+      showToast(
+        `${count}개의 선물을 삭제했습니다.`,
+        deletedItems.length > 0 ? '실행취소' : undefined,
+        deletedItems.length > 0 ? () => recreateDeletedItems(deletedItems) : undefined,
+      )
     } catch (err) {
       console.error('위시 일괄 삭제 실패:', err)
     }
-  }, [selectedIds, refetch, clearSelection, handleToggleEditMode, showToast])
+  }, [selectedIds, rawItems, refetch, clearSelection, handleToggleEditMode, showToast, recreateDeletedItems])
 
   const isGiftMakingActive = giftSelectedIds.length > 0
 
@@ -108,7 +142,7 @@ export default function WishPage() {
                 key={t.id}
                 type="button"
                 onClick={() => setTab(t.id)}
-                className={`rounded-full px-4 py-2 text-b2-m transition-colors ${
+                className={`rounded-full px-4 py-3 text-b2-m transition-colors ${
                   t.id === tab
                     ? 'bg-gray-900 text-white'
                     : 'border border-gray-300 bg-white text-gray-700'
@@ -146,7 +180,7 @@ export default function WishPage() {
 
         {/* Product Cards Grid */}
         {wishedProducts.length > 0 ? (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-4">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-5">
             {wishedProducts.map((product) => (
               <WishProductCard
                 key={product.id}
@@ -221,8 +255,8 @@ export default function WishPage() {
       <EmojiPopup
         open={deleteConfirmOpen}
         icon="alert"
-        title="선물을 삭제하시겠습니까?"
-        description="삭제한 선물은 다시 복구할 수 없어요."
+        title="1개의 선물을 삭제할까요?"
+        description="삭제하면 해당 선물이 위시에서 사라져요"
         buttons={[
           {
             label: '취소',
@@ -243,7 +277,7 @@ export default function WishPage() {
         open={toastMessage !== null}
         message={toastMessage ?? ''}
         actionLabel={toastActionLabel}
-        onAction={handleUndo}
+        onAction={handleToastAction}
       />
     </div>
   )
