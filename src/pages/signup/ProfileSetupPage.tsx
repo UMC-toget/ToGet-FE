@@ -141,17 +141,17 @@ export default function ProfileSetupPage() {
     >
       <Header title="프로필" />
 
-      <div className="flex flex-col gap-1 px-[18px] pt-6">
+      <div className="flex flex-col gap-2 px-[18px] pt-6">
         <h1 className="text-h3-sb text-black">마지막 단계예요, 프로필을 완성해 볼까요?</h1>
         <p className="text-caption1-r leading-normal text-gray-600">마이페이지에서 프로필을 수정할 수 있어요</p>
       </div>
 
-      <div className="mt-[69px] flex flex-col items-center gap-2">
+      <div className="mt-[69px] flex flex-col items-center gap-3">
         <ProfileAvatar imageUrl={photoPreviewUrl} onSelect={handlePhotoSelect} />
         <p className="text-h3-sb text-black">{nickname || '닉네임'}</p>
       </div>
 
-      <div className="mt-6 flex flex-col gap-5 px-[18px]">
+      <div className="mt-10 flex flex-col gap-5 px-[18px]">
         <TextField
           label="닉네임"
           value={nickname}

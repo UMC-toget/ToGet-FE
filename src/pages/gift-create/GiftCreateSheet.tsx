@@ -1,123 +1,147 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BottomSheet from '../../components/common/BottomSheet'
 import ConfirmModal from '../../components/common/ConfirmModal'
+import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import bannerCat from '../../assets/banner-cat.svg'
 import togetherCat from '../../assets/together-cat.svg'
-import { GIFT_CREATE_CARDS } from './giftTypes'
 import type { GiftPageType } from './giftTypes'
 import { useIndividualDraft } from './useIndividualDraft'
 import { useTogetherDraft } from './useTogetherDraft'
 import { useAuth } from '../../hooks/useAuth'
 
-const CARD_ICONS: Record<GiftPageType, string> = {
-  my: bannerCat,
-  together: togetherCat,
+interface GiftCreateCardInfo {
+  type: GiftPageType
+  icon: string
+  title: string
+  description: string
 }
+
+const GIFT_PAGE_CARDS: GiftCreateCardInfo[] = [
+  {
+    type: 'my',
+    icon: bannerCat,
+    title: '내 선물 페이지 만들기',
+    description: '내가 받고 싶은 선물을 담아,\n친구들에게 공유할 수 있어요.',
+  },
+  {
+    type: 'together',
+    icon: togetherCat,
+    title: '함께 선물 페이지 만들기',
+    description: '친구들과 함께 한 사람을 위한\n선물을 고르고 준비할 수 있어요.',
+  },
+]
 
 const resolveCreatePath = (type: GiftPageType) => `/gift/create/${type}`
 
 interface GiftCreateSheetProps {
   open: boolean
   onClose: () => void
+  title?: string
 }
 
-/** 선물 페이지 만들기 바텀시트 (C01: 홈의 + 버튼을 누르면 열림) */
-export default function GiftCreateSheet({ open, onClose }: GiftCreateSheetProps) {
+/** 선물 페이지 만들기 바텀시트 (WishCreateSheet와 100% 동일한 카드 디자인 및 레이아웃 적용) */
+export default function GiftCreateSheet({
+  open,
+  onClose,
+  title = '선물 페이지 만들기',
+}: GiftCreateSheetProps) {
   const navigate = useNavigate()
   const { isLoggedIn } = useAuth()
   const [draftModalType, setDraftModalType] = useState<GiftPageType | null>(null)
+  
   // '내 선물 페이지'(individual)는 실제 임시저장 API로 draft 여부를 확인
   const individualDraftQuery = useIndividualDraft()
   // '함께 선물 페이지'(together)도 실제 임시저장 API로 draft 여부를 확인
   const togetherDraftQuery = useTogetherDraft()
 
-  const handleSelectCard = (type: GiftPageType) => {
-    if (type === 'my') {
-      if (individualDraftQuery.isLoading) return
-      if (individualDraftQuery.data) {
+  const handleSelectCard = useCallback(
+    (type: GiftPageType) => {
+      if (type === 'my') {
+        if (individualDraftQuery.isLoading) return
+        if (individualDraftQuery.data) {
+          setDraftModalType(type)
+          return
+        }
+        onClose()
+        navigate(isLoggedIn ? resolveCreatePath(type) : '/login')
+        return
+      }
+
+      if (togetherDraftQuery.isLoading) return
+      if (togetherDraftQuery.data) {
         setDraftModalType(type)
         return
       }
       onClose()
       navigate(isLoggedIn ? resolveCreatePath(type) : '/login')
-      return
-    }
+    },
+    [individualDraftQuery.isLoading, individualDraftQuery.data, togetherDraftQuery.isLoading, togetherDraftQuery.data, isLoggedIn, onClose, navigate],
+  )
 
-    if (togetherDraftQuery.isLoading) return
-    if (togetherDraftQuery.data) {
-      setDraftModalType(type)
-      return
-    }
-    onClose()
-    navigate(isLoggedIn ? resolveCreatePath(type) : '/login')
-  }
-
-  const handleStartNew = () => {
+  const handleStartNew = useCallback(() => {
     const type = draftModalType
     setDraftModalType(null)
     onClose()
     if (type) navigate(isLoggedIn ? resolveCreatePath(type) : '/login')
-  }
+  }, [draftModalType, isLoggedIn, onClose, navigate])
 
-  const handleContinueDraft = () => {
+  const handleContinueDraft = useCallback(() => {
     const type = draftModalType
     setDraftModalType(null)
     onClose()
     if (type) navigate(isLoggedIn ? resolveCreatePath(type) : '/login', { state: { continueDraft: true } })
-  }
+  }, [draftModalType, isLoggedIn, onClose, navigate])
 
-  const handleGuideClick = () => {
+  const handleGuideClick = useCallback(() => {
     onClose()
     navigate('/gift/about')
-  }
+  }, [onClose, navigate])
 
   return (
     <>
       <BottomSheet open={open} onClose={onClose}>
-        <div className="flex w-full flex-col gap-6">
-          <div className="flex flex-col gap-1">
-            <p className="text-h3-sb text-[#121212]">내 선물 페이지 만들기</p>
-            <p className="text-caption1-r text-gray-600">상황에 맞는 방식을 선택해 주세요.</p>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            {GIFT_CREATE_CARDS.map((card) => {
-              const disabled =
-                (card.type === 'my' && individualDraftQuery.isLoading) ||
-                (card.type === 'together' && togetherDraftQuery.isLoading)
-              return (
-                <button
-                  key={card.type}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => handleSelectCard(card.type)}
-                  className={`flex w-full items-start gap-3 rounded-xl border border-gray-100 bg-white px-3.5 py-3 text-left ${disabled ? 'opacity-50' : ''}`}
-                >
-                  <span className="flex size-[58px] shrink-0 items-center justify-center overflow-hidden rounded-[5.8px] bg-background">
-                    <img src={CARD_ICONS[card.type]} alt="" className="size-[52px] object-cover" />
-                  </span>
-                  <span className="flex flex-col gap-1.5">
-                    <span className="text-b2-m text-black">{card.title}</span>
-                    <span className="whitespace-pre-line text-caption1-r text-gray-600">{card.description}</span>
-                    <span className="mt-0.5 flex flex-wrap gap-1.5">
-                      {card.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full bg-gray-100 px-2.5 py-1.5 text-caption2-r text-gray-700"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
+        <div className="flex w-full flex-col items-center gap-6">
+          <div className="flex w-full flex-col gap-5">
+            <p className="text-h3-sb text-[#121212]">{title}</p>
+            <div className="flex w-full flex-col gap-4">
+              {GIFT_PAGE_CARDS.map((card) => {
+                const disabled =
+                  (card.type === 'my' && individualDraftQuery.isLoading) ||
+                  (card.type === 'together' && togetherDraftQuery.isLoading)
+                return (
+                  <button
+                    key={card.type}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => handleSelectCard(card.type)}
+                    className={`flex w-full items-center gap-4 rounded-xl border border-gray-100 bg-white px-3.5 py-3 text-left ${
+                      disabled ? 'opacity-50' : ''
+                    }`}
+                  >
+                    <span className="flex size-[58px] shrink-0 items-center justify-center rounded-[5.8px] bg-background">
+                      <img src={card.icon} alt="" className="size-[52px] object-contain" />
                     </span>
-                  </span>
-                </button>
-              )
-            })}
+                    <span className="flex flex-1 flex-col gap-1">
+                      <span className="text-b2-m text-black">{card.title}</span>
+                      <span className="whitespace-pre-line text-caption1-r text-gray-600">
+                        {card.description}
+                      </span>
+                    </span>
+                    <ChevronRightIcon className="size-6 shrink-0 text-gray-700" />
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
-          <button type="button" onClick={handleGuideClick} className="text-center text-caption1-r text-gray-700">
-            투겟이 처음이신가요? 이용 방법 보러가기 {'>'}
+          <button
+            type="button"
+            onClick={handleGuideClick}
+            className="text-center text-gray-700"
+          >
+            <span className="text-caption1-r">투겟이 처음이신가요? </span>
+            <span className="text-caption1-m">이용 방법 보러가기 {'>'}</span>
           </button>
         </div>
       </BottomSheet>
