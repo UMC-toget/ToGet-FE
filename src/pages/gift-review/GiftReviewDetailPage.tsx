@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { PointerEvent } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useLocation, useParams, useSearchParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import LetterCard from '../../components/common/LetterCard'
 import { LETTER_COLORS } from '../../components/common/letterPalette'
@@ -8,6 +8,9 @@ import { getMockReview } from './mockReview'
 import type { ReviewPreviewData } from './reviewTypes'
 import { useContributionBackgrounds, backgroundIdToColorId } from './useDecorations'
 import { useReview } from './useReviews'
+import type { ReviewApiType } from '../../api/reviews'
+
+const REVIEW_API_TYPES: ReviewApiType[] = ['review', 'news', 'heartfelt']
 
 /** 스와이프로 인정할 최소 드래그 거리(px) */
 const SWIPE_THRESHOLD = 40
@@ -20,12 +23,19 @@ const SWIPE_THRESHOLD = 40
 export default function GiftReviewDetailPage() {
   const { id, fundingId } = useParams()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
   const [imageIndex, setImageIndex] = useState(0)
   const [letterOpen, setLetterOpen] = useState(false)
   const pointerStartX = useRef<number | null>(null)
 
+  // 조회 대상은 기본값이 선물 후기(review)이며, 전달 소식(news)·마음 전하기(heartfelt)를 볼 땐 ?type=으로 지정됨
+  const requestedType = searchParams.get('type')
+  const reviewApiType: ReviewApiType = REVIEW_API_TYPES.includes(requestedType as ReviewApiType)
+    ? (requestedType as ReviewApiType)
+    : 'review'
+
   const backgrounds = useContributionBackgrounds()
-  const { data: apiReview } = useReview(fundingId, 'review')
+  const { data: apiReview } = useReview(fundingId, reviewApiType)
 
   const previewState = location.state as ReviewPreviewData | null
   const review: ReviewPreviewData = previewState ?? (apiReview

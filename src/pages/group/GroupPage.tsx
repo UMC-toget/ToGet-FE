@@ -593,11 +593,12 @@ export default function GroupPage() {
               전달 완료 소식 남기기
             </Button>
           ) : (
-            // 공동관리자·참여자: 개설자가 남긴 전달 완료 소식(후기) 보기
+            // 공동관리자·참여자: 개설자가 남긴 전달 완료 소식(news) 보기
             // 라우트 /gift/review/:id/:fundingId? — 실제 조회는 fundingId로 하므로 함께 전달 (:id는 mock fallback용)
+            // TOGETHER_GIFT 전용 소식이라 조회 타입도 news로 지정 (기본값은 MY_GIFT의 review)
             <Button
               className="pointer-events-auto !bg-[#1E1D1E]"
-              onClick={() => navigate(`/gift/review/${id}/${id}`)}
+              onClick={() => navigate(`/gift/review/${id}/${id}?type=news`)}
             >
               전달 완료 소식보기
             </Button>
