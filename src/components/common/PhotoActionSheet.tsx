@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import BottomSheet from './BottomSheet';
 import ImageCropper from './ImageCropper';
+import WebImageSearch from './WebImageSearch';
 
 // 이미지 업로드 버튼을 누르면 바로 OS 파일창이 뜨는 대신,
 // 바텀시트로 업로드 방식을 먼저 선택하고, 파일을 고르면
@@ -27,6 +28,7 @@ export default function PhotoActionSheet({ onClose, onSelect, aspectRatio = 364 
   const galleryRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [webSearchOpen, setWebSearchOpen] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -34,6 +36,19 @@ export default function PhotoActionSheet({ onClose, onSelect, aspectRatio = 364 
     // 같은 파일 재선택 가능하도록 초기화
     e.target.value = '';
   };
+
+  if (webSearchOpen) {
+    return (
+      <WebImageSearch
+        onCancel={() => setWebSearchOpen(false)}
+        onSelect={(file) => {
+          onSelect(file);
+          setWebSearchOpen(false);
+          onClose();
+        }}
+      />
+    );
+  }
 
   if (pendingFile) {
     const handleCancel = () => setPendingFile(null);
@@ -56,8 +71,11 @@ export default function PhotoActionSheet({ onClose, onSelect, aspectRatio = 364 
     <BottomSheet open onClose={onClose}>
       <ul className="flex w-full flex-col">
         <li>
-          {/* 웹 사진 검색: 이미지 검색 API가 없어 비활성 처리 (PhotoSourceSheet와 동일) */}
-          <button type="button" disabled className="w-full py-2 text-left text-b1-m text-gray-300">
+          <button
+            type="button"
+            onClick={() => setWebSearchOpen(true)}
+            className="w-full py-2 text-left text-b1-m text-black"
+          >
             웹 사진 검색
           </button>
         </li>
