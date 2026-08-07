@@ -31,6 +31,25 @@ export function useWishForm(initialData?: InitialWishFormData) {
 
   const [selectSheetOpen, setSelectSheetOpen] = useState(false)
 
+  // Sync state if initialData is loaded asynchronously
+  useEffect(() => {
+    if (initialData && !savedFormState && !locationState?.croppedImage) {
+      if (initialData.wishType) setWishType(initialData.wishType)
+      if (initialData.name) setName(initialData.name)
+      if (initialData.price !== undefined) setPrice(String(initialData.price))
+      if (initialData.purchaseUrl !== undefined) setPurchaseUrl(initialData.purchaseUrl)
+      if (initialData.image !== undefined) setImage(initialData.image ?? null)
+    }
+  }, [
+    initialData?.wishType,
+    initialData?.name,
+    initialData?.price,
+    initialData?.purchaseUrl,
+    initialData?.image,
+    savedFormState,
+    locationState?.croppedImage,
+  ])
+
   // Sync if croppedImage arrives in location.state
   useEffect(() => {
     if (locationState?.croppedImage) {
@@ -45,6 +64,7 @@ export function useWishForm(initialData?: InitialWishFormData) {
     purchaseUrl !== (initialData?.purchaseUrl ?? '') ||
     image !== (initialData?.image ?? null)
 
+  // purchaseUrl은 옵셔널이므로 name과 price만 필수 항목으로 유효성 검증
   const isFormValid = initialData
     ? name.trim().length > 0 && price.trim().length > 0 && hasChanges
     : name.trim().length > 0 && price.trim().length > 0
