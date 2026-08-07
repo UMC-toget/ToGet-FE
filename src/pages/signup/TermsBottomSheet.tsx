@@ -8,7 +8,6 @@ import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 const TERMS = [
   { id: 'service', label: '[필수] 이용약관 동의', required: true, detailPath: '/terms' },
   { id: 'privacy', label: '[필수] 개인정보 처리방침', required: true, detailPath: '/privacy-policy' },
-  { id: 'marketing', label: '[선택] 마케팅 정보 수신 동의', required: false, detailPath: null },
 ] as const
 
 type TermId = (typeof TERMS)[number]['id']
