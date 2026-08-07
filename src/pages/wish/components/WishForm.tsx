@@ -2,7 +2,7 @@ import Header from '../../../components/common/Header'
 import TextField from '../../../components/common/TextField'
 import Button from '../../../components/common/Button'
 import CloseIcon from '../../../components/icons/CloseIcon'
-import ImageSelectSheet from '../ImageSelectSheet'
+import PhotoActionSheet from '../../../components/common/PhotoActionSheet'
 import type { WishType } from '../../../store/wishStore'
 
 const WISH_TYPE_OPTIONS: { type: WishType; label: string }[] = [
@@ -171,11 +171,9 @@ export function WishForm({
       </div>
 
       {/* Modals & Sheets */}
-      <ImageSelectSheet
-        open={selectSheetOpen}
-        onClose={onSelectSheetClose}
-        onFileSelect={onFileSelect}
-      />
+      {selectSheetOpen && (
+        <PhotoActionSheet onClose={onSelectSheetClose} onSelect={onFileSelect} aspectRatio={1} />
+      )}
     </div>
   )
 }
