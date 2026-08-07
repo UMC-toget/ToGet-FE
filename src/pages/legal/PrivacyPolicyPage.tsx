@@ -41,7 +41,10 @@ export default function PrivacyPolicyPage() {
   const location = useLocation()
   // 앱 내 이동으로 들어온 경우에만 실제 이전 화면으로 돌아가고,
   // 주소를 직접 입력했거나 크롤러가 진입한 경우(브라우저 히스토리 없음)에는 홈으로 보냅니다.
-  const handleBack = () => navigate(location.key === 'default' ? '/home' : -1)
+  const handleBack = () => {
+    if (location.key === 'default') navigate('/home')
+    else navigate(-1)
+  }
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
