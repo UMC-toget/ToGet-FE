@@ -4,7 +4,6 @@ import BottomNav from '../../components/common/BottomNav'
 import MenuRow from '../../components/common/MenuRow'
 import Toast from '../../components/common/Toast'
 import DefaultAvatar from '../../components/common/DefaultAvatar'
-import SearchIcon from '../../components/icons/SearchIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import { useAuth } from '../../hooks/useAuth'
 import { useMyProfile } from '../../hooks/useMyProfile'
@@ -66,12 +65,8 @@ export default function MyPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-32">
-      <header className="flex h-[50px] shrink-0 items-center justify-between px-[18px]">
+      <header className="flex h-[50px] shrink-0 items-center px-[18px]">
         <h1 className="text-h1-sb text-black">마이</h1>
-        {/* TODO: 검색 화면 구현 후 연결 */}
-        <button type="button" aria-label="검색" className="text-gray-900">
-          <SearchIcon />
-        </button>
       </header>
 
       <button
