@@ -5,7 +5,7 @@ import Header from '../../components/common/Header'
 import TextField from '../../components/common/TextField'
 import Button from '../../components/common/Button'
 import ConfirmModal from '../../components/common/ConfirmModal'
-import SearchIcon from '../../components/icons/SearchIcon'
+import CaretDownIcon from '../../components/icons/CaretDownIcon'
 import BankSelectSheet from './BankSelectSheet'
 import { useUserAccounts, USER_ACCOUNTS_QUERY_KEY } from '../../hooks/useUserAccounts'
 import { useRequireAuth } from '../../hooks/useRequireAuth'
@@ -50,22 +50,24 @@ export default function AccountFormPage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
       <Header title={editingAccount ? '계좌 수정하기' : '새로운 계좌 등록하기'} />
 
-      <div className="flex flex-col gap-4 px-[18px] pt-4">
-        <div className="flex flex-col gap-4">
-          <label className="text-b1-m text-black">
-            은행명 <span className="text-pink-500">*</span>
-          </label>
-          <button
-            type="button"
-            onClick={() => setBankSheetOpen(true)}
-            className="flex h-12 w-full items-center justify-between gap-2 rounded-lg bg-background px-4"
-          >
-            <span className={`text-b1-m ${bankName ? 'text-black' : 'text-gray-400'}`}>
-              {bankName ? BANK_NAME_LABELS[bankName] : '은행명을 정확히 선택해주세요'}
-            </span>
-            <SearchIcon className="size-6 shrink-0 text-black" />
-          </button>
+      {!editingAccount && (
+        <div className="flex flex-col gap-3 px-[18px] pt-8">
+          <p className="text-h3-sb text-black">선물 준비에 사용할 계좌를 등록해 주세요</p>
+          <p className="text-caption1-r text-gray-600">친구들이 선물에 함께할 때 이 계좌 정보를 확인할 수 있어요</p>
         </div>
+      )}
+
+      <div className="flex flex-col gap-5 px-[18px] pt-6">
+        <TextField
+          label={
+            <>
+              예금주 <span className="text-pink-500">*</span>
+            </>
+          }
+          value={accountHolder}
+          onChange={(e) => setAccountHolder(e.target.value)}
+          placeholder="예금주 이름을 정확히 입력해 주세요"
+        />
 
         <TextField
           label={
@@ -79,16 +81,22 @@ export default function AccountFormPage() {
           inputMode="numeric"
         />
 
-        <TextField
-          label={
-            <>
-              예금주 <span className="text-pink-500">*</span>
-            </>
-          }
-          value={accountHolder}
-          onChange={(e) => setAccountHolder(e.target.value)}
-          placeholder="예금주 이름을 정확히 입력해 주세요"
-        />
+        <div className="flex flex-col gap-3">
+          <label className="text-b1-m text-black">
+            은행명 <span className="text-pink-500">*</span>
+          </label>
+          <button
+            type="button"
+            onClick={() => setBankSheetOpen(true)}
+            className="flex h-12 w-full items-center justify-between gap-2 rounded-lg bg-background px-4"
+          >
+            <span className={`text-b1-m ${bankName ? 'text-black' : 'text-gray-400'}`}>
+              {bankName ? BANK_NAME_LABELS[bankName] : '은행명을 정확히 선택해 주세요'}
+            </span>
+            <CaretDownIcon className="size-10 shrink-0 text-black" />
+          </button>
+          <p className="text-caption1-r text-gray-600">계좌번호를 입력하면 해당 은행을 추천해 드려요</p>
+        </div>
 
         {saveMutation.isError && (
           <p className="text-caption1-r text-pink-500">

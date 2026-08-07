@@ -134,7 +134,7 @@ export default function AccountListPage() {
       <ConfirmModal
         open={deleteTargetId !== null}
         title="계좌를 삭제할까요?"
-        description={'삭제한 계좌는 다시 복구할 수 없어요.'}
+        description={'삭제한 계좌는 필요할 때\n다시 등록할 수 있어요.'}
         confirmText="삭제하기"
         onCancel={() => setDeleteTargetId(null)}
         onConfirm={() => {
