@@ -4,6 +4,8 @@ import splashGif from '../../assets/splash.gif'
 
 // GIF는 영상과 달리 재생 종료를 알려주는 이벤트가 없어(onEnded 같은 게 없음), 타이머로만
 // 홈 이동을 트리거합니다. GIF 1회 재생 길이에 맞춰 조정하세요.
+// 타이머는 onLoad(첫 프레임이 실제로 그려지기 시작하는 시점)부터 재는데, 마운트 시점부터 재면
+// 다운로드가 느린 첫 방문(캐시 없음)에서 애니메이션이 끝나기 전에 홈으로 넘어가 버린다.
 const SPLASH_DURATION_MS = 4000
 
 /**
@@ -16,6 +18,7 @@ const SPLASH_DURATION_MS = 4000
 export default function SplashPage() {
   const navigate = useNavigate()
   const navigatedRef = useRef(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const goToHome = useCallback(() => {
     if (navigatedRef.current) return
@@ -23,16 +26,23 @@ export default function SplashPage() {
     navigate('/home', { replace: true })
   }, [navigate])
 
-  useEffect(() => {
-    const timer = setTimeout(goToHome, SPLASH_DURATION_MS)
-    return () => clearTimeout(timer)
+  const handleLoad = useCallback(() => {
+    if (timerRef.current) return
+    timerRef.current = setTimeout(goToHome, SPLASH_DURATION_MS)
   }, [goToHome])
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
 
   return (
     <div className="mx-auto flex h-svh w-full max-w-[402px] items-center justify-center overflow-hidden bg-white">
       <img
         src={splashGif}
         alt=""
+        onLoad={handleLoad}
         onError={(e) => {
           console.error('스플래시 GIF 로드/디코딩 실패', e)
           goToHome()
