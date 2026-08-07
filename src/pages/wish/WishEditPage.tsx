@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useWishForm } from './hooks/useWishForm'
 import { WishForm } from './components/WishForm'
 import { useWishedProducts } from './hooks/useWishedProducts'
+import { setPendingToast } from './hooks/useWishToast'
 import { updateWishlistItem } from '../../api/wishlists'
 import { uploadImage } from '../../utils/uploadImage'
 import type { WishType } from '../../store/wishStore'
@@ -54,11 +55,25 @@ function WishEditForm({ wishlistItemId, initialData }: WishEditFormProps) {
         imageUrl,
         type: wishType === 'receive' ? 'RECEIVE' : 'GIVE',
       })
+      setPendingToast(
+        '1개의 선물을 수정 완료 했습니다',
+        initialData && {
+          type: 'edit',
+          wishlistItemId,
+          previousData: {
+            name: initialData.name,
+            price: initialData.price,
+            purchaseUrl: initialData.purchaseUrl ?? '',
+            imageUrl: initialData.image,
+            type: initialData.wishType === 'receive' ? 'RECEIVE' : 'GIVE',
+          },
+        },
+      )
       navigate('/wish')
     } catch (err) {
       console.error('위시 수정 실패:', err)
     }
-  }, [isFormValid, price, wishlistItemId, wishType, name, purchaseUrl, image, imageFile, navigate])
+  }, [isFormValid, price, wishlistItemId, wishType, name, purchaseUrl, image, imageFile, initialData, navigate])
 
   return (
     <WishForm
