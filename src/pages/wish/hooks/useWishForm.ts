@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useState, useCallback } from 'react'
 import type { WishType } from '../../../store/wishStore'
 
 export interface InitialWishFormData {
@@ -11,51 +10,13 @@ export interface InitialWishFormData {
 }
 
 export function useWishForm(initialData?: InitialWishFormData) {
-  const navigate = useNavigate()
-  const location = useLocation()
-
-  const locationState = location.state as { croppedImage?: string; savedFormState?: any } | null
-  const savedFormState = locationState?.savedFormState
-
-  const initialWishType = savedFormState?.wishType ?? initialData?.wishType ?? 'receive'
-  const initialName = savedFormState?.name ?? initialData?.name ?? ''
-  const initialPrice = savedFormState?.price ?? (initialData?.price !== undefined ? String(initialData.price) : '')
-  const initialPurchaseUrl = savedFormState?.purchaseUrl ?? initialData?.purchaseUrl ?? ''
-  const initialImage = locationState?.croppedImage ?? savedFormState?.image ?? initialData?.image ?? null
-
-  const [wishType, setWishType] = useState<WishType>(initialWishType)
-  const [name, setName] = useState(initialName)
-  const [price, setPrice] = useState(initialPrice)
-  const [purchaseUrl, setPurchaseUrl] = useState(initialPurchaseUrl)
-  const [image, setImage] = useState<string | null>(initialImage)
+  const [wishType, setWishType] = useState<WishType>(initialData?.wishType ?? 'receive')
+  const [name, setName] = useState(initialData?.name ?? '')
+  const [price, setPrice] = useState(initialData?.price !== undefined ? String(initialData.price) : '')
+  const [purchaseUrl, setPurchaseUrl] = useState(initialData?.purchaseUrl ?? '')
+  const [image, setImage] = useState<string | null>(initialData?.image ?? null)
 
   const [selectSheetOpen, setSelectSheetOpen] = useState(false)
-
-  // Sync state if initialData is loaded asynchronously
-  useEffect(() => {
-    if (initialData && !savedFormState && !locationState?.croppedImage) {
-      if (initialData.wishType) setWishType(initialData.wishType)
-      if (initialData.name) setName(initialData.name)
-      if (initialData.price !== undefined) setPrice(String(initialData.price))
-      if (initialData.purchaseUrl !== undefined) setPurchaseUrl(initialData.purchaseUrl)
-      if (initialData.image !== undefined) setImage(initialData.image ?? null)
-    }
-  }, [
-    initialData?.wishType,
-    initialData?.name,
-    initialData?.price,
-    initialData?.purchaseUrl,
-    initialData?.image,
-    savedFormState,
-    locationState?.croppedImage,
-  ])
-
-  // Sync if croppedImage arrives in location.state
-  useEffect(() => {
-    if (locationState?.croppedImage) {
-      setImage(locationState.croppedImage)
-    }
-  }, [locationState?.croppedImage])
 
   const hasChanges =
     wishType !== (initialData?.wishType ?? 'receive') ||
@@ -69,31 +30,13 @@ export function useWishForm(initialData?: InitialWishFormData) {
     ? name.trim().length > 0 && price.trim().length > 0 && hasChanges
     : name.trim().length > 0 && price.trim().length > 0
 
-  const handleGoToCropPage = useCallback(
-    (src: string) => {
-      navigate('/wish/crop', {
-        state: {
-          imageSrc: src,
-          returnPath: location.pathname,
-          savedFormState: { wishType, name, price, purchaseUrl, image },
-        },
-      })
-    },
-    [navigate, location.pathname, wishType, name, price, purchaseUrl, image],
-  )
-
-  const handleFileSelect = useCallback(
-    (file: File) => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          handleGoToCropPage(reader.result)
-        }
-      }
-      reader.readAsDataURL(file)
-    },
-    [handleGoToCropPage],
-  )
+  // PhotoActionSheet가 자체 크롭(1:1)까지 끝낸 File을 넘겨주므로 바로 미리보기로 반영합니다.
+  const handleFileSelect = useCallback((file: File) => {
+    setImage((prev) => {
+      if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev)
+      return URL.createObjectURL(file)
+    })
+  }, [])
 
   return {
     wishType,

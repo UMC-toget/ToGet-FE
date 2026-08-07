@@ -100,5 +100,13 @@ export default function WishEditPage() {
     }
   }, [currentItem])
 
-  return <WishEditForm wishlistItemId={wishlistItemId} initialData={initialData} />
+  // 조회가 비동기라 initialData가 나중에 채워지는데, useWishForm의 useState 초기값은
+  // 마운트 시점 값만 캡처합니다. key로 데이터 도착 시 폼을 새로 마운트시켜 다시 채웁니다.
+  return (
+    <WishEditForm
+      key={currentItem ? 'loaded' : 'loading'}
+      wishlistItemId={wishlistItemId}
+      initialData={initialData}
+    />
+  )
 }
