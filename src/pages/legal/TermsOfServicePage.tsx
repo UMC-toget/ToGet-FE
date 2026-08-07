@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import LegalText from './LegalText'
 
@@ -46,10 +46,17 @@ const PARAGRAPHS = [
 /** 서비스 이용약관 (구글 OAuth 브랜딩 심사 대응 — toget.kr 도메인에서 직접 호스팅) */
 export default function TermsOfServicePage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  // 앱 내 이동으로 들어온 경우에만 실제 이전 화면으로 돌아가고,
+  // 주소를 직접 입력했거나 크롤러가 진입한 경우(브라우저 히스토리 없음)에는 홈으로 보냅니다.
+  const handleBack = () => {
+    if (location.key === 'default') navigate('/home')
+    else navigate(-1)
+  }
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
-      <Header title="서비스 이용약관" onBack={() => navigate('/home')} />
+      <Header title="서비스 이용약관" onBack={handleBack} />
       <LegalText paragraphs={PARAGRAPHS} />
     </div>
   )
