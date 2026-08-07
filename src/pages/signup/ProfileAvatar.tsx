@@ -6,6 +6,9 @@ import PhotoCropOverlay from './PhotoCropOverlay'
 import plusIcon from '../../assets/icon-plus.svg'
 
 const ERROR_TOAST_DURATION_MS = 2500
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const LOAD_ERROR_MESSAGE = '사진을 불러오지 못했어요. 다시 시도해 주세요.'
+const TYPE_ERROR_MESSAGE = 'JPG, PNG, WEBP 파일만 등록할 수 있어요.'
 
 interface ProfileAvatarProps {
   /** 이미 저장된 프로필 이미지 URL (있으면 초기 아바타로 표시) */
@@ -24,11 +27,11 @@ export default function ProfileAvatar({ imageUrl, onSelect }: ProfileAvatarProps
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [cropFile, setCropFile] = useState<File | null>(null)
-  const [errorToastOpen, setErrorToastOpen] = useState(false)
+  const [errorToastMessage, setErrorToastMessage] = useState<string | null>(null)
 
-  const showError = () => {
-    setErrorToastOpen(true)
-    setTimeout(() => setErrorToastOpen(false), ERROR_TOAST_DURATION_MS)
+  const showError = (message: string) => {
+    setErrorToastMessage(message)
+    setTimeout(() => setErrorToastMessage(null), ERROR_TOAST_DURATION_MS)
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,6 +39,10 @@ export default function ProfileAvatar({ imageUrl, onSelect }: ProfileAvatarProps
     e.target.value = ''
     if (!file) return
     setSheetOpen(false)
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      showError(TYPE_ERROR_MESSAGE)
+      return
+    }
     setCropFile(file)
   }
 
@@ -51,7 +58,7 @@ export default function ProfileAvatar({ imageUrl, onSelect }: ProfileAvatarProps
 
   const handleCropError = () => {
     setCropFile(null)
-    showError()
+    showError(LOAD_ERROR_MESSAGE)
   }
 
   const displayUrl = previewUrl ?? imageUrl
@@ -74,11 +81,17 @@ export default function ProfileAvatar({ imageUrl, onSelect }: ProfileAvatarProps
         </span>
       </button>
 
-      <input ref={libraryInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+      <input
+        ref={libraryInputRef}
+        type="file"
+        accept={ACCEPTED_IMAGE_TYPES.join(',')}
+        onChange={handleFileChange}
+        className="hidden"
+      />
       <input
         ref={cameraInputRef}
         type="file"
-        accept="image/*"
+        accept={ACCEPTED_IMAGE_TYPES.join(',')}
         capture="environment"
         onChange={handleFileChange}
         className="hidden"
@@ -100,7 +113,7 @@ export default function ProfileAvatar({ imageUrl, onSelect }: ProfileAvatarProps
         />
       )}
 
-      <Toast open={errorToastOpen} message="사진을 불러오지 못했어요. 다시 시도해 주세요." />
+      <Toast open={errorToastMessage !== null} message={errorToastMessage ?? ''} />
     </>
   )
 }
