@@ -30,7 +30,15 @@ export default function SplashPage() {
 
   return (
     <div className="mx-auto flex h-svh w-full max-w-[402px] items-center justify-center overflow-hidden bg-white">
-      <img src={splashGif} alt="" onError={goToHome} className="size-full object-cover" />
+      <img
+        src={splashGif}
+        alt=""
+        onError={(e) => {
+          console.error('스플래시 GIF 로드/디코딩 실패', e)
+          goToHome()
+        }}
+        className="size-full object-cover"
+      />
     </div>
   )
 }
