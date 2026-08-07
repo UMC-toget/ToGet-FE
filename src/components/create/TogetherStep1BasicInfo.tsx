@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { useTogetherCreateStore } from '../../store/togetherCreateStore';
 import DateSheet, { formatDisplay } from './DateSheet';
-import PhotoActionSheet from './PhotoActionSheet';
-import ImageCropper from './ImageCropper';
+import PhotoActionSheet from '../common/PhotoActionSheet';
+import ImageCropper from '../common/ImageCropper';
 import ConfirmModal from '../common/ConfirmModal';
 
 // 준비방 대표 이미지는 정사각형으로 자름

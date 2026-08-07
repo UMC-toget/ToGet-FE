@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import DateSheet, { formatDisplay } from './DateSheet';
-import PhotoActionSheet from './PhotoActionSheet';
-import ImageCropper from './ImageCropper';
+import PhotoActionSheet from '../common/PhotoActionSheet';
+import ImageCropper from '../common/ImageCropper';
 import ConfirmModal from '../common/ConfirmModal';
 
 // 대표 이미지(페이지 썸네일) 자르기 비율 - 목록/카드에서 쓰이는 와이드 배너 형태
