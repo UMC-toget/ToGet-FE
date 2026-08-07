@@ -4,7 +4,10 @@ import { useWishForm } from './hooks/useWishForm'
 import { WishForm } from './components/WishForm'
 import { useWishedProducts } from './hooks/useWishedProducts'
 import { updateWishlistItem } from '../../api/wishlists'
+import { uploadImage } from '../../utils/uploadImage'
 import type { WishType } from '../../store/wishStore'
+
+const WISH_IMAGE_PREFIX = 'wishlists'
 
 interface WishEditFormProps {
   wishlistItemId: number
@@ -31,29 +34,31 @@ function WishEditForm({ wishlistItemId, initialData }: WishEditFormProps) {
     purchaseUrl,
     setPurchaseUrl,
     image,
-    setImage,
+    imageFile,
     selectSheetOpen,
     setSelectSheetOpen,
     isFormValid,
     handleFileSelect,
+    handleImageRemove,
   } = useWishForm(initialData)
 
   const handleSubmit = useCallback(async () => {
     if (!isFormValid) return
     const numericPrice = Number(price.replace(/\D/g, ''))
     try {
+      const imageUrl = imageFile ? await uploadImage(WISH_IMAGE_PREFIX, imageFile) : image || undefined
       await updateWishlistItem(wishlistItemId, {
         name,
         price: numericPrice,
         purchaseUrl,
-        imageUrl: image || undefined,
+        imageUrl,
         type: wishType === 'receive' ? 'RECEIVE' : 'GIVE',
       })
       navigate('/wish')
     } catch (err) {
       console.error('위시 수정 실패:', err)
     }
-  }, [isFormValid, price, wishlistItemId, wishType, name, purchaseUrl, image, navigate])
+  }, [isFormValid, price, wishlistItemId, wishType, name, purchaseUrl, image, imageFile, navigate])
 
   return (
     <WishForm
@@ -68,7 +73,7 @@ function WishEditForm({ wishlistItemId, initialData }: WishEditFormProps) {
       purchaseUrl={purchaseUrl}
       onPurchaseUrlChange={setPurchaseUrl}
       image={image}
-      onImageRemove={() => setImage(null)}
+      onImageRemove={handleImageRemove}
       onImageClick={() => setSelectSheetOpen(true)}
       selectSheetOpen={selectSheetOpen}
       onSelectSheetClose={() => setSelectSheetOpen(false)}

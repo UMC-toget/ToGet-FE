@@ -2,6 +2,9 @@ import { useNavigate } from 'react-router-dom'
 import { useWishForm } from './hooks/useWishForm'
 import { WishForm } from './components/WishForm'
 import { createWishlistItem } from '../../api/wishlists'
+import { uploadImage } from '../../utils/uploadImage'
+
+const WISH_IMAGE_PREFIX = 'wishlists'
 
 /** 위시 등록하기 페이지 (피그마 기준 frame 1716:106685) */
 export default function WishCreatePage() {
@@ -17,22 +20,24 @@ export default function WishCreatePage() {
     purchaseUrl,
     setPurchaseUrl,
     image,
-    setImage,
+    imageFile,
     selectSheetOpen,
     setSelectSheetOpen,
     isFormValid,
     handleFileSelect,
+    handleImageRemove,
   } = useWishForm()
 
   const handleSubmit = async () => {
     if (!isFormValid) return
     const numericPrice = Number(price.replace(/\D/g, ''))
     try {
+      const imageUrl = imageFile ? await uploadImage(WISH_IMAGE_PREFIX, imageFile) : image || undefined
       await createWishlistItem({
         name,
         price: numericPrice,
         purchaseUrl,
-        imageUrl: image || undefined,
+        imageUrl,
         type: wishType === 'receive' ? 'RECEIVE' : 'GIVE',
       })
       navigate('/wish')
@@ -54,7 +59,7 @@ export default function WishCreatePage() {
       purchaseUrl={purchaseUrl}
       onPurchaseUrlChange={setPurchaseUrl}
       image={image}
-      onImageRemove={() => setImage(null)}
+      onImageRemove={handleImageRemove}
       onImageClick={() => setSelectSheetOpen(true)}
       selectSheetOpen={selectSheetOpen}
       onSelectSheetClose={() => setSelectSheetOpen(false)}
