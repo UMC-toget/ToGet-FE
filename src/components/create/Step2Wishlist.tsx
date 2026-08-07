@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, ChevronDown, Search, Trash2, Gift } from 'lu
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import { MOCK_WISH_ITEMS } from '../../utils/wishData';
 import type { WishCategory } from '../../utils/wishData';
-import PhotoActionSheet from './PhotoActionSheet';
+import PhotoActionSheet from '../common/PhotoActionSheet';
 
 interface Props {
   onNext: () => void;
