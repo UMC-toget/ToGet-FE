@@ -161,9 +161,10 @@ export default function WishPage() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="flex flex-col items-center justify-center gap-1 py-16 text-center">
+            <p className="text-b2-r leading-normal text-gray-500">아직 등록한 위시가 없어요</p>
             <p className="text-b2-r leading-normal text-gray-500">
-              아직 위시한 선물이 없어요
+              기억해 두고 싶은 선물을 위시에 담아보세요.
             </p>
           </div>
         )}
