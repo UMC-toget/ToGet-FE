@@ -26,16 +26,16 @@ export default function MyFundingCard({ funding, onOpen, onShareInvite }: MyFund
         </span>
         <div className="flex flex-1 flex-col gap-[18px]">
           <div className="flex items-start justify-between gap-2">
-            <div className="flex items-start gap-2">
-              <div className="flex shrink-0 flex-col gap-[9px]">
+            <div className="flex shrink-0 flex-col gap-[9px]">
+              <div className="flex items-center gap-2">
                 <p className="whitespace-nowrap text-b2-m text-black">{funding.title}</p>
-                <p className="whitespace-nowrap text-caption1-r text-gray-700">
-                  목표 {funding.targetAmount.toLocaleString()}원
-                </p>
+                <span className="shrink-0 rounded-full bg-pink-100/50 px-2 py-1 text-caption2-m text-pink-500">
+                  {getDdayLabel(funding.anniversaryDate)}
+                </span>
               </div>
-              <span className="shrink-0 rounded-full bg-pink-100/50 px-2 py-0.5 text-caption2-m text-pink-500">
-                {getDdayLabel(funding.anniversaryDate)}
-              </span>
+              <p className="whitespace-nowrap text-caption1-r text-gray-700">
+                목표 {funding.targetAmount.toLocaleString()}원
+              </p>
             </div>
             <ChevronRightIcon className="size-6 shrink-0 text-black" />
           </div>
