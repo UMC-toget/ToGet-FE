@@ -1,23 +1,34 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ChevronLeftIcon from '../../components/icons/ChevronLeftIcon'
 import SearchIcon from '../../components/icons/SearchIcon'
 import CloseIcon from '../../components/icons/CloseIcon'
 import WishProductCard from './WishProductCard'
 import { useWishedProducts } from './hooks/useWishedProducts'
-import { useWishStore } from '../../store/wishStore'
+import { deleteWishlistItem } from '../../api/wishlists'
 
 /** 위시 검색 페이지 (피그마 기준 frame 1716:105603) */
 export default function WishSearchPage() {
   const navigate = useNavigate()
-  const removeWish = useWishStore((state) => state.removeWish)
-  const { searchWishedProducts } = useWishedProducts()
+  const { searchWishedProducts, refetch } = useWishedProducts()
   const [keyword, setKeyword] = useState('')
 
   // 검색 키워드 필터링
   const searchResults = useMemo(() => {
     return searchWishedProducts(keyword)
   }, [searchWishedProducts, keyword])
+
+  const handleRemoveWish = useCallback(
+    async (wishlistItemId: number) => {
+      try {
+        await deleteWishlistItem(wishlistItemId)
+        refetch()
+      } catch (err) {
+        console.error('위시 아이템 삭제 실패:', err)
+      }
+    },
+    [refetch],
+  )
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
@@ -66,7 +77,7 @@ export default function WishSearchPage() {
                   <WishProductCard
                     key={product.id}
                     product={product}
-                    onRemoveWish={() => removeWish(product.id)}
+                    onRemoveWish={() => handleRemoveWish(product.id)}
                   />
                 ))}
               </div>

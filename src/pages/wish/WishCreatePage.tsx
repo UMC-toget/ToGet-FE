@@ -1,12 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 import { useWishForm } from './hooks/useWishForm'
 import { WishForm } from './components/WishForm'
-import { useWishStore } from '../../store/wishStore'
+import { createWishlistItem } from '../../api/wishlists'
 
 /** 위시 등록하기 페이지 (피그마 기준 frame 1716:106685) */
 export default function WishCreatePage() {
   const navigate = useNavigate()
-  const addWish = useWishStore((state) => state.addWish)
 
   const {
     wishType,
@@ -25,17 +24,21 @@ export default function WishCreatePage() {
     handleFileSelect,
   } = useWishForm()
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isFormValid) return
     const numericPrice = Number(price.replace(/\D/g, ''))
-    const newId = Date.now()
-    addWish(newId, wishType, {
-      name,
-      price: numericPrice,
-      purchaseUrl,
-      image: image || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=500&auto=format&fit=crop&q=60',
-    })
-    navigate('/wish')
+    try {
+      await createWishlistItem({
+        name,
+        price: numericPrice,
+        purchaseUrl,
+        imageUrl: image || undefined,
+        type: wishType === 'receive' ? 'RECEIVE' : 'GIVE',
+      })
+      navigate('/wish')
+    } catch (err) {
+      console.error('위시 아이템 생성 실패:', err)
+    }
   }
 
   return (

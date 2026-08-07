@@ -8,11 +8,11 @@ import EmojiPopup from '../../components/common/EmojiPopup'
 import WishProductCard from './WishProductCard'
 import WishSortSheet from './WishSortSheet'
 import GiftCreateSheet from '../gift-create/GiftCreateSheet'
-import { useWishStore } from '../../store/wishStore'
 import { useWishedProducts } from './hooks/useWishedProducts'
 import type { SortOrder } from './hooks/useWishedProducts'
 import { useWishSelection } from './hooks/useWishSelection'
 import { useWishToast } from './hooks/useWishToast'
+import { deleteWishlistItem } from '../../api/wishlists'
 import type { WishType } from '../../store/wishStore'
 
 const TABS: { id: WishType | 'all'; label: string }[] = [
@@ -29,12 +29,8 @@ export default function WishPage() {
   const [sortSheetOpen, setSortSheetOpen] = useState(false)
   const [giftCreateSheetOpen, setGiftCreateSheetOpen] = useState(false)
 
-  // Modals & Store actions
-  const removeWish = useWishStore((state) => state.removeWish)
-  const bulkRemoveWishes = useWishStore((state) => state.bulkRemoveWishes)
-
   // Custom Hooks
-  const { wishedProducts } = useWishedProducts(tab, sortOrder)
+  const { wishedProducts, refetch } = useWishedProducts(tab, sortOrder)
   const {
     isEditMode,
     selectedIds,
@@ -55,23 +51,34 @@ export default function WishPage() {
     setDeleteConfirmOpen(true)
   }, [])
 
-  const handleConfirmDelete = useCallback(() => {
+  const handleConfirmDelete = useCallback(async () => {
     if (pendingDeleteId !== null) {
-      removeWish(pendingDeleteId)
-      setPendingDeleteId(null)
-      setDeleteConfirmOpen(false)
-      showToast('1개의 선물을 삭제 했습니다', '실행취소')
+      try {
+        await deleteWishlistItem(pendingDeleteId)
+        refetch()
+        showToast('1개의 선물을 삭제 했습니다')
+      } catch (err) {
+        console.error('위시 삭제 실패:', err)
+      } finally {
+        setPendingDeleteId(null)
+        setDeleteConfirmOpen(false)
+      }
     }
-  }, [pendingDeleteId, removeWish, showToast])
+  }, [pendingDeleteId, refetch, showToast])
 
-  const handleBulkDelete = useCallback(() => {
+  const handleBulkDelete = useCallback(async () => {
     if (selectedIds.length === 0) return
     const count = selectedIds.length
-    bulkRemoveWishes(selectedIds)
-    clearSelection()
-    handleToggleEditMode()
-    showToast(`${count}개의 선물을 삭제 했습니다`, '실행취소')
-  }, [selectedIds, bulkRemoveWishes, clearSelection, handleToggleEditMode, showToast])
+    try {
+      await Promise.all(selectedIds.map((id) => deleteWishlistItem(id)))
+      refetch()
+      clearSelection()
+      handleToggleEditMode()
+      showToast(`${count}개의 선물을 삭제 했습니다`)
+    } catch (err) {
+      console.error('위시 일괄 삭제 실패:', err)
+    }
+  }, [selectedIds, refetch, clearSelection, handleToggleEditMode, showToast])
 
   const isGiftMakingActive = giftSelectedIds.length > 0
 
