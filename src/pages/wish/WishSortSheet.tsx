@@ -15,7 +15,10 @@ const SORT_OPTIONS: { id: SortOrder; label: string }[] = [
   { id: 'oldest', label: '오래된순' },
 ]
 
-/** 위시 정렬 선택 바텀시트 (피그마 1716:104259 기준) */
+/**
+ * 위시 정렬 선택 바텀시트 (피그마 1716:103965 / 1716:104129 기준).
+ * 선택 표시는 WishTypeSheet(위시 유형 선택)와 동일하게 검정 원 + 흰 체크 아이콘을 씁니다.
+ */
 export default function WishSortSheet({
   open,
   selected,
@@ -24,31 +27,33 @@ export default function WishSortSheet({
 }: WishSortSheetProps) {
   return (
     <BottomSheet open={open} onClose={onClose}>
-      <div className="flex w-full flex-col gap-1 pb-4">
+      <ul className="flex w-full flex-col">
         {SORT_OPTIONS.map((option) => {
           const isSelected = option.id === selected
           return (
-            <button
-              key={option.id}
-              type="button"
-              onClick={() => {
-                onSelect(option.id)
-                onClose()
-              }}
-              className="flex h-12 w-full items-center justify-between px-2 text-left transition-colors hover:bg-gray-50 rounded-xl"
-            >
-              <span
-                className={`text-b1-m ${
-                  isSelected ? 'font-semibold text-black' : 'text-gray-700'
-                }`}
+            <li key={option.id} className="w-full">
+              <button
+                type="button"
+                onClick={() => {
+                  onSelect(option.id)
+                  onClose()
+                }}
+                className="flex w-full items-center justify-between py-3"
               >
-                {option.label}
-              </span>
-              {isSelected && <CheckIcon className="size-5 text-pink-500 stroke-[2.5]" />}
-            </button>
+                <span className="text-b1-m text-black">{option.label}</span>
+                {/* 체크 표시 유무와 무관하게 항상 같은 자리를 차지해야 텍스트 위치가 흔들리지 않습니다 */}
+                <span
+                  className={`flex size-6 shrink-0 items-center justify-center rounded-full bg-black text-white ${
+                    isSelected ? 'opacity-100' : 'opacity-0'
+                  }`}
+                >
+                  <CheckIcon className="size-3.5" />
+                </span>
+              </button>
+            </li>
           )
         })}
-      </div>
+      </ul>
     </BottomSheet>
   )
 }
