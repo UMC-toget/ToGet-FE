@@ -25,9 +25,10 @@ export function useWishForm(initialData?: InitialWishFormData) {
     purchaseUrl !== (initialData?.purchaseUrl ?? '') ||
     image !== (initialData?.image ?? null)
 
-  const isFormValid = initialData
-    ? name.trim().length > 0 && price.trim().length > 0 && hasChanges
-    : name.trim().length > 0 && price.trim().length > 0
+  // 백엔드가 purchaseUrl을 필수(minLength 1)로 요구해 name/price와 함께 필수 검증합니다
+  const isValidInput =
+    name.trim().length > 0 && price.trim().length > 0 && purchaseUrl.trim().length > 0
+  const isFormValid = initialData ? isValidInput && hasChanges : isValidInput
 
   // PhotoActionSheet가 자체 크롭(1:1)까지 끝낸 File을 넘겨주므로 바로 미리보기로 반영합니다.
   const handleFileSelect = useCallback((file: File) => {

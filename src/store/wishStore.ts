@@ -49,12 +49,7 @@ interface WishState {
   clearPendingToast: () => void
 }
 
-// 초기 기본 위시 항목 목업 데이터 (피그마 디자인 예시 반영)
-const INITIAL_WISHES: Record<number, WishType[]> = {
-  1: ['receive'],
-  2: ['receive'],
-  3: ['give'],
-}
+const INITIAL_WISHES: Record<number, WishType[]> = {}
 
 export const useWishStore = create<WishState>((set, get) => ({
   wishes: INITIAL_WISHES,

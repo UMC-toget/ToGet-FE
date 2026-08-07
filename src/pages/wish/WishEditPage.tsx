@@ -2,12 +2,12 @@ import { useMemo, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useWishForm } from './hooks/useWishForm'
 import { WishForm } from './components/WishForm'
-import { useWishStore } from '../../store/wishStore'
-import { useProducts } from '../home/useProducts'
+import { useWishedProducts } from './hooks/useWishedProducts'
+import { updateWishlistItem } from '../../api/wishlists'
 import type { WishType } from '../../store/wishStore'
 
 interface WishEditFormProps {
-  productId: number
+  wishlistItemId: number
   initialData?: {
     name: string
     price: number
@@ -18,9 +18,8 @@ interface WishEditFormProps {
 }
 
 /** 위시 수정 폼 (피그마 기준 frame 1716:106795 / 1716:106899) */
-function WishEditForm({ productId, initialData }: WishEditFormProps) {
+function WishEditForm({ wishlistItemId, initialData }: WishEditFormProps) {
   const navigate = useNavigate()
-  const updateWish = useWishStore((state) => state.updateWish)
 
   const {
     wishType,
@@ -39,18 +38,22 @@ function WishEditForm({ productId, initialData }: WishEditFormProps) {
     handleFileSelect,
   } = useWishForm(initialData)
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (!isFormValid) return
     const numericPrice = Number(price.replace(/\D/g, ''))
-    updateWish(productId, {
-      wishType,
-      name,
-      price: numericPrice,
-      purchaseUrl,
-      image: image || '',
-    })
-    navigate('/wish')
-  }, [isFormValid, price, updateWish, productId, wishType, name, purchaseUrl, image, navigate])
+    try {
+      await updateWishlistItem(wishlistItemId, {
+        name,
+        price: numericPrice,
+        purchaseUrl,
+        imageUrl: image || undefined,
+        type: wishType === 'receive' ? 'RECEIVE' : 'GIVE',
+      })
+      navigate('/wish')
+    } catch (err) {
+      console.error('위시 수정 실패:', err)
+    }
+  }, [isFormValid, price, wishlistItemId, wishType, name, purchaseUrl, image, navigate])
 
   return (
     <WishForm
@@ -79,40 +82,31 @@ function WishEditForm({ productId, initialData }: WishEditFormProps) {
 /** 위시 수정하기 (피그마 기준) */
 export default function WishEditPage() {
   const { id } = useParams()
-  const productId = Number(id)
-  const wishes = useWishStore((state) => state.wishes)
-  const customWishes = useWishStore((state) => state.customWishes)
-  const { products } = useProducts()
+  const wishlistItemId = Number(id)
+  const { rawItems } = useWishedProducts('all')
 
-  const wishesOfId = wishes[productId]
-  const wishType: WishType = Array.isArray(wishesOfId)
-    ? wishesOfId[0] ?? 'receive'
-    : (wishesOfId as WishType) ?? 'receive'
-
-  const customItem = customWishes[productId]
-  const baseProduct = useMemo(() => products.find((p) => p.id === productId), [products, productId])
+  const currentItem = useMemo(() => {
+    return rawItems.find((item) => item.wishlistItemId === wishlistItemId)
+  }, [rawItems, wishlistItemId])
 
   const initialData = useMemo(() => {
-    if (customItem) {
-      return {
-        name: customItem.name,
-        price: customItem.price,
-        purchaseUrl: customItem.purchaseUrl,
-        image: customItem.image,
-        wishType: customItem.wishType,
-      }
+    if (!currentItem) return undefined
+    return {
+      name: currentItem.name,
+      price: currentItem.price,
+      purchaseUrl: currentItem.purchaseUrl,
+      image: currentItem.imageUrl,
+      wishType: (currentItem.type === 'RECEIVE' ? 'receive' : 'give') as WishType,
     }
-    if (baseProduct) {
-      return {
-        name: baseProduct.name,
-        price: baseProduct.price,
-        purchaseUrl: baseProduct.link,
-        image: baseProduct.image,
-        wishType,
-      }
-    }
-    return undefined
-  }, [customItem, baseProduct, wishType])
+  }, [currentItem])
 
-  return <WishEditForm productId={productId} initialData={initialData} />
+  // 조회가 비동기라 initialData가 나중에 채워지는데, useWishForm의 useState 초기값은
+  // 마운트 시점 값만 캡처합니다. key로 데이터 도착 시 폼을 새로 마운트시켜 다시 채웁니다.
+  return (
+    <WishEditForm
+      key={currentItem ? 'loaded' : 'loading'}
+      wishlistItemId={wishlistItemId}
+      initialData={initialData}
+    />
+  )
 }

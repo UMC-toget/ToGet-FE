@@ -114,7 +114,11 @@ export function WishForm({
 
         {/* 선물 구매처 링크 */}
         <TextField
-          label="선물 구매처 링크"
+          label={
+            <>
+              선물 구매처 링크 <span className="text-pink-500">*</span>
+            </>
+          }
           value={purchaseUrl}
           onChange={(e) => onPurchaseUrlChange(e.target.value)}
           placeholder="구매처 링크를 입력해 주세요"
