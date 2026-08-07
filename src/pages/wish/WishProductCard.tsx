@@ -91,21 +91,18 @@ const WishProductCard = memo(function WishProductCard({
 
   return (
     <div className="relative flex flex-col gap-2">
-      <button
-        type="button"
-        onClick={handleCardClick}
-        className={`flex flex-col text-left transition-opacity ${
-          isEditMode && !isSelected ? 'opacity-80' : 'opacity-100'
-        }`}
-      >
+      <button type="button" onClick={handleCardClick} className="flex flex-col text-left">
         <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-background p-3">
           <img src={product.image} alt={product.name} className="max-h-[85%] max-w-[85%] object-contain" />
 
-          {/* Edit mode selection check indicator */}
+          {/* 선택된 카드만 이미지 박스 전체에 어두운 레이어를 씌웁니다 (피그마 1746:51289 기준) */}
+          {isEditMode && isSelected && <div className="absolute inset-0 rounded-xl bg-[rgba(30,29,30,0.1)]" />}
+
+          {/* Edit mode selection check indicator (피그마 1716:99383 기준: 상품 추가 +버튼과 같은 자리) */}
           {isEditMode ? (
             <div
-              className={`absolute left-3 top-3 flex size-6 items-center justify-center rounded-full border shadow-sm transition-colors ${
-                isSelected ? 'border-pink-500 bg-pink-500 text-white' : 'border-gray-300 bg-white text-transparent'
+              className={`absolute right-3 top-3 flex size-6 items-center justify-center rounded-full shadow-sm transition-colors ${
+                isSelected ? 'bg-gray-900 text-white' : 'bg-white text-gray-300'
               }`}
             >
               <CheckIcon className="size-4 stroke-[3]" />
@@ -132,22 +129,20 @@ const WishProductCard = memo(function WishProductCard({
 
         <div className="mt-2 flex flex-col">
           <div className="flex items-center justify-end">
-            {!isEditMode && (
-              <span
-                role="button"
-                tabIndex={0}
-                aria-label="더보기"
-                onClick={handleMoreClick}
-                onKeyDown={(e) => {
-                  if (e.key !== 'Enter' && e.key !== ' ') return
-                  e.preventDefault()
-                  handleMoreClick(e)
-                }}
-                className="flex size-5 items-center justify-center text-gray-700 hover:text-black"
-              >
-                <MoreVerticalIcon className="size-5" />
-              </span>
-            )}
+            <span
+              role="button"
+              tabIndex={0}
+              aria-label="더보기"
+              onClick={handleMoreClick}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return
+                e.preventDefault()
+                handleMoreClick(e)
+              }}
+              className="flex size-5 items-center justify-center text-gray-700 hover:text-black"
+            >
+              <MoreVerticalIcon className="size-5" />
+            </span>
           </div>
           <p className="mt-3 min-h-[36px] leading-[1.5] text-b2-m text-black">
             {highlightKeyword

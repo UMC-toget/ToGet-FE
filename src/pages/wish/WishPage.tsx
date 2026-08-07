@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SearchIcon from '../../components/icons/SearchIcon'
 import CaretDownIcon from '../../components/icons/CaretDownIcon'
+import TrashIcon from '../../components/icons/TrashIcon'
 import BottomNav from '../../components/common/BottomNav'
 import Toast from '../../components/common/Toast'
 import EmojiPopup from '../../components/common/EmojiPopup'
@@ -46,6 +47,7 @@ export default function WishPage() {
   // Delete Confirmation Modal state (EmojiPopup)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null)
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false)
 
   const handleRequestSingleDelete = useCallback((id: number) => {
     setPendingDeleteId(id)
@@ -95,7 +97,7 @@ export default function WishPage() {
     }
   }, [pendingDeleteId, rawItems, refetch, showToast, recreateDeletedItems])
 
-  const handleBulkDelete = useCallback(async () => {
+  const handleConfirmBulkDelete = useCallback(async () => {
     if (selectedIds.length === 0) return
     const count = selectedIds.length
     const deletedItems = rawItems.filter((item) => selectedIds.includes(item.wishlistItemId))
@@ -111,6 +113,8 @@ export default function WishPage() {
       )
     } catch (err) {
       console.error('위시 일괄 삭제 실패:', err)
+    } finally {
+      setBulkDeleteConfirmOpen(false)
     }
   }, [selectedIds, rawItems, refetch, clearSelection, handleToggleEditMode, showToast, recreateDeletedItems])
 
@@ -158,10 +162,12 @@ export default function WishPage() {
         <div className="flex items-center justify-between">
           <p className="text-caption1-r text-gray-500">선물 {wishedProducts.length}개</p>
           <div className="flex items-center gap-3">
+            {/* 편집 모드에서는 정렬 버튼을 숨기되(피그마 기준 opacity-0), 레이아웃이 흔들리지 않도록 자리는 유지합니다 */}
             <button
               type="button"
               onClick={() => setSortSheetOpen(true)}
-              className="flex items-center gap-1"
+              disabled={isEditMode}
+              className={`flex items-center gap-1 ${isEditMode ? 'invisible' : ''}`}
             >
               <span className="text-caption1-m text-black">
                 {sortOrder === 'latest' ? '최신순' : '오래된순'}
@@ -173,7 +179,7 @@ export default function WishPage() {
               onClick={handleToggleEditMode}
               className="text-caption1-m text-black"
             >
-              {isEditMode ? '완료' : '편집'}
+              {isEditMode ? '취소' : '편집'}
             </button>
           </div>
         </div>
@@ -204,19 +210,18 @@ export default function WishPage() {
         )}
       </div>
 
-      {/* Edit Mode Sticky Delete Bar */}
+      {/* Edit Mode Sticky Selection Bar (피그마 1716:99536 기준) */}
       {isEditMode && (
-        <div className="fixed bottom-[64px] left-1/2 z-30 flex w-full max-w-[402px] -translate-x-1/2 items-center justify-between bg-white px-[18px] py-3 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-          <span className="text-b2-m text-gray-700">
-            {selectedIds.length}개 선택됨
-          </span>
+        <div className="fixed bottom-0 left-1/2 z-30 flex h-14 w-full max-w-[402px] -translate-x-1/2 items-center justify-between border-t border-gray-200 bg-gray-100/80 px-[18px] backdrop-blur-[30px]">
+          <p className="text-b1-m text-black">{selectedIds.length}개의 선물이 선택됨</p>
           <button
             type="button"
+            aria-label="선택한 선물 삭제"
             disabled={selectedIds.length === 0}
-            onClick={handleBulkDelete}
-            className="rounded-xl bg-pink-500 px-5 py-2 text-b2-m font-semibold text-white disabled:bg-gray-300"
+            onClick={() => setBulkDeleteConfirmOpen(true)}
+            className="text-black disabled:text-gray-300"
           >
-            선택 삭제
+            <TrashIcon className="size-6" />
           </button>
         </div>
       )}
@@ -234,8 +239,8 @@ export default function WishPage() {
         </div>
       )}
 
-      {/* BottomNav is shown ONLY when gift creation bar is NOT active */}
-      {!isGiftMakingActive && <BottomNav active="gift" />}
+      {/* BottomNav is shown ONLY when gift creation bar/편집 모드 선택바가 활성화되어 있지 않을 때 */}
+      {!isGiftMakingActive && !isEditMode && <BottomNav active="gift" />}
 
       {/* Gift Creation Bottom Sheet */}
       <GiftCreateSheet
@@ -259,17 +264,38 @@ export default function WishPage() {
         description="삭제하면 해당 선물이 위시에서 사라져요"
         buttons={[
           {
-            label: '취소',
+            label: '취소하기',
             onClick: () => setDeleteConfirmOpen(false),
             variant: 'secondary',
           },
           {
-            label: '삭제',
+            label: '삭제하기',
             onClick: handleConfirmDelete,
             variant: 'primary',
           },
         ]}
         onDimClick={() => setDeleteConfirmOpen(false)}
+      />
+
+      {/* Bulk Delete Confirmation Modal (EmojiPopup - Figma 1716:105465) */}
+      <EmojiPopup
+        open={bulkDeleteConfirmOpen}
+        icon="alert"
+        title={`${selectedIds.length}개의 선물을 삭제할까요?`}
+        description="삭제하면 해당 선물이 위시에서 사라져요"
+        buttons={[
+          {
+            label: '취소하기',
+            onClick: () => setBulkDeleteConfirmOpen(false),
+            variant: 'secondary',
+          },
+          {
+            label: '삭제하기',
+            onClick: handleConfirmBulkDelete,
+            variant: 'primary',
+          },
+        ]}
+        onDimClick={() => setBulkDeleteConfirmOpen(false)}
       />
 
       {/* Toast Snackbar (Figma 1716:107011) */}
