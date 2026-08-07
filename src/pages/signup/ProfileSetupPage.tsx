@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import Header from '../../components/common/Header'
@@ -24,16 +24,75 @@ class ProfileImageUploadError extends Error {}
 
 /** 회원가입 마지막 단계: 프로필(닉네임/사진) 설정 페이지 */
 export default function ProfileSetupPage() {
-  const [nickname, setNickname] = useState('')
-  const [photoFile, setPhotoFile] = useState<File | null>(null)
-  const [termsOpen, setTermsOpen] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const navigate = useNavigate()
   const location = useLocation()
   const { login } = useAuth()
   const pageRef = useRef<HTMLDivElement>(null)
   // 로그인 화면에서 소셜 로그인 응답으로 받은, 회원가입 완료용 임시 토큰 (만료 10분)
   const signupToken = (location.state as { signupToken?: string } | null)?.signupToken
+  // 약관 상세 페이지를 보러 나갔다 돌아오면 이 페이지가 재마운트되어 로컬 state가 초기화되므로,
+  // 닉네임 입력값과 약관 바텀시트가 열려 있었는지를 signupToken 단위로 세션에 잠시 보관합니다.
+  const nicknameStorageKey = signupToken ? `signup:nickname:${signupToken}` : null
+  const termsOpenStorageKey = signupToken ? `signup:termsOpen:${signupToken}` : null
+  const photoStorageKey = signupToken ? `signup:photo:${signupToken}` : null
+
+  const [nickname, setNickname] = useState(() => (nicknameStorageKey && sessionStorage.getItem(nicknameStorageKey)) || '')
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  // 사진은 크롭된 이미지를 data URL로 세션에 저장해 두고, 미리보기(ProfileAvatar imageUrl)와
+  // completeSignup 업로드용 File 객체 복원(아래 useEffect) 둘 다에 사용합니다.
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(
+    () => (photoStorageKey && sessionStorage.getItem(photoStorageKey)) || null,
+  )
+  const [termsOpen, setTermsOpen] = useState(
+    () => !!termsOpenStorageKey && sessionStorage.getItem(termsOpenStorageKey) === 'true',
+  )
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  // 약관 상세 페이지에서 돌아와 재마운트된 경우, 세션에 저장해둔 미리보기로부터 업로드용 File을 복원합니다.
+  useEffect(() => {
+    if (!photoPreviewUrl) return
+    let cancelled = false
+    fetch(photoPreviewUrl)
+      .then((res) => res.blob())
+      .then((blob) => {
+        if (!cancelled) setPhotoFile(new File([blob], 'profile.jpg', { type: blob.type || 'image/jpeg' }))
+      })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleNicknameChange = (value: string) => {
+    setNickname(value)
+    if (nicknameStorageKey) sessionStorage.setItem(nicknameStorageKey, value)
+  }
+
+  const handlePhotoSelect = (file: File) => {
+    setPhotoFile(file)
+    if (!photoStorageKey) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = reader.result as string
+      setPhotoPreviewUrl(dataUrl)
+      try {
+        sessionStorage.setItem(photoStorageKey, dataUrl)
+      } catch {
+        // 세션 저장 용량 초과 시 미리보기 유지 목적만 포기 — 업로드에는 영향 없음
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const openTerms = () => {
+    setTermsOpen(true)
+    if (termsOpenStorageKey) sessionStorage.setItem(termsOpenStorageKey, 'true')
+  }
+
+  const closeTerms = () => {
+    setTermsOpen(false)
+    if (termsOpenStorageKey) sessionStorage.removeItem(termsOpenStorageKey)
+  }
 
   const completeSignupMutation = useMutation({
     mutationFn: async () => {
@@ -51,12 +110,15 @@ export default function ProfileSetupPage() {
     onSuccess: (result) => {
       setTokens(result.accessToken, result.refreshToken)
       login()
-      setTermsOpen(false)
+      closeTerms()
+      if (nicknameStorageKey) sessionStorage.removeItem(nicknameStorageKey)
+      if (photoStorageKey) sessionStorage.removeItem(photoStorageKey)
+      if (signupToken) sessionStorage.removeItem(`signup:agreedTerms:${signupToken}`)
       // 회원가입까지 마친 신규 유저도 H 참여 등 복귀 경로가 있으면 그리로
       navigate(consumeReturnUrl() ?? '/home')
     },
     onError: (error) => {
-      setTermsOpen(false)
+      closeTerms()
       if (error instanceof ProfileImageUploadError) {
         setErrorMessage('프로필 사진 업로드에 실패했어요. 다시 시도해 주세요.')
       } else {
@@ -79,35 +141,32 @@ export default function ProfileSetupPage() {
     >
       <Header title="프로필" />
 
-      <div className="flex flex-col gap-1 px-[18px] pt-6">
+      <div className="flex flex-col gap-2 px-[18px] pt-6">
         <h1 className="text-h3-sb text-black">마지막 단계예요, 프로필을 완성해 볼까요?</h1>
         <p className="text-caption1-r leading-normal text-gray-600">마이페이지에서 프로필을 수정할 수 있어요</p>
       </div>
 
-      <div className="mt-[69px] flex flex-col items-center gap-2">
-        <ProfileAvatar onSelect={setPhotoFile} />
+      <div className="mt-[69px] flex flex-col items-center gap-3">
+        <ProfileAvatar imageUrl={photoPreviewUrl} onSelect={handlePhotoSelect} />
         <p className="text-h3-sb text-black">{nickname || '닉네임'}</p>
       </div>
 
-      <div className="mt-6 flex flex-col gap-5 px-[18px]">
+      <div className="mt-10 flex flex-col gap-5 px-[18px]">
         <TextField
           label="닉네임"
           value={nickname}
           maxLength={NICKNAME_MAX_LENGTH}
           placeholder="닉네임을 입력해 주세요"
-          onChange={(e) => setNickname(e.target.value)}
+          onChange={(e) => handleNicknameChange(e.target.value)}
           onOverflow={() => replayShake(pageRef.current)}
         />
         {errorMessage && <p className="text-caption1-r text-pink-500">{errorMessage}</p>}
-        <Button
-          disabled={nickname.length === 0 || completeSignupMutation.isPending}
-          onClick={() => setTermsOpen(true)}
-        >
+        <Button disabled={nickname.length === 0 || completeSignupMutation.isPending} onClick={openTerms}>
           가입
         </Button>
       </div>
 
-      <TermsBottomSheet open={termsOpen} onClose={() => setTermsOpen(false)} onConfirm={handleConfirm} />
+      <TermsBottomSheet open={termsOpen} onClose={closeTerms} onConfirm={handleConfirm} persistKey={signupToken} />
     </div>
   )
 }

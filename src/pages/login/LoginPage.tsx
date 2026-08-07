@@ -105,7 +105,7 @@ export default function LoginPage() {
 
       <img src={togetLogo} alt="To Get" className="mx-auto mt-[67px] h-14 w-[207px]" />
 
-      <div className="mt-8 flex flex-col gap-1.5 text-center">
+      <div className="mt-8 flex flex-col gap-3 text-center">
         <h1 className="text-h3-sb text-black">투겟에서 선물을 함께 준비해요</h1>
         <p className="text-caption1-r leading-normal text-gray-600">
           카카오 또는 구글 계정으로
@@ -116,9 +116,9 @@ export default function LoginPage() {
 
       <div className="relative mx-auto -mb-[11px] mt-[117px] w-[207px]">
         <img src={loginCharacter} alt="투겟 캐릭터" className="h-[189px] w-full" />
-        <img src={heartBig} alt="" className="absolute -left-[60px] -top-[43px] size-[61px] -rotate-[23deg]" />
-        <img src={heartSmall} alt="" className="absolute -left-[54px] -top-[65px] size-8 rotate-[6deg]" />
-        <img src={heartRight} alt="" className="absolute -right-[52px] top-[101px] size-12 rotate-[34deg]" />
+        <img src={heartBig} alt="" className="absolute -left-[60px] -top-[36px] size-[46px] -rotate-[23deg]" />
+        <img src={heartSmall} alt="" className="absolute -left-[60px] -top-[69px] size-8 rotate-[-10deg]" />
+        <img src={heartRight} alt="" className="absolute -right-[52px] top-[101px] size-[34px] rotate-[34deg]" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center gap-4">
@@ -138,16 +138,16 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => handleGoogleLogin()}
-            className="flex h-[52px] w-full items-center justify-center gap-3 rounded-xl border border-gray-600 bg-white"
+            className="pr-1.5 flex h-[52px] w-full items-center justify-center gap-3 rounded-xl border border-gray-600 bg-white"
           >
-            <img src={googleIcon} alt="" className="size-4 object-contain" />
+            <img src={googleIcon} alt="" className="size-4 object-contain -translate-x-1"  />
             <span className="text-b2-m text-black">구글로 시작하기</span>
           </button>
         </div>
       </div>
 
-      <p className="mt-5 text-center text-caption2-r leading-normal text-gray-700">
-        카카오 또는 구글 계정으로 시작하면 회원 식별을 위한 계정 식별값만 사용되며
+      <p className="mt-5 text-center text-caption2-r leading-[1.6] text-gray-700">
+        카카오 또는 구글 계정으로 시작하면
         <br />
         <Link to="/terms" className="underline">
           서비스 이용약관

@@ -15,6 +15,8 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   onOverflow?: () => void
   /** 지정하면 우측에 괄호로 감싼 단위를 표시합니다 (예: "원" -> "(원)"). maxLength와 동시 사용 시 maxLength 카운터가 우선합니다 */
   suffix?: string
+  /** true면 maxLength가 있어도 (n/max) 카운터를 표시하지 않습니다 (글자수 제한·흔들림 동작은 그대로 유지) */
+  hideCounter?: boolean
 }
 
 /**
@@ -33,6 +35,7 @@ export default function TextField({
   onKeyDown,
   className = '',
   suffix,
+  hideCounter = false,
   ...props
 }: TextFieldProps) {
   const inputId = useId()
@@ -69,7 +72,7 @@ export default function TextField({
   }
 
   return (
-    <div className={`flex w-full flex-col gap-2 ${className}`}>
+    <div className={`flex w-full flex-col gap-3 ${className}`}>
       {label && (
         <label htmlFor={inputId} className="text-b1-m text-black">
           {label}
@@ -89,7 +92,7 @@ export default function TextField({
           className="min-w-0 flex-1 bg-transparent text-b1-m text-black outline-none placeholder:text-gray-400"
           {...props}
         />
-        {maxLength !== undefined ? (
+        {maxLength !== undefined && !hideCounter ? (
           <span className="shrink-0 text-b2-r text-gray-400">
             ({value.length}/{maxLength})
           </span>

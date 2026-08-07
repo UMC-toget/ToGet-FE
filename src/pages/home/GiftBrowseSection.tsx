@@ -8,10 +8,9 @@ import WishTypeSheet from './WishTypeSheet'
 import { GIFT_CATEGORIES, PRICE_FILTERS } from './products'
 import type { PriceFilter } from './products'
 import { useProducts } from './useProducts'
+import { useWishToggle } from './useWishToggle'
 import { formatDateDots } from '../../utils/formatDate'
 import { useAuth } from '../../hooks/useAuth'
-import { useWishStore } from '../../store/wishStore'
-import type { WishType } from '../../store/wishStore'
 
 type Category = (typeof GIFT_CATEGORIES)[number]
 
@@ -23,7 +22,7 @@ const VISIBLE_COUNT = 10
 export default function GiftBrowseSection() {
   const navigate = useNavigate()
   const { isLoggedIn } = useAuth()
-  const { wishes, addWish, removeWish } = useWishStore()
+  const { getSelectedTypes, toggle } = useWishToggle(isLoggedIn)
   const [category, setCategory] = useState<Category>(POPULAR_CATEGORY)
   const [priceFilter, setPriceFilter] = useState<PriceFilter>(PRICE_FILTERS[0])
   const [filterOpen, setFilterOpen] = useState(false)
@@ -37,17 +36,6 @@ export default function GiftBrowseSection() {
 
   // 비로그인 상태에서 상품 카드/위시 등록 버튼을 선택하면 로그인 화면으로 보냅니다 (피그마 B01 기준).
   const handleLoginRequired = () => navigate('/login')
-
-  // TODO: 위시 등록/해제 API 연동 후 addWish/removeWish 호출을 실제 서버 요청으로 교체 (useWishStore 참고)
-  const handleToggleWishType = (type: WishType) => {
-    if (wishSheetProductId == null) return
-    const current = wishes[wishSheetProductId] ?? []
-    if (current.includes(type)) {
-      removeWish(wishSheetProductId, type)
-    } else {
-      addWish(wishSheetProductId, type)
-    }
-  }
 
   // 카테고리와 가격대 필터는 교집합으로 함께 서버에 전달합니다.
   // '요즘 인기'는 특정 상황(occasion) 태그가 아니라 사용자별 위시 등록 통계 내림차순(WISHLIST_DESC)으로
@@ -102,7 +90,7 @@ export default function GiftBrowseSection() {
               product={product}
               rank={isPopular ? index + 1 : undefined}
               isLoggedIn={isLoggedIn}
-              wished={product.id in wishes}
+              wished={getSelectedTypes(product.id).length > 0}
               onLoginRequired={handleLoginRequired}
               onWishClick={() => setWishSheetProductId(product.id)}
             />
@@ -132,9 +120,12 @@ export default function GiftBrowseSection() {
       />
       <WishTypeSheet
         open={wishSheetProductId != null}
-        selected={wishSheetProductId != null ? (wishes[wishSheetProductId] ?? []) : []}
+        selected={wishSheetProductId != null ? getSelectedTypes(wishSheetProductId) : []}
         onClose={() => setWishSheetProductId(null)}
-        onToggle={handleToggleWishType}
+        onToggle={(type) => {
+          const product = visibleProducts.find((p) => p.id === wishSheetProductId)
+          if (product) toggle(product, type)
+        }}
       />
     </section>
   )

@@ -4,7 +4,6 @@ import BottomNav from '../../components/common/BottomNav'
 import MenuRow from '../../components/common/MenuRow'
 import Toast from '../../components/common/Toast'
 import DefaultAvatar from '../../components/common/DefaultAvatar'
-import SearchIcon from '../../components/icons/SearchIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import { useAuth } from '../../hooks/useAuth'
 import { useMyProfile } from '../../hooks/useMyProfile'
@@ -16,7 +15,10 @@ const IN_DEVELOPMENT_MESSAGE = '아직 개발 중인 기능이에요'
 const MENU_SECTIONS: { title: string; items: { label: string; path?: string }[] }[] = [
   {
     title: '선물 페이지',
-    items: [{ label: '내 선물 페이지' }, { label: '함께 선물 페이지' }],
+    items: [
+      { label: '내 선물 페이지', path: '/my/fundings/my' },
+      { label: '함께 선물 페이지', path: '/my/fundings/together' },
+    ],
   },
   { title: '계좌', items: [{ label: '등록된 나의 계좌', path: '/my/accounts' }] },
   {
@@ -63,12 +65,8 @@ export default function MyPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-32">
-      <header className="flex h-[50px] shrink-0 items-center justify-between px-[18px]">
+      <header className="flex h-[50px] shrink-0 items-center px-[18px]">
         <h1 className="text-h1-sb text-black">마이</h1>
-        {/* TODO: 검색 화면 구현 후 연결 */}
-        <button type="button" aria-label="검색" className="text-gray-900">
-          <SearchIcon />
-        </button>
       </header>
 
       <button
@@ -86,7 +84,7 @@ export default function MyPage() {
           ) : (
             <DefaultAvatar className="size-[52px]" />
           )}
-          <span className="flex flex-col items-start gap-1 text-left">
+          <span className="flex flex-col items-start gap-2 text-left">
             <span className="text-b1-m text-black">
               {isLoggedIn ? (profile?.nickname ?? '회원') : '로그인 및 회원가입'}
             </span>

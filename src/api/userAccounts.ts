@@ -53,6 +53,14 @@ export const BANK_NAME_LABELS: Record<BankName, string> = {
   KDB: 'KDB산업은행',
 }
 
+export interface BankResponse {
+  bankId: number
+  code: BankName
+  displayName: string
+  /** 아이콘 미확보 은행은 null (프론트에서 fallback 아이콘 처리 필요) */
+  iconUrl: string | null
+}
+
 export interface UserAccount {
   userAccountId: number
   bankName: BankName
@@ -69,6 +77,11 @@ export interface UserAccountInput {
 
 export function getUserAccounts() {
   return unwrap<UserAccount[]>(apiClient.get('/api/v1/user-accounts'))
+}
+
+/** 계좌 등록·수정 화면의 은행 선택지 목록 (아이콘 URL 포함, sortOrder 오름차순) */
+export function getBanks() {
+  return unwrap<BankResponse[]>(apiClient.get('/api/v1/banks'))
 }
 
 export function createUserAccount(payload: UserAccountInput) {

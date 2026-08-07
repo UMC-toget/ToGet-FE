@@ -1,22 +1,34 @@
 import { useRef, useState } from 'react';
-import BottomSheet from '../common/BottomSheet';
+import type { ReactNode } from 'react';
+import BottomSheet from './BottomSheet';
 import ImageCropper from './ImageCropper';
+import WebImageSearch from './WebImageSearch';
 
 // 이미지 업로드 버튼을 누르면 바로 OS 파일창이 뜨는 대신,
 // 바텀시트로 업로드 방식을 먼저 선택하고, 파일을 고르면
 // 지정된 비율로 자르는 화면을 거쳐서 최종 이미지를 넘겨줍니다.
 
+const ACCEPTED_IMAGE_TYPES = 'image/jpeg,image/png,image/webp';
+
+interface CropperRenderProps {
+  file: File;
+  onCancel: () => void;
+  onConfirm: (file: File) => void;
+}
+
 interface Props {
   onClose: () => void;
   onSelect: (file: File) => void;
-  aspectRatio?: number; // width / height, 기본값은 대표 이미지 비율(364:173)
+  aspectRatio?: number; // width / height, 기본값은 대표 이미지 비율(364:173). renderCropper를 쓰면 무시됩니다.
+  /** 자르기 화면을 기본 사각형 크롭(ImageCropper) 대신 다른 구현으로 대체할 때 사용 (예: 프로필 사진의 원형 크롭) */
+  renderCropper?: (props: CropperRenderProps) => ReactNode;
 }
 
-export default function PhotoActionSheet({ onClose, onSelect, aspectRatio = 364 / 173 }: Props) {
+export default function PhotoActionSheet({ onClose, onSelect, aspectRatio = 364 / 173, renderCropper }: Props) {
   const galleryRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [webSearchOpen, setWebSearchOpen] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -25,23 +37,33 @@ export default function PhotoActionSheet({ onClose, onSelect, aspectRatio = 364 
     e.target.value = '';
   };
 
-  const handleWebSearch = () => {
-    window.open('https://www.29cm.co.kr/store/search/start', '_blank', 'noopener,noreferrer');
-    onClose();
-  };
-
-  if (pendingFile) {
+  if (webSearchOpen) {
     return (
-      <ImageCropper
-        file={pendingFile}
-        aspectRatio={aspectRatio}
-        onCancel={() => setPendingFile(null)}
-        onConfirm={(croppedFile) => {
-          onSelect(croppedFile);
-          setPendingFile(null);
+      <WebImageSearch
+        onCancel={() => setWebSearchOpen(false)}
+        onSelect={(file) => {
+          onSelect(file);
+          setWebSearchOpen(false);
           onClose();
         }}
       />
+    );
+  }
+
+  if (pendingFile) {
+    const handleCancel = () => setPendingFile(null);
+    const handleConfirm = (file: File) => {
+      onSelect(file);
+      setPendingFile(null);
+      onClose();
+    };
+
+    if (renderCropper) {
+      return renderCropper({ file: pendingFile, onCancel: handleCancel, onConfirm: handleConfirm });
+    }
+
+    return (
+      <ImageCropper file={pendingFile} aspectRatio={aspectRatio} onCancel={handleCancel} onConfirm={handleConfirm} />
     );
   }
 
@@ -51,20 +73,20 @@ export default function PhotoActionSheet({ onClose, onSelect, aspectRatio = 364 
         <li>
           <button
             type="button"
-            onClick={handleWebSearch}
+            onClick={() => setWebSearchOpen(true)}
             className="w-full py-2 text-left text-b1-m text-black"
           >
             웹 사진 검색
           </button>
         </li>
         <li>
-          {/* 갤러리(사진 보관함) — capture 없이 accept=image/* */}
+          {/* 갤러리(사진 보관함) — capture 없이 accept로 이미지 형식 제한 */}
           <button
             type="button"
             onClick={() => galleryRef.current?.click()}
             className="w-full py-2 text-left text-b1-m text-black"
           >
-            사진 보관함
+            사진 선택
           </button>
         </li>
         <li>
@@ -77,23 +99,12 @@ export default function PhotoActionSheet({ onClose, onSelect, aspectRatio = 364 
             사진 찍기
           </button>
         </li>
-        <li>
-          {/* 파일 보관함(iCloud/Files) — accept 제한 없음 → iOS Files 앱 포함 */}
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="w-full py-2 text-left text-b1-m text-black"
-          >
-            파일 선택
-          </button>
-        </li>
       </ul>
 
-      {/* 갤러리: accept=image/*, capture 없음 → 사진 보관함만 */}
       <input
         ref={galleryRef}
         type="file"
-        accept="image/*"
+        accept={ACCEPTED_IMAGE_TYPES}
         className="hidden"
         onChange={handleChange}
       />
@@ -101,15 +112,8 @@ export default function PhotoActionSheet({ onClose, onSelect, aspectRatio = 364 
       <input
         ref={cameraRef}
         type="file"
-        accept="image/*"
+        accept={ACCEPTED_IMAGE_TYPES}
         capture="environment"
-        className="hidden"
-        onChange={handleChange}
-      />
-      {/* 파일 선택: accept 제한 없음 → iOS의 경우 "Files(파일)" 브라우저 포함 */}
-      <input
-        ref={fileRef}
-        type="file"
         className="hidden"
         onChange={handleChange}
       />

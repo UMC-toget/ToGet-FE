@@ -1,11 +1,12 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import DefaultAvatar from '../../components/common/DefaultAvatar'
+import PhotoActionSheet from '../../components/common/PhotoActionSheet'
 import Toast from '../../components/common/Toast'
-import PhotoSourceSheet from './PhotoSourceSheet'
 import PhotoCropOverlay from './PhotoCropOverlay'
 import plusIcon from '../../assets/icon-plus.svg'
 
 const ERROR_TOAST_DURATION_MS = 2500
+const LOAD_ERROR_MESSAGE = '사진을 불러오지 못했어요. 다시 시도해 주세요.'
 
 interface ProfileAvatarProps {
   /** 이미 저장된 프로필 이미지 URL (있으면 초기 아바타로 표시) */
@@ -17,41 +18,26 @@ interface ProfileAvatarProps {
 /**
  * 프로필 사진 선택 아바타. 클릭하면 사진 등록 방식을 고르는 바텀시트가 열리고,
  * 사진을 고르면 원형 자르기 화면으로 이동합니다. 자르기를 완료하면 즉시 미리보기로 반영됩니다.
+ *
+ * 바텀시트 자체는 공통 컴포넌트 PhotoActionSheet를 쓰지만, 자르기 화면만은 프로필 사진 전용
+ * 원형 크롭(PhotoCropOverlay)을 renderCropper로 꽂아 넣어 그대로 유지합니다.
  */
 export default function ProfileAvatar({ imageUrl, onSelect }: ProfileAvatarProps) {
-  const libraryInputRef = useRef<HTMLInputElement>(null)
-  const cameraInputRef = useRef<HTMLInputElement>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [cropFile, setCropFile] = useState<File | null>(null)
-  const [errorToastOpen, setErrorToastOpen] = useState(false)
+  const [errorToastMessage, setErrorToastMessage] = useState<string | null>(null)
 
-  const showError = () => {
-    setErrorToastOpen(true)
-    setTimeout(() => setErrorToastOpen(false), ERROR_TOAST_DURATION_MS)
+  const showError = (message: string) => {
+    setErrorToastMessage(message)
+    setTimeout(() => setErrorToastMessage(null), ERROR_TOAST_DURATION_MS)
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    if (!file) return
-    setSheetOpen(false)
-    setCropFile(file)
-  }
-
-  const handleCropConfirm = (blob: Blob) => {
-    const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' })
+  const handleSelect = (file: File) => {
     setPreviewUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev)
       return URL.createObjectURL(file)
     })
-    setCropFile(null)
     onSelect?.(file)
-  }
-
-  const handleCropError = () => {
-    setCropFile(null)
-    showError()
   }
 
   const displayUrl = previewUrl ?? imageUrl
@@ -74,33 +60,25 @@ export default function ProfileAvatar({ imageUrl, onSelect }: ProfileAvatarProps
         </span>
       </button>
 
-      <input ref={libraryInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onChange={handleFileChange}
-        className="hidden"
-      />
-
-      <PhotoSourceSheet
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        onSelectPhoto={() => libraryInputRef.current?.click()}
-        onSelectCamera={() => cameraInputRef.current?.click()}
-      />
-
-      {cropFile && (
-        <PhotoCropOverlay
-          file={cropFile}
-          onCancel={() => setCropFile(null)}
-          onConfirm={handleCropConfirm}
-          onError={handleCropError}
+      {sheetOpen && (
+        <PhotoActionSheet
+          onClose={() => setSheetOpen(false)}
+          onSelect={handleSelect}
+          renderCropper={({ file, onCancel, onConfirm }) => (
+            <PhotoCropOverlay
+              file={file}
+              onCancel={onCancel}
+              onConfirm={(blob) => onConfirm(new File([blob], 'profile.jpg', { type: 'image/jpeg' }))}
+              onError={() => {
+                onCancel()
+                showError(LOAD_ERROR_MESSAGE)
+              }}
+            />
+          )}
         />
       )}
 
-      <Toast open={errorToastOpen} message="사진을 불러오지 못했어요. 다시 시도해 주세요." />
+      <Toast open={errorToastMessage !== null} message={errorToastMessage ?? ''} />
     </>
   )
 }
