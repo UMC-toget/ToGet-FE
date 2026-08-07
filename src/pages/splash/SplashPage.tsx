@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import splashVideo from '../../assets/splash.mp4'
+import splashGif from '../../assets/splash.gif'
 
-// 영상이 재생되지 않거나 ended가 발생하지 않는 경우를 대비한 안전장치 (영상 길이 4초보다 넉넉하게)
-const SPLASH_FALLBACK_MS = 6000
+// GIF는 영상과 달리 재생 종료를 알려주는 이벤트가 없어(onEnded 같은 게 없음), 타이머로만
+// 홈 이동을 트리거합니다. GIF 1회 재생 길이에 맞춰 조정하세요.
+// 타이머는 onLoad(첫 프레임이 실제로 그려지기 시작하는 시점)부터 재는데, 마운트 시점부터 재면
+// 다운로드가 느린 첫 방문(캐시 없음)에서 애니메이션이 끝나기 전에 홈으로 넘어가 버린다.
+const SPLASH_DURATION_MS = 4000
 
 /**
- * 서비스 진입 시 처음 표시되는 스플래시 화면. 디자이너 제공 영상 재생이 끝나면 홈 화면으로 이동합니다.
+ * 서비스 진입 시 처음 표시되는 스플래시 화면. GIF 재생 후 홈 화면으로 이동합니다.
  *
  * 로그인 화면으로 바로 보내지 않는 이유: 구글 OAuth 브랜딩 인증 요건상 비로그인 사용자도
  * 로그인 없이 서비스 내용을 볼 수 있는 홈페이지가 로그인 화면보다 먼저 노출돼야 한다.
@@ -15,6 +18,7 @@ const SPLASH_FALLBACK_MS = 6000
 export default function SplashPage() {
   const navigate = useNavigate()
   const navigatedRef = useRef(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const goToHome = useCallback(() => {
     if (navigatedRef.current) return
@@ -22,23 +26,29 @@ export default function SplashPage() {
     navigate('/home', { replace: true })
   }, [navigate])
 
-  useEffect(() => {
-    const timer = setTimeout(goToHome, SPLASH_FALLBACK_MS)
-    return () => clearTimeout(timer)
+  const handleLoad = useCallback(() => {
+    if (timerRef.current) return
+    timerRef.current = setTimeout(goToHome, SPLASH_DURATION_MS)
   }, [goToHome])
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
 
   return (
     <div className="mx-auto flex h-svh w-full max-w-[402px] items-center justify-center overflow-hidden bg-white">
-      <video
-        autoPlay
-        muted
-        playsInline
-        onEnded={goToHome}
-        onError={goToHome}
+      <img
+        src={splashGif}
+        alt=""
+        onLoad={handleLoad}
+        onError={(e) => {
+          console.error('스플래시 GIF 로드/디코딩 실패', e)
+          goToHome()
+        }}
         className="size-full object-cover"
-      >
-        <source src={splashVideo} type="video/mp4" />
-      </video>
+      />
     </div>
   )
 }
