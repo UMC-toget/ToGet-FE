@@ -24,7 +24,6 @@ const MENU_SECTIONS: { title: string; items: { label: string; path?: string }[] 
   {
     title: '설정',
     items: [
-      { label: '알림 설정' },
       { label: '고객 문의' },
       { label: '이용약관', path: '/terms' },
       { label: '개인정보 처리 방침', path: '/privacy-policy' },
