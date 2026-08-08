@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
 import StickyBottomBar from '../../components/common/StickyBottomBar'
@@ -32,6 +32,14 @@ export default function GroupPage() {
   const { data: profile } = useMyProfile()
   const { isLoggedIn } = useAuth()
 
+  // ── DEV 전용 UI 미리보기 오버라이드 ──────────────────────────
+  // /group/1?role=CREATOR|ADMIN|PARTICIPANT&status=SELECTING|SETTLING|PURCHASING|DELIVERING|ENDED
+  // API/토큰 없이 mock으로 역할×상태 조합을 바로 확인하기 위한 것. 프로덕션 빌드엔 영향 없음.
+  const [searchParams] = useSearchParams()
+  const devRole = import.meta.env.DEV ? (searchParams.get('role') as FundingMemberRole | null) : null
+  const devStatus = import.meta.env.DEV ? (searchParams.get('status') as GroupFundingStatus | null) : null
+  const devPreview = devRole !== null || devStatus !== null
+
   const [group, setGroup] = useState<TogetherGiftDashboard | null>(null)
   const [contributions, setContributions] = useState<ContributionItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -42,6 +50,13 @@ export default function GroupPage() {
 
   useEffect(() => {
     if (!id) return
+    // DEV 미리보기: API 기다리지 않고 mock 즉시 세팅 (status만 쿼리로 덮어씀)
+    if (devPreview) {
+      setGroup({ ...MOCK_DASHBOARD, status: devStatus ?? MOCK_DASHBOARD.status })
+      setContributions(MOCK_CONTRIBUTIONS)
+      setLoading(false)
+      return
+    }
     Promise.allSettled([
       getTogetherGiftDashboard(id),
       getContributions(id),
@@ -55,7 +70,7 @@ export default function GroupPage() {
       }
     }).catch(console.error)
       .finally(() => setLoading(false))
-  }, [id])
+  }, [id, devPreview, devStatus])
 
   if (loading) {
     return (
@@ -92,8 +107,10 @@ export default function GroupPage() {
 
   // 내 역할 = 대시보드 members[]에서 내 userId 매칭. 판별 불가(비로그인/미참여)면 최소 권한 PARTICIPANT로 취급
   const myRole: FundingMemberRole =
-    group.members.find(m => m.userId === profile?.userId)?.role ?? 'PARTICIPANT'
+    devRole ?? group.members.find(m => m.userId === profile?.userId)?.role ?? 'PARTICIPANT'
   const isHost = myRole === 'CREATOR'
+  // 미리보기 땐 역할별 CTA를 봐야 하므로 로그인된 것으로 취급 (게스트 뷰 회피)
+  const effectiveLoggedIn = devPreview ? true : isLoggedIn
   const isSettlingOrLater = group.status === 'SETTLING' || group.status === 'PURCHASING' || group.status === 'DELIVERING' || group.status === 'ENDED'
   const settleRoute = isHost ? `/group/${id}/settle/host` : `/group/${id}/settle`
 
@@ -182,7 +199,7 @@ export default function GroupPage() {
                 <h2 className="text-h3-sb text-[#000]">{group.title}</h2>
               )}
               {/* 함께선물 나가기: 선물 고르는 중 상태의 로그인한 비개설자(공동관리자·참여자)만. 비로그인은 아직 미참여라 미노출 */}
-              {group.status === 'SELECTING' && !isHost && isLoggedIn && (
+              {group.status === 'SELECTING' && !isHost && effectiveLoggedIn && (
                 <button
                   type="button"
                   onClick={() => setLeaveOpen(true)}
@@ -432,7 +449,7 @@ export default function GroupPage() {
                   >
                     더보기
                   </button>
-                ) : isLoggedIn ? (
+                ) : effectiveLoggedIn ? (
                   // 편지 남기기는 로그인 필요 액션 — 비로그인 게스트에겐 미노출
                   <button
                     type="button"
@@ -462,7 +479,7 @@ export default function GroupPage() {
 
       {/* 하단 고정 CTA */}
       <StickyBottomBar>
-        {!isLoggedIn ? (
+        {!effectiveLoggedIn ? (
           // 비로그인 참여자: H는 조회만 비로그인 OK → 참여하려면 로그인. 로그인 후 이 펀딩으로 복귀
           <Button
             className="pointer-events-auto"
