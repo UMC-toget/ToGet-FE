@@ -2,6 +2,7 @@ import type { MyFundingSummary } from '../../types/funding'
 import { getDdayLabel } from '../../utils/formatDate'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import LinkIcon from '../../components/icons/LinkIcon'
+import completeCat from '../../assets/complete-cat.svg'
 
 interface MyFundingCardProps {
   funding: MyFundingSummary
@@ -14,14 +15,18 @@ export default function MyFundingCard({ funding, onOpen, onShareInvite }: MyFund
   return (
     <div className="flex w-full shrink-0 flex-col gap-5 rounded-xl border border-gray-100 bg-white px-3.5 py-3">
       <button type="button" onClick={onOpen} className="flex w-full items-start gap-3 text-left">
-        <span className="flex size-20 shrink-0 items-center justify-center rounded-lg bg-background">
-          {funding.thumbnailImage && (
+        <span
+          className={`flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg ${funding.thumbnailImage ? 'bg-background' : 'bg-pink-100'}`}
+        >
+          {funding.thumbnailImage ? (
             <img
               src={funding.thumbnailImage}
               alt=""
               draggable={false}
               className="h-[52px] w-[48px] object-cover"
             />
+          ) : (
+            <img src={completeCat} alt="" className="size-16 object-contain" />
           )}
         </span>
         <div className="flex flex-1 flex-col gap-[18px]">
@@ -29,9 +34,11 @@ export default function MyFundingCard({ funding, onOpen, onShareInvite }: MyFund
             <div className="flex shrink-0 flex-col gap-[9px]">
               <div className="flex items-center gap-2">
                 <p className="whitespace-nowrap text-b2-m text-black">{funding.title}</p>
-                <span className="shrink-0 rounded-full bg-pink-100/50 px-2 py-1 text-caption2-m text-pink-500">
-                  {getDdayLabel(funding.anniversaryDate)}
-                </span>
+                {getDdayLabel(funding.anniversaryDate) && (
+                  <span className="shrink-0 rounded-full bg-pink-100/50 px-2 py-1 text-caption2-m text-pink-500">
+                    {getDdayLabel(funding.anniversaryDate)}
+                  </span>
+                )}
               </div>
               <p className="whitespace-nowrap text-caption1-r text-gray-700">
                 목표 {funding.targetAmount.toLocaleString()}원
