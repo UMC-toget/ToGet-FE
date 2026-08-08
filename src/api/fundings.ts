@@ -197,6 +197,8 @@ export interface SharedFundingResponse {
   progressRate: number | null
   /** showParticipantCount=false면 서버가 null로 내려줌 */
   participantCount: number | null
+  /** MY_GIFT 기준 SETTLING(진행 중) / ENDED(마감). 자동 마감 배치가 하루 지연될 수 있어 endDate가 아닌 이 값으로 판단 */
+  status: string
   gifts: {
     fundingGiftId: number
     giftName: string
@@ -226,7 +228,6 @@ export function sharedFundingToFundingDetail(
   messages: FundingMessage[],
 ): FundingDetail {
   const gaugePercent = data.progressRate != null ? Math.min(Math.round(data.progressRate), 100) : 0
-  const isEnded = new Date(data.endDate) < new Date()
 
   const wishlist: WishlistItem[] = data.gifts.map((g) => ({
     id: String(g.fundingGiftId),
@@ -251,7 +252,7 @@ export function sharedFundingToFundingDetail(
     gaugePercent,
     participantCount: data.participantCount,
     isOwner: false,
-    status: isEnded ? 'ENDED' : 'ACTIVE',
+    status: data.status,
     visibility: { ...data.visibility },
     wishlist,
     messages,
