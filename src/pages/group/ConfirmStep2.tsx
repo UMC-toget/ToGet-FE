@@ -21,8 +21,8 @@ interface Props {
 }
 
 function getRoleLabel(role: string) {
-  if (role === 'HOST') return '방장'
-  if (role === 'CO_HOST') return '공동관리자'
+  if (role === 'CREATOR') return '방장'
+  if (role === 'ADMIN') return '공동관리자'
   return '참여자'
 }
 

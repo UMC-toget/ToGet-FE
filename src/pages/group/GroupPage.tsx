@@ -10,7 +10,7 @@ import CandidateCard from './CandidateCard'
 import GroupSegmentTabs from './GroupSegmentTabs'
 import { STATUS_LABELS, ROLE_LABELS } from './groupConstants'
 import { getTogetherGiftDashboard, updateGroupFundingStatus, leaveGroupFunding } from '../../api/groupFundings'
-import type { TogetherGiftDashboard, GroupFundingStatus } from '../../api/groupFundings'
+import type { TogetherGiftDashboard, GroupFundingStatus, FundingMemberRole } from '../../api/groupFundings'
 import { getContributions } from '../../api/contributions'
 import type { ContributionItem } from '../../api/contributions'
 import EnvelopeButton from '../funding/EnvelopeButton'
@@ -46,8 +46,8 @@ export default function GroupPage() {
       getTogetherGiftDashboard(id),
       getContributions(id),
     ]).then(([dashboardRes, contribsRes]) => {
-      if (import.meta.env.DEV) setGroup(MOCK_DASHBOARD)
-      else if (dashboardRes.status === 'fulfilled') setGroup(dashboardRes.value)
+      if (dashboardRes.status === 'fulfilled') setGroup(dashboardRes.value)
+      else if (import.meta.env.DEV) setGroup(MOCK_DASHBOARD)
       if (contribsRes.status === 'fulfilled') {
         setContributions(contribsRes.value.contributions.filter(c => !!c.content))
       } else if (import.meta.env.DEV) {
@@ -90,10 +90,10 @@ export default function GroupPage() {
   const diffDays = Math.round((anniversary.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
   const dDayLabel = diffDays > 0 ? `D-${diffDays}` : diffDays === 0 ? 'D-Day' : `D+${Math.abs(diffDays)}`
 
-  // 내 역할 = 대시보드 members[]에서 내 userId 매칭. 판별 불가(비로그인/미참여)면 최소 권한 MEMBER로 취급
-  const myRole: 'HOST' | 'CO_HOST' | 'MEMBER' =
-    group.members.find(m => m.userId === profile?.userId)?.role ?? 'MEMBER'
-  const isHost = myRole === 'HOST'
+  // 내 역할 = 대시보드 members[]에서 내 userId 매칭. 판별 불가(비로그인/미참여)면 최소 권한 PARTICIPANT로 취급
+  const myRole: FundingMemberRole =
+    group.members.find(m => m.userId === profile?.userId)?.role ?? 'PARTICIPANT'
+  const isHost = myRole === 'CREATOR'
   const isSettlingOrLater = group.status === 'SETTLING' || group.status === 'PURCHASING' || group.status === 'DELIVERING' || group.status === 'ENDED'
   const settleRoute = isHost ? `/group/${id}/settle/host` : `/group/${id}/settle`
 
@@ -349,9 +349,9 @@ export default function GroupPage() {
                         ) : (
                           <div className="size-[26px] rounded-full bg-[#E4E4E4]" />
                         )}
-                        {(m.role === 'HOST' || m.role === 'CO_HOST') && (
+                        {(m.role === 'CREATOR' || m.role === 'ADMIN') && (
                           <img
-                            src={m.role === 'HOST' ? ribbonHost : ribbonCoHost}
+                            src={m.role === 'CREATOR' ? ribbonHost : ribbonCoHost}
                             alt=""
                             className="absolute left-[5px] -top-[5px] w-[17px]"
                           />

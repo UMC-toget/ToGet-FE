@@ -44,9 +44,9 @@ export default function CandidatesPage() {
       .finally(() => setLoading(false))
   }, [id])
 
-  // 후보 등록 권한 = 내 역할이 HOST/CO_HOST. members[]에서 내 userId 매칭 (비로그인/미참여면 false)
+  // 후보 등록 권한 = 내 역할이 CREATOR/ADMIN. members[]에서 내 userId 매칭 (비로그인/미참여면 false)
   const myRole = members.find(m => m.userId === profile?.userId)?.role
-  const isAdmin = myRole === 'HOST' || myRole === 'CO_HOST'
+  const isAdmin = myRole === 'CREATOR' || myRole === 'ADMIN'
 
   const voteCount = votedIds.size
   const atMax = voteCount >= MAX_VOTES
