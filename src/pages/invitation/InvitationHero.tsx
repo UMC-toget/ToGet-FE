@@ -23,12 +23,18 @@ export default function InvitationHero({ characterImageUrl }: Props) {
         aria-hidden
         className="pointer-events-none absolute left-1/2 top-[178px] w-[393px] max-w-none -translate-x-1/2"
       />
-      {/* 캐릭터 (피그마: x100 y222 201×184 — 프레임 중앙 기준) */}
+      {/* 캐릭터 (피그마: x100 y222 201×184 — 프레임 중앙 기준)
+          캐릭터 SVG마다 가로 비율이 달라서 높이 기준으로 고정해 세로 위치를 일정하게 맞춤 */}
       <img
         src={characterImageUrl ?? heroCat}
         alt=""
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-[222px] w-[201px] -translate-x-1/2"
+        onError={(e) => {
+          // BE가 준 S3 캐릭터 URL이 로드 실패하면 기본 고양이로 대체 (onError 해제해 무한 루프 방지)
+          e.currentTarget.onerror = null
+          e.currentTarget.src = heroCat
+        }}
+        className="pointer-events-none absolute left-1/2 top-[222px] h-[184px] w-auto -translate-x-1/2"
       />
       {/* 별/컨페티 (피그마 실측: 상단 별 y118, 가로 중심이 프레임 중앙보다 28px 왼쪽) */}
       <img

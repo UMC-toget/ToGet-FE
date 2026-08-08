@@ -6,12 +6,15 @@ export type GroupFundingStatus = 'SELECTING' | 'SETTLING' | 'PURCHASING' | 'DELI
 
 // ─── H01: 함께 선물 대시보드 ──────────────────────────────────
 
+/** 함께 선물 멤버 역할 (BE enum). CREATOR=방장, ADMIN=공동관리자, PARTICIPANT=참여자 */
+export type FundingMemberRole = 'CREATOR' | 'ADMIN' | 'PARTICIPANT'
+
 export interface MemberSummary {
   fundingMemberId: number
   userId: number
   name: string
   profileImageUrl: string | null
-  role: 'HOST' | 'CO_HOST' | 'MEMBER'
+  role: FundingMemberRole
 }
 
 export interface TopGift {
@@ -219,7 +222,7 @@ export function updateSettlementStatus(
 export function updateMemberRole(
   fundingId: number | string,
   memberId: number | string,
-  role: 'CO_HOST' | 'MEMBER',
+  role: 'ADMIN' | 'PARTICIPANT',
 ) {
   return unwrap<MemberSummary>(
     apiClient.patch(`/api/v1/fundings/${fundingId}/members/${memberId}/role`, { role }),

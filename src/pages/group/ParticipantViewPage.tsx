@@ -8,9 +8,9 @@ import { ROLE_LABELS } from './groupConstants'
 // 접근: 로그인한 모든 역할 | 참여자 더보기 — 조회 전용 (권한 변경 없음)
 
 const BADGE: Record<MemberSummary['role'], { label: string; className: string }> = {
-  HOST:    { label: '방장',  className: 'bg-pink-500 text-white' },
-  CO_HOST: { label: '부방장', className: 'bg-[#FFE3ED] text-pink-500' },
-  MEMBER:  { label: '참여자', className: 'bg-[#C1BCC0] text-white' },
+  CREATOR:     { label: '방장',  className: 'bg-pink-500 text-white' },
+  ADMIN:       { label: '부방장', className: 'bg-[#FFE3ED] text-pink-500' },
+  PARTICIPANT: { label: '참여자', className: 'bg-[#C1BCC0] text-white' },
 }
 
 export default function ParticipantViewPage() {
@@ -26,8 +26,8 @@ export default function ParticipantViewPage() {
       .finally(() => setLoading(false))
   }, [id])
 
-  const managers = members.filter(m => m.role === 'HOST' || m.role === 'CO_HOST')
-  const regularMembers = members.filter(m => m.role === 'MEMBER')
+  const managers = members.filter(m => m.role === 'CREATOR' || m.role === 'ADMIN')
+  const regularMembers = members.filter(m => m.role === 'PARTICIPANT')
 
   return (
     <div className="mx-auto flex h-dvh w-full max-w-[402px] flex-col bg-white">

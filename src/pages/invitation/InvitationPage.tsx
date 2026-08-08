@@ -4,6 +4,7 @@ import Button from '../../components/common/Button'
 import InvitationHero from './InvitationHero'
 import { getInvitationCard } from '../../api/fundings'
 import { fetchInvitationBackgrounds, fetchCharacters } from '../../api/metaApi'
+import { CHARACTER_SVGS } from './characterAssets'
 
 const DEFAULT_INVITATION = {
   title: '따뜻한 선물 초대장이 도착했어요',
@@ -44,8 +45,14 @@ export default function InvitationPage() {
         const bg = backgrounds.find((b) => b.id === card.backgroundId)
         if (bg) setGlowColor(bg.hexCode)
 
-        const character = characters.find((c) => c.id === card.characterId)
-        if (character) setCharacterImageUrl(character.imageUrl)
+        // 로컬 SVG가 있으면 우선 사용(선명), 없으면 BE PNG로 폴백
+        const localSvg = card.characterId != null ? CHARACTER_SVGS[card.characterId] : undefined
+        if (localSvg) {
+          setCharacterImageUrl(localSvg)
+        } else {
+          const character = characters.find((c) => c.id === card.characterId)
+          if (character) setCharacterImageUrl(character.imageUrl)
+        }
       } catch {
         // API 실패 시 기본값 유지
       }
