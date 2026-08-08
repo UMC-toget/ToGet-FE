@@ -75,18 +75,6 @@ export interface UserAccountInput {
   account: string
 }
 
-export interface Bank {
-  bankId: number
-  code: BankName
-  displayName: string
-  iconUrl: string | null
-}
-
-/** 은행 목록(로고 포함) — 관리자가 서버에서 관리하는 공통 카탈로그, 비로그인도 조회 가능 */
-export function getBanks() {
-  return unwrap<Bank[]>(apiClient.get('/api/v1/banks'))
-}
-
 export function getUserAccounts() {
   return unwrap<UserAccount[]>(apiClient.get('/api/v1/user-accounts'))
 }
