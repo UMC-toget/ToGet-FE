@@ -10,7 +10,7 @@ import SearchIcon from '../../components/icons/SearchIcon'
 import CaretDownIcon from '../../components/icons/CaretDownIcon'
 import CheckIcon from '../../components/icons/CheckIcon'
 import CloseIcon from '../../components/icons/CloseIcon'
-import PhotoActionSheet from '../../components/create/PhotoActionSheet'
+import PhotoActionSheet from '../../components/common/PhotoActionSheet'
 import { postGiftCandidate } from '../../api/groupFundings'
 import { MOCK_WISH_ITEMS } from '../../utils/wishData'
 import type { WishSourceItem, WishCategory } from '../../utils/wishData'
@@ -255,7 +255,7 @@ export default function CandidateNewPage() {
       {pageStep === 'direct' && (
         <div className="flex flex-1 flex-col overflow-y-auto px-[18px] pb-8 pt-7">
           <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2.5">
               <h2 className="text-h3-sb text-black">후보 선물을 등록해주세요</h2>
               <p className="text-caption1-r text-[#797378]">등록자 이름이 함께 표시돼요</p>
             </div>

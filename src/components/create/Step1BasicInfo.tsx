@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import DateSheet, { formatDisplay } from './DateSheet';
-import PhotoActionSheet from './PhotoActionSheet';
-import ImageCropper from './ImageCropper';
+import PhotoActionSheet from '../common/PhotoActionSheet';
 import ConfirmModal from '../common/ConfirmModal';
 
 // 대표 이미지(페이지 썸네일) 자르기 비율 - 목록/카드에서 쓰이는 와이드 배너 형태
@@ -32,7 +31,6 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
   const [openSheet, setOpenSheet] = useState<'date' | 'range' | null>(null);
   const [showPhotoSheet, setShowPhotoSheet] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
 
   const isValid = Boolean(title.trim() && anniversaryDate && preparationStartDate && preparationEndDate);
 
@@ -196,22 +194,11 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
       )}
       {showPhotoSheet && (
         <PhotoActionSheet
+          aspectRatio={THUMBNAIL_ASPECT_RATIO}
           onClose={() => setShowPhotoSheet(false)}
           onSelect={(file) => {
+            setStep1({ thumbnailImage: file });
             setShowPhotoSheet(false);
-            setPendingCropFile(file);
-          }}
-        />
-      )}
-
-      {pendingCropFile && (
-        <ImageCropper
-          file={pendingCropFile}
-          aspectRatio={THUMBNAIL_ASPECT_RATIO}
-          onCancel={() => setPendingCropFile(null)}
-          onConfirm={(croppedFile) => {
-            setStep1({ thumbnailImage: croppedFile });
-            setPendingCropFile(null);
           }}
         />
       )}

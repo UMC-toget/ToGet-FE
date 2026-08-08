@@ -4,8 +4,8 @@ import type { Product } from './products'
 
 interface ProductCardProps {
   product: Product
-  /** 좌상단에 표시되는 순위 번호 */
-  rank: number
+  /** 좌상단에 표시되는 순위 번호. '요즘 인기' 카테고리에서만 전달됩니다 */
+  rank?: number
   isLoggedIn: boolean
   /** 위시 등록 여부 (전역 위시 스토어 기준) */
   wished: boolean
@@ -18,8 +18,11 @@ interface ProductCardProps {
 /** 선물 둘러보기 상품 카드. 좌상단에 순위 번호, 우상단 버튼으로 위시 등록을 토글합니다. */
 export default function ProductCard({ product, rank, isLoggedIn, wished, onLoginRequired, onWishClick }: ProductCardProps) {
   const handleCardClick = () => {
-    if (!isLoggedIn) onLoginRequired()
-    // TODO: 상품 상세 화면 구현 후 로그인 상태일 때 해당 화면으로 라우팅
+    if (!isLoggedIn) {
+      onLoginRequired()
+      return
+    }
+    if (product.link) window.open(product.link, '_blank', 'noopener,noreferrer')
   }
 
   const handleWishClick = (e: { stopPropagation: () => void }) => {
@@ -32,15 +35,17 @@ export default function ProductCard({ product, rank, isLoggedIn, wished, onLogin
   }
 
   return (
-    <button type="button" onClick={handleCardClick} className="flex flex-col gap-2 text-left">
+    <button type="button" onClick={handleCardClick} className="flex flex-col text-left">
       <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-background p-3">
         {product.image && (
           <img src={product.image} alt={product.name} className="max-h-[75%] max-w-[80%] object-contain" />
         )}
-        <span className="absolute left-3 top-3 flex size-6 items-center justify-center rounded-full bg-gray-700 text-caption1-m text-white">
-          {/* 폰트 렌더링 특성상 숫자가 살짝 치우쳐 보여 보정합니다 (모바일 기준) */}
-          <span className="translate-y-[-0.5px]">{rank}</span>
-        </span>
+        {rank != null && (
+          <span className="absolute left-3 top-3 flex size-6 items-center justify-center rounded-full bg-gray-700 text-caption1-m text-white">
+            {/* 폰트 렌더링 특성상 숫자가 살짝 치우쳐 보여 보정합니다 (모바일 기준) */}
+            <span className="translate-y-[-0.5px]">{rank}</span>
+          </span>
+        )}
         <span
           role="button"
           tabIndex={0}
@@ -59,14 +64,14 @@ export default function ProductCard({ product, rank, isLoggedIn, wished, onLogin
           <GiftIcon className="size-4" />
         </span>
       </div>
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-1">
+      <div className="mt-2 flex flex-col">
+        <div className="flex items-center gap-2">
           <span className="text-caption1-r text-gray-700">{product.brand}</span>
-          <ChevronRightIcon className="size-5 text-gray-700" />
+          <ChevronRightIcon className="size-3 translate-y-0.5 text-gray-700" />
         </div>
-        <p className="text-b2-m leading-normal text-black">{product.name}</p>
+        <p className="mt-3 min-h-[36px] leading-[1.5] text-b2-m text-black">{product.name}</p>
       </div>
-      <p className="text-b2-m text-black">
+      <p className="mt-6 text-b2-m text-black">
         <span className="font-semibold">{product.price.toLocaleString()}</span>원
       </p>
     </button>

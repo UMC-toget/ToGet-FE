@@ -1,167 +1,132 @@
-import { useState } from 'react'
+import { useMemo, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import Header from '../../components/common/Header'
-import TextField from '../../components/common/TextField'
-import Button from '../../components/common/Button'
-import CloseIcon from '../../components/icons/CloseIcon'
-import { getProduct } from '../../api/products'
-import type { ApiProduct } from '../../api/products'
-import { useWishStore } from '../../store/wishStore'
+import { useWishForm } from './hooks/useWishForm'
+import { WishForm } from './components/WishForm'
+import { useWishedProducts } from './hooks/useWishedProducts'
+import { setPendingToast } from './hooks/useWishToast'
+import { updateWishlistItem } from '../../api/wishlists'
+import { uploadImage } from '../../utils/uploadImage'
 import type { WishType } from '../../store/wishStore'
 
-const WISH_TYPE_OPTIONS: { type: WishType; label: string }[] = [
-  { type: 'receive', label: '받고 싶은' },
-  { type: 'give', label: '주고 싶은' },
-]
-
-const NAME_MAX_LENGTH = 20
+const WISH_IMAGE_PREFIX = 'wishlists'
 
 interface WishEditFormProps {
-  productId: number
-  product?: ApiProduct
+  wishlistItemId: number
+  initialData?: {
+    name: string
+    price: number
+    purchaseUrl?: string
+    image?: string
+    wishType: WishType
+  }
 }
 
-/** 위시 수정 폼. product가 로딩된 뒤에만 마운트되어, 초기값이 정확히 채워집니다 */
-function WishEditForm({ productId, product }: WishEditFormProps) {
+/** 위시 수정 폼 (피그마 기준 frame 1716:106795 / 1716:106899) */
+function WishEditForm({ wishlistItemId, initialData }: WishEditFormProps) {
   const navigate = useNavigate()
-  // TODO: 위시 등록 자체가 아직 API 연동 전이라(useWishStore 참고) 여기서 읽어오는 위시 유형도 로컬 상태 기준입니다.
-  const { wishes } = useWishStore()
 
-  const initialWishTypes = wishes[productId] ?? []
-  const initialName = product?.name ?? ''
-  const initialPrice = product ? String(product.price) : ''
-  const initialPurchaseUrl = product?.purchaseUrl ?? ''
-  const initialImage = product?.imageUrl ?? null
+  const {
+    wishType,
+    setWishType,
+    name,
+    setName,
+    price,
+    setPrice,
+    purchaseUrl,
+    setPurchaseUrl,
+    image,
+    imageFile,
+    selectSheetOpen,
+    setSelectSheetOpen,
+    isFormValid,
+    handleFileSelect,
+    handleImageRemove,
+  } = useWishForm(initialData)
 
-  const [wishTypes, setWishTypes] = useState<WishType[]>(initialWishTypes)
-  const toggleWishType = (type: WishType) =>
-    setWishTypes((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]))
-  const [name, setName] = useState(initialName)
-  const [price, setPrice] = useState(initialPrice)
-  const [purchaseUrl, setPurchaseUrl] = useState(initialPurchaseUrl)
-  const [image, setImage] = useState<string | null>(initialImage)
-
-  // 피그마 기준: 필수값이 채워져 있어도 실제로 바뀐 내용이 없으면 "수정 완료"는 비활성 상태를 유지합니다.
-  const wishTypesChanged =
-    wishTypes.length !== initialWishTypes.length || wishTypes.some((t) => !initialWishTypes.includes(t))
-  const hasChanges =
-    wishTypesChanged ||
-    name !== initialName ||
-    price !== initialPrice ||
-    purchaseUrl !== initialPurchaseUrl ||
-    image !== initialImage
-  const isValid = name.length > 0 && price.length > 0 && wishTypes.length > 0 && hasChanges
-
-  const handleSubmit = () => {
-    // TODO: 위시 수정 API 연동 후 실제 저장 요청으로 교체 (wishType 변경분은 위시 등록 API와도 함께 연동 필요)
-    navigate(-1)
-  }
+  const handleSubmit = useCallback(async () => {
+    if (!isFormValid) return
+    const numericPrice = Number(price.replace(/\D/g, ''))
+    try {
+      const imageUrl = imageFile ? await uploadImage(WISH_IMAGE_PREFIX, imageFile) : image || undefined
+      await updateWishlistItem(wishlistItemId, {
+        name,
+        price: numericPrice,
+        purchaseUrl,
+        imageUrl,
+        type: wishType === 'receive' ? 'RECEIVE' : 'GIVE',
+      })
+      setPendingToast(
+        '1개의 선물을 수정 완료 했습니다',
+        initialData && {
+          type: 'edit',
+          wishlistItemId,
+          previousData: {
+            name: initialData.name,
+            price: initialData.price,
+            purchaseUrl: initialData.purchaseUrl ?? '',
+            imageUrl: initialData.image,
+            type: initialData.wishType === 'receive' ? 'RECEIVE' : 'GIVE',
+          },
+        },
+      )
+      navigate('/wish')
+    } catch (err) {
+      console.error('위시 수정 실패:', err)
+    }
+  }, [isFormValid, price, wishlistItemId, wishType, name, purchaseUrl, image, imageFile, initialData, navigate])
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
-      <Header title="위시 수정하기" />
-
-      <div className="flex flex-col gap-4 px-[18px] pt-4">
-        <div className="flex flex-col gap-2">
-          <label className="text-b1-m text-black">
-            위시 유형 <span className="text-pink-500">*</span>
-          </label>
-          <div className="flex items-center gap-2">
-            {WISH_TYPE_OPTIONS.map((option) => (
-              <button
-                key={option.type}
-                type="button"
-                onClick={() => toggleWishType(option.type)}
-                className={`rounded-full px-4 py-2 text-b2-m ${
-                  wishTypes.includes(option.type)
-                    ? 'bg-gray-900 text-white'
-                    : 'border border-gray-300 bg-white text-gray-700'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <TextField
-          label={
-            <>
-              선물 이름 <span className="text-pink-500">*</span>
-            </>
-          }
-          value={name}
-          maxLength={NAME_MAX_LENGTH}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="선물 이름을 입력해 주세요"
-        />
-
-        <TextField
-          label={
-            <>
-              선물 가격 <span className="text-pink-500">*</span>
-            </>
-          }
-          value={price ? Number(price).toLocaleString() : ''}
-          onChange={(e) => setPrice(e.target.value.replace(/\D/g, ''))}
-          suffix="원"
-          inputMode="numeric"
-          placeholder="선물 가격을 입력해 주세요"
-        />
-
-        <TextField
-          label="선물 구매처 링크"
-          value={purchaseUrl}
-          onChange={(e) => setPurchaseUrl(e.target.value)}
-          placeholder="구매처 링크를 입력해 주세요"
-        />
-
-        <div className="flex flex-col gap-2">
-          <label className="text-b1-m text-black">선물 이미지</label>
-          {image ? (
-            <div className="relative size-[123px] overflow-hidden rounded-2xl bg-background">
-              <img src={image} alt="" className="size-full object-cover" />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-                <button
-                  type="button"
-                  aria-label="이미지 삭제"
-                  onClick={() => setImage(null)}
-                  className="flex size-8 items-center justify-center rounded-2xl bg-gray-100 shadow-md"
-                >
-                  <CloseIcon className="size-[21px] text-black" />
-                </button>
-              </div>
-            </div>
-          ) : (
-            // TODO: 이미지 업로드 API가 없어 지금은 다시 추가하는 UI를 만들지 않았습니다.
-            <div className="flex size-[123px] items-center justify-center rounded-2xl bg-background text-caption1-r text-gray-400">
-              이미지 없음
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-auto px-[18px] pb-8 pt-4">
-        <Button disabled={!isValid} onClick={handleSubmit}>
-          수정 완료
-        </Button>
-      </div>
-    </div>
+    <WishForm
+      title="위시 수정하기"
+      submitText="수정 완료"
+      wishType={wishType}
+      onWishTypeChange={setWishType}
+      name={name}
+      onNameChange={setName}
+      price={price}
+      onPriceChange={setPrice}
+      purchaseUrl={purchaseUrl}
+      onPurchaseUrlChange={setPurchaseUrl}
+      image={image}
+      onImageRemove={handleImageRemove}
+      onImageClick={() => setSelectSheetOpen(true)}
+      selectSheetOpen={selectSheetOpen}
+      onSelectSheetClose={() => setSelectSheetOpen(false)}
+      onFileSelect={handleFileSelect}
+      isValid={isFormValid}
+      onSubmit={handleSubmit}
+    />
   )
 }
 
-/** 위시 수정하기 (피그마 기준). "수정 완료"를 눌러도 아직 실제로 저장되지는 않습니다 (TODO: 위시 수정 API 연동). */
+/** 위시 수정하기 (피그마 기준) */
 export default function WishEditPage() {
   const { id } = useParams()
-  const productId = Number(id)
-  const { data: product, isLoading } = useQuery({
-    queryKey: ['product', productId],
-    queryFn: () => getProduct(productId),
-    enabled: Number.isFinite(productId),
-  })
+  const wishlistItemId = Number(id)
+  const { rawItems } = useWishedProducts('all')
 
-  if (isLoading) return null
+  const currentItem = useMemo(() => {
+    return rawItems.find((item) => item.wishlistItemId === wishlistItemId)
+  }, [rawItems, wishlistItemId])
 
-  return <WishEditForm productId={productId} product={product} />
+  const initialData = useMemo(() => {
+    if (!currentItem) return undefined
+    return {
+      name: currentItem.name,
+      price: currentItem.price,
+      purchaseUrl: currentItem.purchaseUrl,
+      image: currentItem.imageUrl,
+      wishType: (currentItem.type === 'RECEIVE' ? 'receive' : 'give') as WishType,
+    }
+  }, [currentItem])
+
+  // 조회가 비동기라 initialData가 나중에 채워지는데, useWishForm의 useState 초기값은
+  // 마운트 시점 값만 캡처합니다. key로 데이터 도착 시 폼을 새로 마운트시켜 다시 채웁니다.
+  return (
+    <WishEditForm
+      key={currentItem ? 'loaded' : 'loading'}
+      wishlistItemId={wishlistItemId}
+      initialData={initialData}
+    />
+  )
 }

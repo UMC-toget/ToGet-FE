@@ -20,7 +20,7 @@ export interface ProductListResult {
   hasNext: boolean
 }
 
-export type ProductSort = 'LATEST' | 'OLDEST' | 'PRICE_ASC' | 'PRICE_DESC'
+export type ProductSort = 'LATEST' | 'OLDEST' | 'PRICE_ASC' | 'PRICE_DESC' | 'WISHLIST_DESC'
 
 export interface GetProductsParams {
   category?: string

@@ -46,13 +46,13 @@ export default function Toast({ message, open, actionLabel, onAction, standalone
       className={`fixed left-1/2 z-40 w-full max-w-[402px] -translate-x-1/2 px-[18px] ${bottom}`}
     >
       <div
-        className={`flex h-11 items-center rounded-[5px] bg-gray-100/80 px-4 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.3)] backdrop-blur-[30px] ${
+        className={`flex h-11 items-center rounded-[5px] bg-[rgba(30,29,30,0.8)] px-[14px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.3)] backdrop-blur-[30px] ${
           actionLabel ? 'justify-between gap-3' : 'justify-center'
         }`}
       >
-        <p className="text-b2-m text-black">{message}</p>
+        <p className="text-b2-m text-white">{message}</p>
         {actionLabel && (
-          <button type="button" onClick={onAction} className="shrink-0 text-b2-m font-semibold text-pink-500">
+          <button type="button" onClick={onAction} className="shrink-0 text-b2-m text-pink-100 underline">
             {actionLabel}
           </button>
         )}
