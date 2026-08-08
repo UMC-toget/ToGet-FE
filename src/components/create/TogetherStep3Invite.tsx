@@ -7,6 +7,8 @@ import { useMyProfile } from '../../hooks/useMyProfile';
 
 interface Props {
   onNext: () => void;
+  submitLabel?: string;
+  disabled?: boolean;
 }
 
 type Tab = 'message' | 'color' | 'character';
@@ -14,7 +16,7 @@ type Tab = 'message' | 'color' | 'character';
 const TITLE_MAX = 15;
 const CONTENT_MAX = 60;
 
-export default function TogetherStep3Invite({ onNext }: Props) {
+export default function TogetherStep3Invite({ onNext, submitLabel = '저장', disabled = false }: Props) {
   const { inviteTitle, inviteContent, inviteBackgroundId, inviteColor, inviteCharacter, setInvite } = useTogetherCreateStore();
   const [tab, setTab] = useState<Tab>('message');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
@@ -41,6 +43,7 @@ export default function TogetherStep3Invite({ onNext }: Props) {
   const displayTitle = inviteTitle || '초대장 제목';
   const displayContent = inviteContent || '초대장 내용';
   const isFormValid = inviteTitle.trim().length > 0 && inviteContent.trim().length > 0;
+  const isSubmitDisabled = !isFormValid || disabled;
 
   const changeCharacter = (delta: number) => {
     if (!characters.length) return;
@@ -212,12 +215,12 @@ export default function TogetherStep3Invite({ onNext }: Props) {
 
       <button
         onClick={onNext}
-        disabled={!isFormValid}
+        disabled={isSubmitDisabled}
         className={`w-full py-4 font-semibold rounded-xl mt-4 transition-colors ${
-          isFormValid ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-gray-300 text-white cursor-not-allowed'
+          !isSubmitDisabled ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-gray-300 text-white cursor-not-allowed'
         }`}
       >
-        저장
+        {submitLabel}
       </button>
 
       {/* 확대 미리보기 모달 */}

@@ -10,6 +10,7 @@ const HOME_FUNDING_PAGE_SIZE = 3
 function toMyFundingSummary(funding: MyFunding): MyFundingSummary {
   return {
     id: String(funding.fundingId),
+    fundingType: funding.fundingType as MyFundingSummary['fundingType'],
     title: funding.title,
     thumbnailImage: funding.thumbnailImageUrl,
     targetAmount: funding.targetAmount,

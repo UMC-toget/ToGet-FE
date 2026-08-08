@@ -17,7 +17,6 @@ import EnvelopeButton from '../funding/EnvelopeButton'
 import LetterModal from '../funding/LetterModal'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import { useAuth } from '../../hooks/useAuth'
-import { MOCK_DASHBOARD, MOCK_CONTRIBUTIONS } from './groupMock'
 import ribbonHost from '../../assets/ribbon-host.svg'
 import ribbonCoHost from '../../assets/ribbon-co-host.svg'
 import EmojiPopup from '../../components/common/EmojiPopup'
@@ -46,12 +45,15 @@ export default function GroupPage() {
       getTogetherGiftDashboard(id),
       getContributions(id),
     ]).then(([dashboardRes, contribsRes]) => {
-      if (import.meta.env.DEV) setGroup(MOCK_DASHBOARD)
-      else if (dashboardRes.status === 'fulfilled') setGroup(dashboardRes.value)
+      if (dashboardRes.status === 'fulfilled') {
+        setGroup(dashboardRes.value)
+      } else {
+        console.error('함께 선물 대시보드 조회 실패:', dashboardRes.reason)
+      }
       if (contribsRes.status === 'fulfilled') {
         setContributions(contribsRes.value.contributions.filter(c => !!c.content))
-      } else if (import.meta.env.DEV) {
-        setContributions(MOCK_CONTRIBUTIONS)
+      } else {
+        console.error('함께 선물 메시지 조회 실패:', contribsRes.reason)
       }
     }).catch(console.error)
       .finally(() => setLoading(false))
