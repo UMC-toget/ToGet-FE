@@ -16,6 +16,7 @@ import LetterModal from './LetterModal'
 import ParticipantList from './ParticipantList'
 import { getMyGiftDashboard, dashboardToFundingDetail, updateFundingStatus, getSharedFunding, sharedFundingToFundingDetail } from '../../api/fundings'
 import { getContributions, getContribution } from '../../api/contributions'
+import avatarCat from '../../assets/avatar-cat.svg'
 
 type OwnerTab = 'mine' | 'participants'
 
@@ -169,7 +170,7 @@ export default function FundingDetailPage() {
             {thumbnailSrc ? (
               <img src={thumbnailSrc} alt="" className="absolute inset-0 h-full w-full object-cover" />
             ) : (
-              <p className="text-caption1-r text-[#888888]">대표 이미지 삽입 영역</p>
+              <img src={avatarCat} alt="" className="size-16 opacity-30" />
             )}
             <div className="absolute inset-x-[18px] top-6 flex items-start justify-between">
               <span className="rounded-full border border-gray-300 bg-white px-4 py-2 text-b2-m leading-normal text-gray-700">

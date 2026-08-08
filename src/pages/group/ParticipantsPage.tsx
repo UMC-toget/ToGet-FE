@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
+import DefaultAvatar from '../../components/common/DefaultAvatar'
 import { getTogetherGiftDashboard, updateMemberRole, type MemberSummary } from '../../api/groupFundings'
 import { MOCK_DASHBOARD } from './groupMock'
 import GroupSegmentTabs from './GroupSegmentTabs'
@@ -174,7 +175,7 @@ function MemberCard({ member, menuOpen, onToggleMenu, onCloseMenu, onRoleChange 
           {profileImageUrl ? (
             <img src={profileImageUrl} alt={name} className="size-10 rounded-full object-cover" />
           ) : (
-            <div className="size-10 rounded-full bg-[#F7F5F8]" />
+            <DefaultAvatar className="size-10 shrink-0" />
           )}
         </div>
         <div className="flex flex-col gap-1">
