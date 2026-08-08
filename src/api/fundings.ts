@@ -74,7 +74,7 @@ export function updateFundingVisibility(fundingId: number | string, visibility: 
 
 export function updateFundingAccount(fundingId: number | string, userAccountId: number) {
   return unwrap<{ fundingId: number; userAccountId: number }>(
-    apiClient.put(`/api/v1/fundings/${fundingId}/account`, { userAccountId }),
+    apiClient.patch(`/api/v1/fundings/${fundingId}/account`, { userAccountId }),
   )
 }
 
