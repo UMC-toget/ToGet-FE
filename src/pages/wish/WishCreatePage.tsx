@@ -1,12 +1,15 @@
 import { useNavigate } from 'react-router-dom'
 import { useWishForm } from './hooks/useWishForm'
 import { WishForm } from './components/WishForm'
-import { useWishStore } from '../../store/wishStore'
+import { setPendingToast } from './hooks/useWishToast'
+import { createWishlistItem } from '../../api/wishlists'
+import { uploadImage } from '../../utils/uploadImage'
+
+const WISH_IMAGE_PREFIX = 'wishlists'
 
 /** 위시 등록하기 페이지 (피그마 기준 frame 1716:106685) */
 export default function WishCreatePage() {
   const navigate = useNavigate()
-  const addWish = useWishStore((state) => state.addWish)
 
   const {
     wishType,
@@ -18,24 +21,34 @@ export default function WishCreatePage() {
     purchaseUrl,
     setPurchaseUrl,
     image,
-    setImage,
+    imageFile,
     selectSheetOpen,
     setSelectSheetOpen,
     isFormValid,
     handleFileSelect,
+    handleImageRemove,
   } = useWishForm()
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isFormValid) return
     const numericPrice = Number(price.replace(/\D/g, ''))
-    const newId = Date.now()
-    addWish(newId, wishType, {
-      name,
-      price: numericPrice,
-      purchaseUrl,
-      image: image || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=500&auto=format&fit=crop&q=60',
-    })
-    navigate('/wish')
+    try {
+      const imageUrl = imageFile ? await uploadImage(WISH_IMAGE_PREFIX, imageFile) : image || undefined
+      const created = await createWishlistItem({
+        name,
+        price: numericPrice,
+        purchaseUrl,
+        imageUrl,
+        type: wishType === 'receive' ? 'RECEIVE' : 'GIVE',
+      })
+      setPendingToast('1개의 선물이 등록 되었습니다', {
+        type: 'create',
+        wishlistItemId: created.wishlistItemId,
+      })
+      navigate('/wish')
+    } catch (err) {
+      console.error('위시 아이템 생성 실패:', err)
+    }
   }
 
   return (
@@ -51,7 +64,7 @@ export default function WishCreatePage() {
       purchaseUrl={purchaseUrl}
       onPurchaseUrlChange={setPurchaseUrl}
       image={image}
-      onImageRemove={() => setImage(null)}
+      onImageRemove={handleImageRemove}
       onImageClick={() => setSelectSheetOpen(true)}
       selectSheetOpen={selectSheetOpen}
       onSelectSheetClose={() => setSelectSheetOpen(false)}

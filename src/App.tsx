@@ -5,7 +5,6 @@ import HomePage from './pages/home/HomePage'
 import WishPage from './pages/wish/WishPage'
 import WishCreatePage from './pages/wish/WishCreatePage'
 import WishSearchPage from './pages/wish/WishSearchPage'
-import WishImageCropPage from './pages/wish/WishImageCropPage'
 import WishEditPage from './pages/wish/WishEditPage'
 import MyPage from './pages/my/MyPage'
 import ProfileEditPage from './pages/my/ProfileEditPage'
@@ -59,7 +58,6 @@ function App() {
       <Route path="/wish" element={<WishPage />} />
       <Route path="/wish/create" element={<WishCreatePage />} />
       <Route path="/wish/search" element={<WishSearchPage />} />
-      <Route path="/wish/crop" element={<WishImageCropPage />} />
       <Route path="/wish/:id/edit" element={<WishEditPage />} />
       <Route path="/my" element={<MyPage />} />
       <Route path="/my/profile" element={<ProfileEditPage />} />

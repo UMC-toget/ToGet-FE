@@ -11,7 +11,7 @@ interface MenuRowProps {
  * 메뉴 리스트 행 (테두리 라운드 12px 카드)
  *
  * @example
- * <MenuRow label="알림 설정" onClick={() => navigate('/settings/notification')} />
+ * <MenuRow label="고객 문의" onClick={() => navigate('/support')} />
  * <MenuRow label="로그아웃" chevron={false} onClick={handleLogout} />
  */
 export default function MenuRow({ label, onClick, chevron = true }: MenuRowProps) {

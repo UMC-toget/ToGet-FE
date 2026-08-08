@@ -108,30 +108,45 @@ export default function ImageCropper({ file, aspectRatio, onCancel, onConfirm }:
       const right = x + w;
       const bottom = y + h;
 
-      // 정사각형 유지: 두 축 중 작은 쪽으로 size 결정
-      let size: number;
+      // aspectRatio(w/h) 유지: 드래그 폭/높이 중 더 작게 맞춰지는 쪽으로 크기 결정
+      const minW = aspectRatio >= 1 ? MIN_CROP * aspectRatio : MIN_CROP;
+      let dw: number;
+      let dh: number;
       let newX = x;
       let newY = y;
 
       if (corner === 'tl') {
-        size = Math.max(Math.min(right - mx, bottom - my), MIN_CROP);
-        newX = right - size;
-        newY = bottom - size;
+        dw = right - mx;
+        dh = bottom - my;
       } else if (corner === 'tr') {
-        size = Math.max(Math.min(mx - x, bottom - my), MIN_CROP);
-        newX = x;
-        newY = bottom - size;
+        dw = mx - x;
+        dh = bottom - my;
       } else if (corner === 'bl') {
-        size = Math.max(Math.min(right - mx, my - y), MIN_CROP);
-        newX = right - size;
+        dw = right - mx;
+        dh = my - y;
+      } else {
+        dw = mx - x;
+        dh = my - y;
+      }
+
+      const newW = Math.max(Math.min(dw, dh * aspectRatio), minW);
+      const newH = newW / aspectRatio;
+
+      if (corner === 'tl') {
+        newX = right - newW;
+        newY = bottom - newH;
+      } else if (corner === 'tr') {
+        newX = x;
+        newY = bottom - newH;
+      } else if (corner === 'bl') {
+        newX = right - newW;
         newY = y;
       } else {
-        size = Math.max(Math.min(mx - x, my - y), MIN_CROP);
         newX = x;
         newY = y;
       }
 
-      return { x: newX, y: newY, w: size, h: size };
+      return { x: newX, y: newY, w: newW, h: newH };
     });
   };
 
@@ -198,13 +213,14 @@ export default function ImageCropper({ file, aspectRatio, onCancel, onConfirm }:
   const cr = cropRect;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black">
+    <div className="fixed inset-0 z-50 flex justify-center bg-white">
+      <div className="flex w-full max-w-[402px] flex-col">
       {/* 헤더 */}
       <div className="flex items-center px-2 py-3">
         <button type="button" onClick={onCancel} className="p-2">
-          <ChevronLeftIcon className="size-6 text-white" />
+          <ChevronLeftIcon className="size-6 text-black" />
         </button>
-        <p className="flex-1 text-center text-[16px] font-medium text-white">사진 자르기</p>
+        <p className="flex-1 text-center text-[16px] font-medium text-black">사진 자르기</p>
         <div className="size-10" />
       </div>
 
@@ -311,6 +327,7 @@ export default function ImageCropper({ file, aspectRatio, onCancel, onConfirm }:
         >
           다음
         </button>
+      </div>
       </div>
     </div>
   );

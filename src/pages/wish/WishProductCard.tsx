@@ -14,6 +14,29 @@ interface WishProductCardProps {
   onToggleSelect?: () => void
   isGiftSelected?: boolean
   onToggleGiftSelect?: () => void
+  /** 검색 페이지에서 전달되면, 상품 이름 중 이 키워드와 일치하는 부분을 회색으로 표시합니다 (피그마 1716:105914 기준) */
+  highlightKeyword?: string
+}
+
+/** 상품 이름을 키워드 기준으로 나눠, 일치하는 부분만 gray-300으로 표시할 수 있게 세그먼트로 반환합니다 */
+function splitByKeyword(text: string, keyword: string) {
+  const trimmed = keyword.trim()
+  if (!trimmed) return [{ text, matched: false }]
+
+  const lowerText = text.toLowerCase()
+  const lowerKeyword = trimmed.toLowerCase()
+  const segments: { text: string; matched: boolean }[] = []
+  let cursor = 0
+  let idx = lowerText.indexOf(lowerKeyword, cursor)
+
+  while (idx !== -1) {
+    if (idx > cursor) segments.push({ text: text.slice(cursor, idx), matched: false })
+    segments.push({ text: text.slice(idx, idx + trimmed.length), matched: true })
+    cursor = idx + trimmed.length
+    idx = lowerText.indexOf(lowerKeyword, cursor)
+  }
+  if (cursor < text.length) segments.push({ text: text.slice(cursor), matched: false })
+  return segments
 }
 
 /** 위시 페이지 상품 카드. 카드를 누르면 구매처 외부 링크로 이동, "⋮"를 누르면 수정하기/삭제하기 시트가 뜹니다 (피그마 기준) */
@@ -25,6 +48,7 @@ const WishProductCard = memo(function WishProductCard({
   onToggleSelect,
   isGiftSelected = false,
   onToggleGiftSelect,
+  highlightKeyword,
 }: WishProductCardProps) {
   const navigate = useNavigate()
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -67,21 +91,18 @@ const WishProductCard = memo(function WishProductCard({
 
   return (
     <div className="relative flex flex-col gap-2">
-      <button
-        type="button"
-        onClick={handleCardClick}
-        className={`flex flex-col gap-2 text-left transition-opacity ${
-          isEditMode && !isSelected ? 'opacity-80' : 'opacity-100'
-        }`}
-      >
+      <button type="button" onClick={handleCardClick} className="flex flex-col text-left">
         <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-background p-3">
           <img src={product.image} alt={product.name} className="max-h-[85%] max-w-[85%] object-contain" />
 
-          {/* Edit mode selection check indicator */}
+          {/* 선택된 카드만 이미지 박스 전체에 어두운 레이어를 씌웁니다 (피그마 1746:51289 기준) */}
+          {isEditMode && isSelected && <div className="absolute inset-0 rounded-xl bg-[rgba(30,29,30,0.1)]" />}
+
+          {/* Edit mode selection check indicator (피그마 1716:99383 기준: 상품 추가 +버튼과 같은 자리) */}
           {isEditMode ? (
             <div
-              className={`absolute left-3 top-3 flex size-6 items-center justify-center rounded-full border shadow-sm transition-colors ${
-                isSelected ? 'border-pink-500 bg-pink-500 text-white' : 'border-gray-300 bg-white text-transparent'
+              className={`absolute right-3 top-3 flex size-6 items-center justify-center rounded-full shadow-sm transition-colors ${
+                isSelected ? 'bg-gray-900 text-white' : 'bg-white text-gray-300'
               }`}
             >
               <CheckIcon className="size-4 stroke-[3]" />
@@ -106,30 +127,35 @@ const WishProductCard = memo(function WishProductCard({
           )}
         </div>
 
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center justify-between">
-            <span className="text-caption1-r text-gray-700">{product.brand}</span>
-            {!isEditMode && (
-              <span
-                role="button"
-                tabIndex={0}
-                aria-label="더보기"
-                onClick={handleMoreClick}
-                onKeyDown={(e) => {
-                  if (e.key !== 'Enter' && e.key !== ' ') return
-                  e.preventDefault()
-                  handleMoreClick(e)
-                }}
-                className="flex size-5 items-center justify-center text-gray-700 hover:text-black"
-              >
-                <MoreVerticalIcon className="size-5" />
-              </span>
-            )}
+        <div className="mt-2 flex flex-col">
+          <div className="flex items-center justify-end">
+            <span
+              role="button"
+              tabIndex={0}
+              aria-label="더보기"
+              onClick={handleMoreClick}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return
+                e.preventDefault()
+                handleMoreClick(e)
+              }}
+              className="flex size-5 items-center justify-center text-gray-700 hover:text-black"
+            >
+              <MoreVerticalIcon className="size-5" />
+            </span>
           </div>
-          <p className="text-b2-m leading-normal text-black line-clamp-2">{product.name}</p>
+          <p className="mt-3 min-h-[36px] leading-[1.5] text-b2-m text-black">
+            {highlightKeyword
+              ? splitByKeyword(product.name, highlightKeyword).map((segment, i) => (
+                  <span key={i} className={segment.matched ? 'text-gray-300' : undefined}>
+                    {segment.text}
+                  </span>
+                ))
+              : product.name}
+          </p>
         </div>
 
-        <p className="text-b2-m text-black">
+        <p className="mt-6 text-b2-m text-black">
           <span className="font-semibold">{product.price.toLocaleString()}</span>원
         </p>
       </button>

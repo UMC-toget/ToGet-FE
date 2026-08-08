@@ -2,7 +2,7 @@ import Header from '../../../components/common/Header'
 import TextField from '../../../components/common/TextField'
 import Button from '../../../components/common/Button'
 import CloseIcon from '../../../components/icons/CloseIcon'
-import ImageSelectSheet from '../ImageSelectSheet'
+import PhotoActionSheet from '../../../components/common/PhotoActionSheet'
 import type { WishType } from '../../../store/wishStore'
 
 const WISH_TYPE_OPTIONS: { type: WishType; label: string }[] = [
@@ -10,7 +10,8 @@ const WISH_TYPE_OPTIONS: { type: WishType; label: string }[] = [
   { type: 'give', label: '주고 싶은' },
 ]
 
-const NAME_MAX_LENGTH = 20
+const NAME_MAX_LENGTH = 30
+const PRICE_MAX_LENGTH = 15
 
 interface WishFormProps {
   title: string
@@ -69,7 +70,7 @@ export function WishForm({
                 key={option.type}
                 type="button"
                 onClick={() => onWishTypeChange(option.type)}
-                className={`rounded-full px-4 py-2 text-b2-m ${
+                className={`rounded-full px-4 py-3 text-b2-m ${
                   wishType === option.type
                     ? 'bg-gray-900 text-white'
                     : 'border border-gray-300 bg-white text-gray-700'
@@ -90,6 +91,7 @@ export function WishForm({
           }
           value={name}
           maxLength={NAME_MAX_LENGTH}
+          hideCounter
           onChange={(e) => onNameChange(e.target.value)}
           placeholder={
             wishType === 'receive'
@@ -106,6 +108,8 @@ export function WishForm({
             </>
           }
           value={price ? Number(price).toLocaleString() : ''}
+          maxLength={PRICE_MAX_LENGTH}
+          hideCounter
           onChange={(e) => onPriceChange(e.target.value.replace(/\D/g, ''))}
           suffix="원"
           inputMode="numeric"
@@ -114,14 +118,18 @@ export function WishForm({
 
         {/* 선물 구매처 링크 */}
         <TextField
-          label="선물 구매처 링크"
+          label={
+            <>
+              선물 구매처 링크 <span className="text-pink-500">*</span>
+            </>
+          }
           value={purchaseUrl}
           onChange={(e) => onPurchaseUrlChange(e.target.value)}
           placeholder="구매처 링크를 입력해 주세요"
         />
 
         {/* 선물 이미지 */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <label className="text-b1-m text-black">선물 이미지</label>
 
           {image ? (
@@ -144,9 +152,9 @@ export function WishForm({
                     e.stopPropagation()
                     onImageRemove()
                   }}
-                  className="flex size-8 items-center justify-center rounded-full bg-white text-gray-900 shadow-sm transition-transform hover:scale-105"
+                  className="flex size-8 items-center justify-center rounded-full bg-gray-100 text-gray-700 shadow-sm transition-transform hover:scale-105"
                 >
-                  <CloseIcon className="size-5 text-gray-900" />
+                  <CloseIcon className="size-5 text-gray-700" />
                 </button>
               </div>
             </div>
@@ -171,11 +179,9 @@ export function WishForm({
       </div>
 
       {/* Modals & Sheets */}
-      <ImageSelectSheet
-        open={selectSheetOpen}
-        onClose={onSelectSheetClose}
-        onFileSelect={onFileSelect}
-      />
+      {selectSheetOpen && (
+        <PhotoActionSheet onClose={onSelectSheetClose} onSelect={onFileSelect} aspectRatio={1} />
+      )}
     </div>
   )
 }
