@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { X, Expand, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTogetherCreateStore } from '../../store/togetherCreateStore';
-import { getInvitationAccent, useInvitationMeta } from './Mascot';
+import { getCharacterImageSrc, getInvitationAccent, useInvitationMeta } from './Mascot';
 import { TogetLogoMark, InviteSparkles } from './Step5Invite';
 import { useMyProfile } from '../../hooks/useMyProfile';
 
@@ -52,7 +52,7 @@ export default function TogetherStep3Invite({ onNext }: Props) {
   const currentCharacter = characters.find((item) => item.id === inviteCharacter) ?? characters[0];
   const currentCharacterIndex = Math.max(0, characters.findIndex((item) => item.id === currentCharacter?.id));
   const currentCharacterNumber = String(currentCharacterIndex + 1).padStart(2, '0');
-  const currentCharacterImage = currentCharacter?.imageUrl;
+  const currentCharacterImage = getCharacterImageSrc(currentCharacter);
   const isWhite = inviteColor === '#FFFFFF';
   const accentColor = isWhite ? getInvitationAccent(inviteColor) : inviteColor;
   const glowColor = isWhite ? '#D1D5DB' : inviteColor;

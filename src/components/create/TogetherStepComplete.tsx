@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, Link, X } from 'lucide-react';
 import { useTogetherCreateStore } from '../../store/togetherCreateStore';
-import { getInvitationAccent, useInvitationMeta } from './Mascot';
+import { getCharacterImageSrc, getInvitationAccent, useInvitationMeta } from './Mascot';
 import heroStars from '../../assets/hero-stars.svg';
 
 // 아직 "함께 선물" 준비방 상세 페이지가 없어서, 우선 홈으로 이동합니다.
@@ -11,7 +11,7 @@ export default function TogetherStepComplete() {
   const { roomName, inviteCharacter, inviteBackgroundId, inviteColor } = useTogetherCreateStore();
   const [copied, setCopied] = useState(false);
   const { backgrounds, characters } = useInvitationMeta();
-  const characterImageUrl = characters.find((item) => item.id === inviteCharacter)?.imageUrl;
+  const characterImageUrl = getCharacterImageSrc(characters.find((item) => item.id === inviteCharacter));
   const selectedColor = backgrounds.find((item) => item.id === inviteBackgroundId)?.hexCode ?? inviteColor;
   const glowColor = selectedColor === '#FFFFFF' ? '#D1D5DB' : selectedColor;
   const accentColor = getInvitationAccent(selectedColor);
