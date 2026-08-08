@@ -41,7 +41,7 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
             placeholder="준비방 이름을 입력해주세요"
             value={roomName}
             onChange={(e) => setStep1({ roomName: e.target.value })}
-            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-50 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
           />
         </div>
 
@@ -55,7 +55,7 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
             placeholder="선물 받을 사람의 이름을 입력해주세요"
             value={recipientName}
             onChange={(e) => setStep1({ recipientName: e.target.value })}
-            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-50 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
           />
         </div>
 
@@ -67,7 +67,7 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
           <button
             type="button"
             onClick={() => setOpenDateSheet(true)}
-            className="w-full flex items-center justify-between rounded-xl px-4 py-3 text-sm text-left bg-gray-50 border border-transparent"
+            className="w-full flex items-center justify-between rounded-xl px-4 py-3 text-sm text-left bg-gray-100/70 border border-transparent"
           >
             <span className={giftDate ? 'text-gray-800' : 'text-gray-400'}>
               {giftDate ? formatDisplay(giftDate) : '선물을 받고 싶은 날을 선택해주세요'}
@@ -86,7 +86,7 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
             placeholder="선물 준비에 대해 간단히 소개 해주세요"
             value={memo}
             onChange={(e) => setStep1({ memo: e.target.value })}
-            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-50 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
           />
         </div>
 
