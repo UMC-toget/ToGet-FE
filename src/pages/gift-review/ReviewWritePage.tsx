@@ -215,7 +215,7 @@ export default function ReviewWritePage() {
       }
 
       const previewData: ReviewPreviewData = {
-        senderName: MOCK_USER.name,
+        authorName: config.showFrom ? MOCK_USER.name : null,
         title,
         content,
         colorId,
