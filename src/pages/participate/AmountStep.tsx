@@ -12,8 +12,9 @@ interface AmountStepProps {
 /** E03 3단계: 참여 금액 선택 (피그마 #1714:68406) */
 export default function AmountStep({ funding, amount, onAmountChange }: AmountStepProps) {
   const recommended = getRecommendedAmounts(new Date(funding.anniversaryDate))
-  // 직접 입력 중에는 '원' 없이 숫자만 표시 (디자인 기준)
-  const formatted = amount != null && amount > 0 ? amount.toLocaleString() : ''
+  // 직접 입력 중에는 '원' 없이 숫자만 표시 (디자인 기준). 0='금액 없이' 선택 시엔 '마음만 보내기' 표시
+  const formatted =
+    amount != null && amount > 0 ? amount.toLocaleString() : amount === 0 ? '마음만 보내기' : ''
 
   const handleInput = (value: string) => {
     // 앞자리 0 제거 (D 섹션 가격 입력의 '첫 숫자 1~9' 규칙과 동일) — '0'만 입력해도 미선택 유지
