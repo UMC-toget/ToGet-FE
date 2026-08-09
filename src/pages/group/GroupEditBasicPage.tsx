@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
 import StickyBottomBar from '../../components/common/StickyBottomBar'
@@ -10,26 +10,62 @@ import PhotoActionSheet from '../../components/common/PhotoActionSheet'
 import ImageCropper from '../../components/common/ImageCropper'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import { useTogetherCreateStore } from '../../store/togetherCreateStore'
+import { updateFundingBasicInfo } from '../../api/fundings'
+import { uploadImage } from '../../utils/uploadImage'
 
 // 접근: 개설자 전용 | 선물 페이지 수정 1단계 — 기본 정보 (G섹션 store 재사용)
 const THUMBNAIL_ASPECT_RATIO = 1
 
+function CalendarIcon() {
+  return (
+    <svg width="24" height="24" viewBox="326 10.9 24 24" fill="none" className="shrink-0">
+      <path d="M330 20.0032H346M330 20.0032V28.8034C330 29.9235 330 30.4833 330.218 30.9111C330.41 31.2874 330.715 31.5937 331.092 31.7855C331.519 32.0032 332.079 32.0032 333.197 32.0032H342.803C343.921 32.0032 344.48 32.0032 344.907 31.7855C345.284 31.5937 345.59 31.2874 345.782 30.9111C346 30.4837 346 29.9247 346 28.8068V20.0032M330 20.0032V19.2034C330 18.0833 330 17.5228 330.218 17.095C330.41 16.7187 330.715 16.413 331.092 16.2212C331.519 16.0032 332.079 16.0032 333.197 16.0032H334M346 20.0032V19.2001C346 18.0822 346 17.5224 345.782 17.095C345.59 16.7187 345.284 16.413 344.907 16.2212C344.48 16.0032 343.92 16.0032 342.8 16.0032H342M334 16.0032H342M334 16.0032V13.8125M342 16.0032V13.8125M342 24.0032H334" stroke="#1E1D1E" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 export default function GroupEditBasicPage() {
   const navigate = useNavigate()
+  const { id } = useParams()
   const { roomName, recipientName, giftDate, memo, thumbnailImage, setStep1 } = useTogetherCreateStore()
 
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [openDateSheet, setOpenDateSheet] = useState(false)
+  const [openPeriodSheet, setOpenPeriodSheet] = useState(false)
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
   const [showPhotoSheet, setShowPhotoSheet] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
   const [pendingCropFile, setPendingCropFile] = useState<File | null>(null)
 
-  const isValid = Boolean(roomName.trim() && recipientName.trim() && giftDate)
+  const isValid = Boolean(roomName.trim() && recipientName.trim() && giftDate && startDate && endDate)
 
-  const handleSubmit = () => {
-    if (!isValid) return
-    // TODO: 기본 정보 수정 API 연동 (G섹션 저장 로직 재사용)
-    navigate(-1)
+  const handleSubmit = async () => {
+    if (!isValid || !id || isSaving) return
+    setIsSaving(true)
+    setSaveError('')
+
+    try {
+      const thumbnailImageUrl = thumbnailImage instanceof File
+        ? await uploadImage('fundings/thumbnails', thumbnailImage)
+        : thumbnailImage
+      await updateFundingBasicInfo(id, {
+        title: roomName,
+        anniversaryDate: giftDate,
+        startDate,
+        endDate,
+        introduction: memo,
+        thumbnailImageUrl,
+      })
+      setStep1({ thumbnailImage: thumbnailImageUrl })
+      navigate(-1)
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : '수정 저장에 실패했어요. 잠시 후 다시 시도해 주세요.')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -94,9 +130,7 @@ export default function GroupEditBasicPage() {
             <span className={giftDate ? 'text-b1-r text-black' : 'text-b1-r text-gray-400'}>
               {giftDate ? formatDisplay(giftDate) : '선물을 받고 싶은 날을 선택해주세요'}
             </span>
-            <svg width="24" height="24" viewBox="326 10.9 24 24" fill="none" className="shrink-0">
-              <path d="M330 20.0032H346M330 20.0032V28.8034C330 29.9235 330 30.4833 330.218 30.9111C330.41 31.2874 330.715 31.5937 331.092 31.7855C331.519 32.0032 332.079 32.0032 333.197 32.0032H342.803C343.921 32.0032 344.48 32.0032 344.907 31.7855C345.284 31.5937 345.59 31.2874 345.782 30.9111C346 30.4837 346 29.9247 346 28.8068V20.0032M330 20.0032V19.2034C330 18.0833 330 17.5228 330.218 17.095C330.41 16.7187 330.715 16.413 331.092 16.2212C331.519 16.0032 332.079 16.0032 333.197 16.0032H334M346 20.0032V19.2001C346 18.0822 346 17.5224 345.782 17.095C345.59 16.7187 345.284 16.413 344.907 16.2212C344.48 16.0032 343.92 16.0032 342.8 16.0032H342M334 16.0032H342M334 16.0032V13.8125M342 16.0032V13.8125M342 24.0032H334" stroke="#1E1D1E" strokeWidth="1.5" strokeLinejoin="round" />
-            </svg>
+            <CalendarIcon />
           </button>
         </div>
 
@@ -147,8 +181,11 @@ export default function GroupEditBasicPage() {
       </div>
 
       <StickyBottomBar>
-        <Button className="pointer-events-auto" disabled={!isValid} onClick={handleSubmit}>
-          수정 완료
+        {saveError && (
+          <p className="pointer-events-auto mb-2 text-caption1-r text-pink-500">{saveError}</p>
+        )}
+        <Button className="pointer-events-auto" disabled={!isValid || isSaving} onClick={handleSubmit}>
+          {isSaving ? '저장 중…' : '수정 완료'}
         </Button>
       </StickyBottomBar>
 
@@ -160,6 +197,22 @@ export default function GroupEditBasicPage() {
           onConfirm={date => {
             setStep1({ giftDate: date })
             setOpenDateSheet(false)
+            // 선물 필요 날짜 저장 → 이어서 준비 기간(시작일/종료일) 시트 오픈
+            setOpenPeriodSheet(true)
+          }}
+        />
+      )}
+
+      {openPeriodSheet && (
+        <DateSheet
+          mode="range"
+          initialStart={startDate || undefined}
+          initialEnd={endDate || undefined}
+          onClose={() => setOpenPeriodSheet(false)}
+          onConfirm={(start, end) => {
+            setStartDate(start)
+            setEndDate(end)
+            setOpenPeriodSheet(false)
           }}
         />
       )}

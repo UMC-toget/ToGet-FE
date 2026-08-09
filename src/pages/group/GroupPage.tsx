@@ -10,7 +10,7 @@ import CandidateCard from './CandidateCard'
 import GroupSegmentTabs from './GroupSegmentTabs'
 import { STATUS_LABELS, ROLE_LABELS } from './groupConstants'
 import { getTogetherGiftDashboard, updateGroupFundingStatus, leaveGroupFunding } from '../../api/groupFundings'
-import type { TogetherGiftDashboard, GroupFundingStatus } from '../../api/groupFundings'
+import type { TogetherGiftDashboard, GroupFundingStatus, FundingMemberRole } from '../../api/groupFundings'
 import { getContributions } from '../../api/contributions'
 import type { ContributionItem } from '../../api/contributions'
 import EnvelopeButton from '../funding/EnvelopeButton'
@@ -24,7 +24,7 @@ import { formatDateDots } from '../../utils/formatDate'
 import { copyToClipboard } from '../../utils/clipboard'
 import { setReturnUrl } from '../../utils/returnUrl'
 
-// 접근: 전체 (비로그인 조회 OK, 투표·편지 등 액션은 로그인 필요) | H01 함께 선물 메인 — 역할(HOST·CO_HOST·MEMBER)·상태(SELECTING→ENDED)별 분기
+// 접근: 전체 (비로그인 조회 OK, 투표·편지 등 액션은 로그인 필요) | H01 함께 선물 메인 — 역할(CREATOR·ADMIN·PARTICIPANT)·상태(SELECTING→ENDED)별 분기
 export default function GroupPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -92,10 +92,10 @@ export default function GroupPage() {
   const diffDays = Math.round((anniversary.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
   const dDayLabel = diffDays > 0 ? `D-${diffDays}` : diffDays === 0 ? 'D-Day' : `D+${Math.abs(diffDays)}`
 
-  // 내 역할 = 대시보드 members[]에서 내 userId 매칭. 판별 불가(비로그인/미참여)면 최소 권한 MEMBER로 취급
-  const myRole: 'HOST' | 'CO_HOST' | 'MEMBER' =
-    group.members.find(m => m.userId === profile?.userId)?.role ?? 'MEMBER'
-  const isHost = myRole === 'HOST'
+  // 내 역할 = 대시보드 members[]에서 내 userId 매칭. 판별 불가(비로그인/미참여)면 최소 권한 PARTICIPANT로 취급
+  const myRole: FundingMemberRole =
+    group.members.find(m => m.userId === profile?.userId)?.role ?? 'PARTICIPANT'
+  const isHost = myRole === 'CREATOR'
   const isSettlingOrLater = group.status === 'SETTLING' || group.status === 'PURCHASING' || group.status === 'DELIVERING' || group.status === 'ENDED'
   const settleRoute = isHost ? `/group/${id}/settle/host` : `/group/${id}/settle`
 
@@ -143,7 +143,7 @@ export default function GroupPage() {
     <div className="mx-auto flex h-dvh w-full max-w-[402px] flex-col bg-white">
       <Header title="함께 선물 페이지" />
 
-      {/* 세그먼트 탭: 개설자(HOST)일 때만 노출. 공동관리자·참여자에겐 탭 없음 */}
+      {/* 세그먼트 탭: 개설자(CREATOR)일 때만 노출. 공동관리자·참여자에겐 탭 없음 */}
       {isHost && (
         <GroupSegmentTabs
           tabs={[
@@ -351,9 +351,9 @@ export default function GroupPage() {
                         ) : (
                           <div className="size-[26px] rounded-full bg-[#E4E4E4]" />
                         )}
-                        {(m.role === 'HOST' || m.role === 'CO_HOST') && (
+                        {(m.role === 'CREATOR' || m.role === 'ADMIN') && (
                           <img
-                            src={m.role === 'HOST' ? ribbonHost : ribbonCoHost}
+                            src={m.role === 'CREATOR' ? ribbonHost : ribbonCoHost}
                             alt=""
                             className="absolute left-[5px] -top-[5px] w-[17px]"
                           />

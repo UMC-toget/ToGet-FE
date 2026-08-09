@@ -103,7 +103,7 @@ export default function GroupEditAccountPage() {
                   return (
                     <div
                       key={acc.id}
-                      className="rounded-xl border border-gray-100 bg-white px-[14px] py-3"
+                      className={`rounded-xl border bg-white px-[14px] py-3 ${selected ? 'border-[#FEAAC9]' : 'border-gray-100'}`}
                     >
                       <button
                         type="button"

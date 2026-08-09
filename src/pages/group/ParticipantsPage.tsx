@@ -8,9 +8,9 @@ import { ROLE_LABELS } from './groupConstants'
 
 // 접근: 로그인한 모든 역할 (역할 변경·권한 부여는 개설자·공동관리자) | 참여자 더보기
 const BADGE: Record<MemberSummary['role'], { label: string; className: string }> = {
-  HOST: { label: '방장', className: 'bg-pink-500 text-white' },
-  CO_HOST: { label: '부방장', className: 'bg-[#FFE3ED] text-pink-500' },
-  MEMBER: { label: '참여자', className: 'bg-[#C1BCC0] text-white' },
+  CREATOR: { label: '방장', className: 'bg-pink-500 text-white' },
+  ADMIN: { label: '부방장', className: 'bg-[#FFE3ED] text-pink-500' },
+  PARTICIPANT: { label: '참여자', className: 'bg-[#C1BCC0] text-white' },
 }
 
 
@@ -29,7 +29,7 @@ export default function ParticipantsPage() {
       .finally(() => setLoading(false))
   }, [id])
 
-  const handleRoleChange = async (memberId: number, newRole: 'CO_HOST' | 'MEMBER') => {
+  const handleRoleChange = async (memberId: number, newRole: 'ADMIN' | 'PARTICIPANT') => {
     setOpenMenuId(null)
     setMembers(prev => prev.map(m => m.fundingMemberId === memberId ? { ...m, role: newRole } : m))
     try {
@@ -39,8 +39,8 @@ export default function ParticipantsPage() {
     }
   }
 
-  const managers = members.filter(m => m.role === 'HOST' || m.role === 'CO_HOST')
-  const regularMembers = members.filter(m => m.role === 'MEMBER')
+  const managers = members.filter(m => m.role === 'CREATOR' || m.role === 'ADMIN')
+  const regularMembers = members.filter(m => m.role === 'PARTICIPANT')
 
   return (
     <div className="mx-auto flex h-dvh w-full max-w-[402px] flex-col bg-white">
@@ -118,7 +118,7 @@ interface MemberSectionProps {
   members: MemberSummary[]
   openMenuId: number | null
   setOpenMenuId: (id: number | null) => void
-  onRoleChange: (memberId: number, role: 'CO_HOST' | 'MEMBER') => void
+  onRoleChange: (memberId: number, role: 'ADMIN' | 'PARTICIPANT') => void
 }
 
 function MemberSection({ title, members, openMenuId, setOpenMenuId, onRoleChange }: MemberSectionProps) {
@@ -147,13 +147,13 @@ interface MemberCardProps {
   menuOpen: boolean
   onToggleMenu: () => void
   onCloseMenu: () => void
-  onRoleChange: (memberId: number, role: 'CO_HOST' | 'MEMBER') => void
+  onRoleChange: (memberId: number, role: 'ADMIN' | 'PARTICIPANT') => void
 }
 
 function MemberCard({ member, menuOpen, onToggleMenu, onCloseMenu, onRoleChange }: MemberCardProps) {
   const { role, name, profileImageUrl, fundingMemberId } = member
   const badge = BADGE[role]
-  const canChangeRole = role === 'CO_HOST' || role === 'MEMBER'
+  const canChangeRole = role === 'ADMIN' || role === 'PARTICIPANT'
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -202,7 +202,7 @@ function MemberCard({ member, menuOpen, onToggleMenu, onCloseMenu, onRoleChange 
             <button
               type="button"
               className="w-full pl-[9px] pr-2 py-1 text-left text-caption2-r text-black"
-              onClick={() => onRoleChange(fundingMemberId, 'MEMBER')}
+              onClick={() => onRoleChange(fundingMemberId, 'PARTICIPANT')}
             >
               참여자
             </button>
@@ -210,7 +210,7 @@ function MemberCard({ member, menuOpen, onToggleMenu, onCloseMenu, onRoleChange 
             <button
               type="button"
               className="w-full pl-[9px] pr-2 py-1 text-left text-caption2-r text-black"
-              onClick={() => onRoleChange(fundingMemberId, 'CO_HOST')}
+              onClick={() => onRoleChange(fundingMemberId, 'ADMIN')}
             >
               부방장
             </button>

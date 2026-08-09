@@ -4,7 +4,7 @@ import type { FundingDetail, FundingMessage } from '../../types/funding'
 import { formatDateKorean, getDdayLabel } from '../../utils/formatDate'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
-import ConfirmModal from '../../components/common/ConfirmModal'
+import EmojiPopup from '../../components/common/EmojiPopup'
 import Toast from '../../components/common/Toast'
 import { useMockFunding } from './useMockFunding'
 import { getMessageDisplayName } from './messageUtils'
@@ -172,10 +172,7 @@ export default function FundingDetailPage() {
             ) : (
               <p className="text-caption1-r text-[#888888]">대표 이미지 삽입 영역</p>
             )}
-            <div className="absolute inset-x-[18px] top-6 flex items-start justify-between">
-              <span className="rounded-full border border-gray-300 bg-white px-4 py-2 text-b2-m leading-normal text-gray-700">
-                {displayFunding.category}
-              </span>
+            <div className="absolute inset-x-[18px] top-6 flex items-start">
               {isEnded ? (
                 <span className="rounded-full bg-gray-900 px-4 py-2 text-b2-m leading-normal text-white">
                   마감된 페이지
@@ -233,7 +230,7 @@ export default function FundingDetailPage() {
                   onClick={() => setShowEndConfirm(true)}
                   className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-gray-600 bg-white text-sm font-semibold text-black"
                 >
-                  페이지 종료하기
+                  페이지 마감하기
                 </button>
               )}
               <Button className="flex-1" onClick={() => navigate(`/funding/${id}/edit`)}>
@@ -261,14 +258,15 @@ export default function FundingDetailPage() {
         onClose={() => setOpenedMessage(null)}
       />
 
-      <ConfirmModal
+      <EmojiPopup
         open={showEndConfirm}
-        title="아직 종료일이 남아있어요"
-        description={'지금 종료하면 현재 금액으로 확정되고,\n친구들은 더 이상 참여할 수 없어요.'}
-        cancelText="취소하기"
-        confirmText="종료하기"
-        onCancel={() => setShowEndConfirm(false)}
-        onConfirm={handleEndFunding}
+        title="페이지를 마감하시겠어요?"
+        description={'한 번 마감된 페이지는 다시 진행할 수 없으니\n한번 더 확인해주세요'}
+        buttons={[
+          { label: '취소하기', variant: 'secondary', onClick: () => setShowEndConfirm(false) },
+          { label: '마감하기', variant: 'primary', onClick: handleEndFunding },
+        ]}
+        onDimClick={() => setShowEndConfirm(false)}
       />
 
       <Toast
