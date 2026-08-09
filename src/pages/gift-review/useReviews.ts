@@ -24,11 +24,22 @@ export function useCreateHeartfelt(fundingId: number | string) {
   })
 }
 
-/** 후기 3종 조회 (fundingId 없으면 요청하지 않음) */
+/**
+ * 후기 3종 조회 (fundingId 없으면 요청하지 않음)
+ * 404(아직 작성된 후기 없음)는 실패가 아니라 정상적인 "없음" 상태라 에러로 던지지 않고 null로 반환한다.
+ * 그 외 실패(네트워크/서버 에러 등)만 query의 isError로 남는다.
+ */
 export function useReview(fundingId: string | undefined, type: ReviewApiType) {
   return useQuery({
     queryKey: ['review', fundingId, type],
-    queryFn: () => getReview(fundingId!, type),
+    queryFn: async () => {
+      try {
+        return await getReview(fundingId!, type)
+      } catch (error) {
+        if (error instanceof AxiosError && error.response?.status === 404) return null
+        throw error
+      }
+    },
     enabled: fundingId != null,
     retry: false,
   })
