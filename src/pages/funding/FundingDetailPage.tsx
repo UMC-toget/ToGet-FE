@@ -128,7 +128,8 @@ export default function FundingDetailPage() {
   }
 
   const isEnded = displayFunding.status === 'ENDED'
-  const showBottomBar = !funding.isOwner || activeTab === 'mine'
+  // 비개설자는 마감된 페이지에서 하단 CTA(마음 전하기) 숨김 (진행 중이면 참여 가능)
+  const showBottomBar = funding.isOwner ? activeTab === 'mine' : !isEnded
   const showParticipants = funding.isOwner && activeTab === 'participants'
 
   return (
