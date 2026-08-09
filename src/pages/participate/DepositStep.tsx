@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { LetterColor } from '../../components/common/letterPalette'
 import LetterCard from '../../components/common/LetterCard'
+import Toast from '../../components/common/Toast'
 import { getFundingAccount } from '../../api/fundings'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
 
@@ -121,9 +122,6 @@ export default function DepositStep({ hostName, letter, letterColor, amount, fun
               >
                 계좌번호 복사
               </button>
-              {copied && (
-                <p className="text-caption1-m leading-normal text-pink-500">계좌번호가 복사되었습니다.</p>
-              )}
             </div>
           ) : accountError ? (
             <div className="flex flex-col items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-6">
@@ -147,6 +145,9 @@ export default function DepositStep({ hostName, letter, letterColor, amount, fun
         </div>
       )}
       </div>
+
+      {/* '마음 보내기' CTA 버튼 top(하단에서 86px)보다 20px 위 = bottom 106px */}
+      <Toast open={copied} message="계좌번호가 복사되었습니다" bottomClass="bottom-[106px]" />
     </div>
   )
 }
