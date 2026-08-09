@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ChevronDown, Search, Trash2, Gift } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, Search, X, Gift } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import { MOCK_WISH_ITEMS } from '../../utils/wishData';
 import type { WishCategory } from '../../utils/wishData';
@@ -167,7 +167,7 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
                 inputMode="numeric"
                 placeholder="선물 가격을 입력해 주세요"
                 value={form.price ? Number(form.price).toLocaleString() : ''}
-                onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^0-9]/g, '') })}
+                onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^0-9]/g, '').slice(0, 15) })}
                 className={`w-full rounded-xl px-4 py-3 pr-12 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none border transition-colors
                   ${priceError ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-100/70 focus:border-gray-800 focus:bg-white'}`}
               />
@@ -238,58 +238,62 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
   // ── 목록 화면 ──────────────────────────────────────────────
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <div className="flex-1 overflow-y-auto space-y-5">
-        <div>
-          <h2 className="text-lg font-bold text-gray-900">받고 싶은 선물을 등록해 주세요</h2>
-          <p className="text-xs text-gray-400 mt-1">여러 선물을 담을 수 있고, 입력한 금액으로 총액이 계산돼요</p>
+      <div className="flex-1 overflow-y-auto flex flex-col">
+        <div className="space-y-5 pb-5">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">받고 싶은 선물을 등록해 주세요</h2>
+            <p className="text-xs text-gray-400 mt-1">여러 선물을 담을 수 있고, 입력한 금액으로 총액이 계산돼요</p>
+          </div>
+
+          <button
+            onClick={() => setView('add')}
+            className="w-full flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-lg text-gray-500 shrink-0">
+              +
+            </span>
+            <span className="flex-1 text-left">새로운 선물 등록하기</span>
+            <ChevronRight size={16} className="text-gray-400 shrink-0" />
+          </button>
+
+          <button
+            onClick={() => setShowWishSheet(true)}
+            className="w-full flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+              <Gift size={16} />
+            </span>
+            <span className="flex-1 text-left">위시 불러오기</span>
+            <ChevronRight size={16} className="text-gray-400 shrink-0" />
+          </button>
         </div>
 
-        <button
-          onClick={() => setView('add')}
-          className="w-full flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-lg text-gray-500 shrink-0">
-            +
-          </span>
-          <span className="flex-1 text-left">새로운 선물 등록하기</span>
-          <ChevronRight size={16} className="text-gray-400 shrink-0" />
-        </button>
-
-        <button
-          onClick={() => setShowWishSheet(true)}
-          className="w-full flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
-            <Gift size={16} />
-          </span>
-          <span className="flex-1 text-left">위시 불러오기</span>
-          <ChevronRight size={16} className="text-gray-400 shrink-0" />
-        </button>
-
         {wishlist.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-gray-400">등록된 {wishlist.length}개 상품</p>
-              <p className="text-xs font-semibold text-gray-700">총 {totalAmount.toLocaleString()}원</p>
-            </div>
-            {wishlist.map((item) => (
-              <div key={item.id} className="flex items-center gap-3 border border-gray-100 rounded-xl p-3 bg-gray-50">
-                {item.imageUrl ? (
-                  <img src={item.imageUrl} alt={item.name} className="w-12 h-12 rounded-lg object-cover" />
-                ) : (
-                  <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center text-gray-400 text-xs">
-                    상품
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">{item.name}</p>
-                  <p className="text-xs text-gray-500">{item.price.toLocaleString()}원</p>
-                </div>
-                <button onClick={() => removeWishlistItem(item.id)} className="text-gray-400 hover:text-red-400 transition-colors">
-                  <Trash2 size={16} />
-                </button>
+          <div className="flex-1 -mx-4.5 px-4.5 pt-5 pb-6 bg-gray-100">
+            <div className="px-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-black">등록된 {wishlist.length}개 선물</p>
+                <p className="text-sm font-semibold text-black">총 {totalAmount.toLocaleString()}원</p>
               </div>
-            ))}
+              {wishlist.map((item) => (
+                <div key={item.id} className="flex items-center gap-3 border border-gray-100 rounded-xl p-3 bg-white">
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt={item.name} className="w-12 h-12 rounded-lg object-cover" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
+                      선물
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">{item.name}</p>
+                    <p className="text-xs text-gray-500">{item.price.toLocaleString()}원</p>
+                  </div>
+                  <button onClick={() => removeWishlistItem(item.id)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                    <X size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

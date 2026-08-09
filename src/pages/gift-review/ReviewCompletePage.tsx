@@ -62,7 +62,7 @@ export default function ReviewCompletePage() {
   }
 
   // TODO: BE 연동 후 실제 발급된 id로 교체. 작성 데이터(previewData)가 있으면 그대로 들고 가고,
-  // 없으면(새로고침 등으로 유실된 경우) 조회 화면이 mockReview로 대체한다.
+  // 없으면(새로고침 등으로 유실된 경우) 조회 화면이 빈 상태를 보여준다.
   const handlePreview = () => navigate(`/gift/review/${config.key}-mock`, { state: previewData })
 
   return (

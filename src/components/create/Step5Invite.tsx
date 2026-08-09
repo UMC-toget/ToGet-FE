@@ -1,7 +1,7 @@
 import { useEffect, useState, useId } from 'react';
 import { X, Expand, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
-import { getInvitationAccent, useInvitationMeta } from './Mascot';
+import { getCharacterImageSrc, getInvitationAccent, useInvitationMeta } from './Mascot';
 import { useMyProfile } from '../../hooks/useMyProfile';
 import inviteSparklesSvg from '../../assets/invite-sparkles.svg';
 
@@ -103,7 +103,7 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
   const currentCharacter = characters.find((item) => item.id === inviteCharacter) ?? characters[0];
   const currentCharacterIndex = Math.max(0, characters.findIndex((item) => item.id === currentCharacter?.id));
   const currentCharacterNumber = String(currentCharacterIndex + 1).padStart(2, '0');
-  const currentCharacterImage = currentCharacter?.imageUrl;
+  const currentCharacterImage = getCharacterImageSrc(currentCharacter);
   const isWhite = inviteColor === '#FFFFFF';
   const accentColor = isWhite ? getInvitationAccent(inviteColor) : inviteColor;
   const glowColor = isWhite ? '#D1D5DB' : inviteColor;

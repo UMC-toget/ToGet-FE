@@ -101,8 +101,13 @@ export default function MyFundingsSection({ fundings, onShareInvite }: MyFunding
             <div key={funding.id} className="w-full shrink-0 snap-center">
               <MyFundingCard
                 funding={funding}
-                // TODO: 개설자 전용 관리 화면이 따로 없어 우선 FundingDetailPage를 owner 모드(?owner=1)로 재사용
-                onOpen={() => navigate(`/funding/${funding.id}?owner=1`)}
+                onOpen={() =>
+                  navigate(
+                    funding.fundingType === 'TOGETHER_GIFT'
+                      ? `/group/${funding.id}`
+                      : `/funding/${funding.id}?owner=1`,
+                  )
+                }
                 onShareInvite={() => onShareInvite(funding)}
               />
             </div>

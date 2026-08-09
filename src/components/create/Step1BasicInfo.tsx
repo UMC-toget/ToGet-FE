@@ -67,7 +67,7 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
             value={title}
             onChange={(e) => setStep1({ title: e.target.value })}
             className={`w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none transition-colors border
-              ${errors.title ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-50 focus:border-gray-800 focus:bg-white'}`}
+              ${errors.title ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-100/70 focus:border-gray-800 focus:bg-white'}`}
           />
           {errors.title && (
             <p className="text-xs text-red-400 mt-1">▲ 아직 채워지지 않은 항목이 있어요</p>
@@ -83,7 +83,7 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
             type="button"
             onClick={() => setOpenSheet('date')}
             className={`w-full flex items-center justify-between rounded-xl px-4 py-3 text-sm text-left border transition-colors
-              ${errors.anniversaryDate ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-50'}`}
+              ${errors.anniversaryDate ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-100/70'}`}
           >
             <span className={anniversaryDate ? 'text-gray-800' : 'text-gray-400'}>
               {anniversaryDate ? formatDisplay(anniversaryDate) : '선물이 필요한 날짜를 선택해주세요'}
@@ -104,7 +104,7 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
             type="button"
             onClick={() => setOpenSheet('range')}
             className={`w-full flex items-center justify-between rounded-xl px-4 py-3 text-sm text-left border transition-colors
-              ${errors.preparation ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-50'}`}
+              ${errors.preparation ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-100/70'}`}
           >
             <span className={preparationStartDate && preparationEndDate ? 'text-gray-800' : 'text-gray-400'}>
               {preparationStartDate && preparationEndDate
@@ -126,7 +126,7 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
             value={greeting}
             onChange={(e) => setStep1({ greeting: e.target.value })}
             rows={3}
-            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-50 border border-transparent focus:border-gray-800 focus:bg-white resize-none transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white resize-none transition-colors"
           />
         </div>
 

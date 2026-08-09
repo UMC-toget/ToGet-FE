@@ -36,6 +36,7 @@ export interface FundingMessage {
 /** 홈 화면 '진행 중인 내 선물 모으기' 카드용 요약 정보 (D04 공개 범위 토글과 무관 — 개설자 본인만 보는 카드) */
 export interface MyFundingSummary {
   id: string
+  fundingType: 'MY_GIFT' | 'TOGETHER_GIFT'
   title: string
   thumbnailImage: string | null
   targetAmount: number

@@ -9,11 +9,11 @@ export const REVIEW_API_TYPE: Record<ReviewWriteType, 'review' | 'news' | 'heart
 
 /**
  * 작성 화면 → 완료 화면 → 조회 화면으로 넘기는 임시 데이터 (서버 연동 전, navigate state로 전달)
- * 조회 화면(GiftReviewDetailPage)은 이 값이 없으면(직접 URL 접근 등) 실제 조회 API → mockReview 순으로 대체한다.
+ * 조회 화면(GiftReviewDetailPage)은 이 값이 없으면(직접 URL 접근 등) 실제 조회 API로 대체한다.
  */
 export interface ReviewPreviewData {
-  /** 후기를 작성한(선물을 받은) 사람 이름 */
-  senderName: string
+  /** 후기를 작성한 사람 이름. REVIEW/NEWS는 값 있음, HEARTFELT(마음전하기)는 항상 null */
+  authorName: string | null
   /** 받는 사람 인사말 (LetterCard 헤더, 예: "선물을 준 모두에게") */
   title: string
   content: string
