@@ -11,8 +11,9 @@ import GiftIcon from '../../components/icons/GiftIcon'
 import SearchIcon from '../../components/icons/SearchIcon'
 import CheckIcon from '../../components/icons/CheckIcon'
 import CaretDownIcon from '../../components/icons/CaretDownIcon'
-import { MOCK_WISH_ITEMS } from '../../utils/wishData'
-import type { WishSourceItem, WishCategory } from '../../utils/wishData'
+import { useWishedProducts } from '../wish/hooks/useWishedProducts'
+import type { WishType } from '../../store/wishStore'
+import type { Product } from '../home/products'
 import type { ConfirmedGift } from './ConfirmPage'
 
 // 접근: 개설자 전용 | 선물 목록 수정하기 — ConfirmPage 3단계에서 "수정하기" 버튼으로 진입
@@ -35,11 +36,14 @@ export default function ConfirmEditPage() {
   const [addStep, setAddStep] = useState<null | 'select' | 'direct'>(null)
   const [showWishSheet, setShowWishSheet] = useState(false)
   const [wishSearch, setWishSearch] = useState('')
-  const [wishFilter, setWishFilter] = useState<'all' | WishCategory>('all')
-  const [selectedWishId, setSelectedWishId] = useState<string | null>(null)
+  const [wishFilter, setWishFilter] = useState<'all' | WishType>('all')
+  const [selectedWishId, setSelectedWishId] = useState<number | null>(null)
   const [showOverflowToast, setShowOverflowToast] = useState(false)
   const [inputName, setInputName] = useState('')
   const [inputPrice, setInputPrice] = useState('')
+
+  // 위시 불러오기 — dev 실 API(useWishedProducts). 받고/주고 필터는 훅에 tab으로 넘겨 서버에서 거른다
+  const { wishedProducts } = useWishedProducts(wishFilter, 'latest')
 
   // 로컬 추가 항목 id — 서버 giftId(양수)와 겹치지 않게 음수로 발급
   const localIdRef = useRef(-1)
@@ -70,13 +74,12 @@ export default function ConfirmEditPage() {
     setShowOverflowToast(false)
   }
 
-  const filteredWishItems = MOCK_WISH_ITEMS.filter(item => {
-    const matchCategory = wishFilter === 'all' || item.category === wishFilter
+  const filteredWishItems = wishedProducts.filter(item => {
     const q = wishSearch.trim().toLowerCase()
-    return matchCategory && (q === '' || item.name.toLowerCase().includes(q) || item.brand.toLowerCase().includes(q))
+    return q === '' || item.name.toLowerCase().includes(q) || item.brand.toLowerCase().includes(q)
   })
 
-  const handleWishToggle = (item: WishSourceItem) => {
+  const handleWishToggle = (item: Product) => {
     if (selectedWishId === item.id) {
       setSelectedWishId(null)
     } else if (selectedWishId !== null) {
@@ -88,7 +91,7 @@ export default function ConfirmEditPage() {
   }
 
   const handleWishConfirm = () => {
-    const item = MOCK_WISH_ITEMS.find(i => i.id === selectedWishId)
+    const item = wishedProducts.find(i => i.id === selectedWishId)
     if (!item) return
     appendGift({ name: item.name, price: item.price, imageUrl: item.image })
     closeWishSheet()
@@ -311,7 +314,7 @@ export default function ConfirmEditPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                {(['all', 'received', 'given'] as const).map(f => (
+                {(['all', 'receive', 'give'] as const).map(f => (
                   <button
                     key={f}
                     type="button"
@@ -320,7 +323,7 @@ export default function ConfirmEditPage() {
                       wishFilter === f ? 'bg-gray-900 text-white' : 'border border-gray-300 bg-white text-gray-700'
                     }`}
                   >
-                    {f === 'all' ? '전체' : f === 'received' ? '받고 싶은' : '주고 싶은'}
+                    {f === 'all' ? '전체' : f === 'receive' ? '받고 싶은' : '주고 싶은'}
                   </button>
                 ))}
               </div>
