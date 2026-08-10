@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Button from '../../components/common/Button'
-import InvitationHero from './InvitationHero'
+import InvitationHero from '../../components/invitation/InvitationHero'
 import { getInvitationCard } from '../../api/fundings'
 import { fetchCharacters } from '../../api/metaApi'
-import { CHARACTER_SVGS } from './characterAssets'
-import { getInviteThemeColor } from './inviteTheme'
+import { CHARACTER_SVGS } from '../../components/invitation/characterAssets'
+import { getInviteThemeColor, getInviteGlowStyle } from '../../components/invitation/inviteTheme'
 
 /** 화이트 배경 테마 id — 로고를 흰 fill + 회색 외곽선 전용 SVG로 렌더 */
 const WHITE_THEME_BACKGROUND_ID = 8
@@ -73,30 +73,11 @@ export default function InvitationPage() {
 
   return (
     <div className="relative mx-auto flex min-h-dvh w-full max-w-[402px] flex-col overflow-hidden bg-white">
-      {/* 글로우 배경 — 중심에 테마 색 50% → 가장자리 투명 원형 그라데이션. 색은 backgroundId별 테마 색.
-          컬러 테마는 피그마 스펙(286, blur100)으로 은은한 색 wash.
-          화이트 테마(id8)는 어두운 #1E1D1E라 blur100이면 배경이 더럽게 차서, blur를 줄이고 원을 키워
-          또렷한 원형 글로우로. (그라데이션이 falloff를 담당, blur는 경계만 살짝 부드럽게) */}
+      {/* 글로우 배경 (테마 색 원형 그라데이션). 위치·크기·색 계산은 getInviteGlowStyle 참고 */}
       <div
         aria-hidden
         className="pointer-events-none absolute left-1/2 -translate-x-1/2 rounded-full"
-        style={
-          whiteLogo
-            ? {
-                top: 200,
-                width: 440,
-                height: 440,
-                background: 'radial-gradient(circle, rgba(30,29,30,0.30) 0%, transparent 60%)',
-                filter: 'blur(14px)',
-              }
-            : {
-                top: 292,
-                width: 286,
-                height: 286,
-                background: `radial-gradient(circle, ${themeColor}80 0%, transparent 100%)`,
-                filter: 'blur(100px)',
-              }
-        }
+        style={getInviteGlowStyle(themeColor, whiteLogo)}
       />
 
       <InvitationHero
