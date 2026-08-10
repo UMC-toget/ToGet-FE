@@ -30,8 +30,8 @@ export default function MyGiftListCard({ funding, onOpen, onShareInvite, onViewR
           />
         </span>
         <div className="flex w-[246px] flex-col gap-[18px]">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex min-w-0 items-start gap-2">
               <div className={`flex min-w-0 flex-col gap-1 ${dimClass}`}>
                 <p className="truncate text-b2-m text-black">{funding.title}</p>
                 <p className="truncate text-caption1-r text-gray-700">
