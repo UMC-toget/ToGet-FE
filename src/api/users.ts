@@ -63,6 +63,8 @@ export interface MyFunding {
   createdAt: string
   /** 종료된 내 선물 페이지에 대해 후기 작성 여부 (내 선물 카드의 작성/조회 버튼 분기용) */
   hasReview: boolean
+  /** 함께 선물(TOGETHER_GIFT) 참여 인원 수 (개설자 포함) */
+  participantCount: number
 }
 
 export interface MyFundingList {
