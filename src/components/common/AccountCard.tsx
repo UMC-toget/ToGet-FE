@@ -49,10 +49,18 @@ export default function AccountCard({
 
   return (
     <div
-      className={`flex flex-col gap-3 rounded-xl border bg-white px-3.5 py-3 ${
-        selected ? 'border-gray-900' : 'border-gray-100'
+      className={`relative flex flex-col gap-3 rounded-xl border bg-white px-3.5 py-3 transition-colors ${
+        selected ? 'border-pink-400' : 'border-gray-100'
       }`}
     >
+      {selected && (
+        <span
+          aria-hidden="true"
+          className="absolute right-3.5 top-3.5 flex size-6 items-center justify-center rounded-full border border-pink-400 bg-white"
+        >
+          <span className="size-3.5 rounded-full bg-pink-400" />
+        </span>
+      )}
       <div className="flex gap-3">
         <span className="flex size-[63px] shrink-0 items-center justify-center rounded-md bg-background">
           {iconUrl && !brokenIconCodes.has(bankCode) ? (

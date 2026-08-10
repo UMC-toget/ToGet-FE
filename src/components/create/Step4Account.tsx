@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import AccountFormFields from '../common/AccountFormFields';
 import AccountCard from '../common/AccountCard';
@@ -7,6 +7,7 @@ import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import type { SavedAccount } from '../../store/fundingCreateStore';
 import { BANK_NAME_LABELS } from '../../api/userAccounts';
 import type { BankName } from '../../api/userAccounts';
+import { useUserAccounts } from '../../hooks/useUserAccounts';
 
 interface Props {
   onNext: () => void;
@@ -39,12 +40,23 @@ function resolveBankCode(displayName: string): BankName | undefined {
 }
 
 export default function Step4Account({ onNext, submitLabel = '다음', disabled = false }: Props) {
-  const { accounts, selectedAccountId, addAccount, updateAccount, selectAccount } = useFundingCreateStore();
+  const { accounts, selectedAccountId, addAccount, hydrateAccounts, updateAccount, selectAccount } = useFundingCreateStore();
+  const { data: registeredAccounts, isLoading: isAccountsLoading } = useUserAccounts();
 
   const [view, setView] = useState<View>('list');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<AccountFormState>(emptyForm);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  useEffect(() => {
+    if (!registeredAccounts) return;
+    hydrateAccounts(registeredAccounts.map((account) => ({
+      id: String(account.userAccountId),
+      bankName: BANK_NAME_LABELS[account.bankName],
+      accountNumber: account.account,
+      accountHolder: account.accountOwner,
+    })));
+  }, [hydrateAccounts, registeredAccounts]);
 
   const isFormValid = Boolean(form.bankCode && form.accountNumber.trim() && form.accountHolder.trim());
 
@@ -103,6 +115,9 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
               <span className="flex-1 text-left">새로운 계좌 등록하기</span>
               <ChevronRight size={16} className="text-gray-400 shrink-0" />
             </button>
+            {isAccountsLoading && (
+              <p className="text-center text-xs text-gray-400">등록된 계좌를 불러오는 중이에요</p>
+            )}
           </div>
 
           {accounts.length > 0 && (
@@ -122,9 +137,9 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
                               e.stopPropagation();
                               openEdit(acc);
                             }}
-                            className="w-full py-2 text-xs font-medium text-gray-500 bg-gray-100 rounded-lg flex items-center justify-center gap-1 hover:bg-gray-200 transition-colors"
+                            className="w-full py-2 text-xs font-medium text-black bg-gray-100 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors"
                           >
-                            <Pencil size={12} /> 계좌 수정하기
+                            <Pencil size={16} /> 계좌 수정하기
                           </button>
                         </AccountCard>
                       </div>
