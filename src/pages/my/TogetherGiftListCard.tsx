@@ -14,8 +14,7 @@ interface TogetherGiftListCardProps {
 export default function TogetherGiftListCard({ funding, onOpen, onShareInvite }: TogetherGiftListCardProps) {
   const isEnded = funding.status === 'ENDED'
   const dimClass = isEnded ? 'opacity-60' : ''
-  // TODO: BE 응답(me/fundings)에 participantCount 필드가 추가되면 `${participantCount}명과 준비중`으로 교체
-  const participantLabel = '함께 준비중'
+  const participantLabel = `${funding.participantCount}명이 함께 준비 중`
 
   return (
     <div className="flex w-full shrink-0 flex-col gap-5 rounded-xl border border-gray-100 bg-white px-3.5 py-3">
