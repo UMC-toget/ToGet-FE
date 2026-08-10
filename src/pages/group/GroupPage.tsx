@@ -16,7 +16,6 @@ import type { ContributionItem } from '../../api/contributions'
 import { MOCK_DASHBOARD, MOCK_CONTRIBUTIONS } from './groupMock'
 import EnvelopeButton from '../funding/EnvelopeButton'
 import LetterModal from '../funding/LetterModal'
-import { useMyProfile } from '../../hooks/useMyProfile'
 import { useAuth } from '../../hooks/useAuth'
 import ribbonHost from '../../assets/ribbon-host.svg'
 import ribbonCoHost from '../../assets/ribbon-co-host.svg'
@@ -29,7 +28,6 @@ import { setReturnUrl } from '../../utils/returnUrl'
 export default function GroupPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { data: profile } = useMyProfile()
   const { isLoggedIn } = useAuth()
 
   // ── DEV 전용 UI 미리보기 오버라이드 ──────────────────────────
@@ -113,9 +111,8 @@ export default function GroupPage() {
   const diffDays = Math.round((anniversary.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
   const dDayLabel = diffDays > 0 ? `D-${diffDays}` : diffDays === 0 ? 'D-Day' : `D+${Math.abs(diffDays)}`
 
-  // 내 역할 = 대시보드 members[]에서 내 userId 매칭. 판별 불가(비로그인/미참여)면 최소 권한 PARTICIPANT로 취급
-  const myRole: FundingMemberRole =
-    devRole ?? group.members.find(m => m.userId === profile?.userId)?.role ?? 'PARTICIPANT'
+  // 내 역할 = BE가 대시보드 응답의 myRole로 직접 판별해 내려줌. 비로그인/미참여(null)면 최소 권한 PARTICIPANT로 취급
+  const myRole: FundingMemberRole = devRole ?? group.myRole ?? 'PARTICIPANT'
   const isHost = myRole === 'CREATOR'
   // 미리보기 땐 역할별 CTA를 봐야 하므로 로그인된 것으로 취급 (게스트 뷰 회피)
   const effectiveLoggedIn = devPreview ? true : isLoggedIn
@@ -506,7 +503,7 @@ export default function GroupPage() {
             <div className="pointer-events-auto flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => navigate(`/group/${id}/confirm-gift`)}
+                onClick={() => navigate(`/group/${id}/confirm`)}
                 className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-[#797378] bg-white text-b2-sb text-black"
               >
                 선물 확정하기

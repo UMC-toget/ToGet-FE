@@ -31,6 +31,8 @@ export const MOCK_DASHBOARD: TogetherGiftDashboard = {
   recipientName: '이예원',
   introduction: '예원이 7년 만에 졸업하는데\n선물이라도 주자 우리',
   thumbnailImageUrl: mockGraduation,
+  // DEV 미리보기 기본 역할 (GroupPage는 ?role= 쿼리로 덮어씀). CandidatesPage 등은 이 값을 그대로 사용
+  myRole: 'CREATOR',
   members: [
     { fundingMemberId: 1, userId: 10, name: '홍길동', profileImageUrl: null, role: 'CREATOR' },
     { fundingMemberId: 2, userId: 20, name: '김철수', profileImageUrl: null, role: 'ADMIN' },
