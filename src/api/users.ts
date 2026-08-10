@@ -57,7 +57,7 @@ export interface MyFunding {
   status: FundingStatus
   /** 사용자가 설정한 기념일. 구버전 응답에서는 없을 수 있습니다. */
   anniversaryDate?: string | null
-  /** 모금 종료일. 진행 기간을 따로 정하지 않으면 null일 수 있습니다. */
+  /** 함께 선물(TOGETHER_GIFT)은 선물 확정 전까지 null (BE 응답 기준) */
   endDate: string | null
   thumbnailImageUrl: string | null
   createdAt: string

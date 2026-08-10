@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ChevronDown, Search, X, Gift } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import { useWishedProducts } from '../../pages/wish/hooks/useWishedProducts';
+import type { WishType } from '../../store/wishStore';
 import PhotoActionSheet from '../common/PhotoActionSheet';
 
 interface Props {
@@ -12,7 +13,6 @@ interface Props {
 }
 
 type View = 'list' | 'add';
-type WishTab = 'all' | 'received' | 'given';
 
 const SORT_OPTIONS = [
   { key: 'latest', label: '최신순' },
@@ -33,7 +33,6 @@ const NAME_MAX = 20;
 export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled = false }: Props) {
   const navigate = useNavigate();
   const { wishlist, addWishlistItem, updateWishlistItem, removeWishlistItem } = useFundingCreateStore();
-  const { allWishedProducts, rawItems, isLoading: isWishLoading } = useWishedProducts('all', 'latest');
   const [view, setView] = useState<View>('list');
 
   // 새 선물 등록 폼
@@ -46,10 +45,11 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
   // 위시 불러오기 바텀시트
   const [showWishSheet, setShowWishSheet] = useState(false);
   const [wishQuery, setWishQuery] = useState('');
-  const [wishTab, setWishTab] = useState<WishTab>('all');
+  const [wishTab, setWishTab] = useState<'all' | WishType>('all');
   const [selectedWishIds, setSelectedWishIds] = useState<Set<number>>(new Set());
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const { wishedProducts, isLoading: isWishLoading } = useWishedProducts(wishTab, 'latest');
 
   const totalAmount = wishlist.reduce((sum, item) => sum + item.price, 0);
   const isFormValid = Boolean(form.name.trim() && Number(form.price) > 0);
@@ -76,17 +76,13 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
     setView('list');
   };
 
-  const wishTypeById = new Map(rawItems.map((item) => [item.wishlistItemId, item.type]));
-  const filteredWishItems = allWishedProducts.filter((item) => {
-    const type = wishTypeById.get(item.id);
-    if (wishTab === 'received' && type !== 'RECEIVE') return false;
-    if (wishTab === 'given' && type !== 'GIVE') return false;
+  const filteredWishItems = wishedProducts.filter((item) => {
     if (wishQuery && !item.name.includes(wishQuery) && !item.brand.includes(wishQuery)) return false;
     return true;
   }).sort((a, b) => {
     if (sortOrder === 'priceAsc') return a.price - b.price;
     if (sortOrder === 'priceDesc') return b.price - a.price;
-    return 0; // 최신순: 목 데이터 기본 순서(등록 최신순)를 그대로 사용
+    return 0; // 최신순: 서버가 이미 LATEST 정렬로 내려준 순서를 그대로 사용
   });
 
   const currentSortLabel = SORT_OPTIONS.find((o) => o.key === sortOrder)?.label ?? '최신순';
@@ -116,7 +112,7 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
 
   const confirmWishImport = () => {
     selectedWishIds.forEach((id) => {
-      const item = allWishedProducts.find((w) => w.id === id);
+      const item = wishedProducts.find((w) => w.id === id);
       if (!item) return;
       addWishlistItem({
         id: crypto.randomUUID(),
@@ -369,9 +365,9 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
               {(
                 [
                   { key: 'all', label: '전체' },
-                  { key: 'received', label: '받고 싶은' },
-                  { key: 'given', label: '주고 싶은' },
-                ] as { key: WishTab; label: string }[]
+                  { key: 'receive', label: '받고 싶은' },
+                  { key: 'give', label: '주고 싶은' },
+                ] as { key: 'all' | WishType; label: string }[]
               ).map((t) => (
                 <button
                   key={t.key}

@@ -4,6 +4,8 @@ import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
 import StickyBottomBar from '../../components/common/StickyBottomBar'
 import Toast from '../../components/common/Toast'
+import DefaultAvatar from '../../components/common/DefaultAvatar'
+import avatarCat from '../../assets/avatar-cat.svg'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import LinkIcon from '../../components/icons/LinkIcon'
 import CandidateCard from './CandidateCard'
@@ -16,8 +18,8 @@ import type { ContributionItem } from '../../api/contributions'
 import { MOCK_DASHBOARD, MOCK_CONTRIBUTIONS } from './groupMock'
 import EnvelopeButton from '../funding/EnvelopeButton'
 import LetterModal from '../funding/LetterModal'
-import { useMyProfile } from '../../hooks/useMyProfile'
 import { useAuth } from '../../hooks/useAuth'
+import { useMyProfile } from '../../hooks/useMyProfile'
 import ribbonHost from '../../assets/ribbon-host.svg'
 import ribbonCoHost from '../../assets/ribbon-co-host.svg'
 import EmojiPopup from '../../components/common/EmojiPopup'
@@ -29,8 +31,8 @@ import { setReturnUrl } from '../../utils/returnUrl'
 export default function GroupPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { data: profile } = useMyProfile()
   const { isLoggedIn } = useAuth()
+  const { data: profile } = useMyProfile()
 
   // ── DEV 전용 UI 미리보기 오버라이드 ──────────────────────────
   // /group/1?role=CREATOR|ADMIN|PARTICIPANT&status=SELECTING|SETTLING|PURCHASING|DELIVERING|ENDED
@@ -115,9 +117,8 @@ export default function GroupPage() {
 
   const dDayLabel = getDdayLabel(group.anniversaryDate)
 
-  // 내 역할 = 대시보드 members[]에서 내 userId 매칭. 판별 불가(비로그인/미참여)면 최소 권한 PARTICIPANT로 취급
-  const myRole: FundingMemberRole =
-    devRole ?? group.members.find(m => m.userId === profile?.userId)?.role ?? 'PARTICIPANT'
+  // 내 역할 = BE가 대시보드 응답의 myRole로 직접 판별해 내려줌. 비로그인/미참여(null)면 최소 권한 PARTICIPANT로 취급
+  const myRole: FundingMemberRole = devRole ?? group.myRole ?? 'PARTICIPANT'
   const isHost = myRole === 'CREATOR'
   // 미리보기 땐 역할별 CTA를 봐야 하므로 로그인된 것으로 취급 (게스트 뷰 회피)
   const effectiveLoggedIn = devPreview ? true : isLoggedIn
@@ -186,8 +187,12 @@ export default function GroupPage() {
       <div className="flex-1 overflow-y-auto pb-[140px] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {/* 대표 이미지 + 상태 칩 */}
         <div className="relative h-[190px] bg-background">
-          {group.thumbnailImageUrl && (
+          {group.thumbnailImageUrl ? (
             <img src={group.thumbnailImageUrl} alt="" className="absolute inset-0 size-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <img src={avatarCat} alt="" className="size-16 opacity-30" />
+            </div>
           )}
           <div className="absolute inset-x-[18px] top-[18px] flex items-center justify-between">
             <span className={`rounded-full border px-4 py-2 text-b2-m ${statusChipClass}`}>
@@ -378,7 +383,7 @@ export default function GroupPage() {
                             className="size-[26px] rounded-full object-cover"
                           />
                         ) : (
-                          <div className="size-[26px] rounded-full bg-[#E4E4E4]" />
+                          <DefaultAvatar className="size-[26px] shrink-0" />
                         )}
                         {(m.role === 'CREATOR' || m.role === 'ADMIN') && (
                           <img
@@ -514,7 +519,7 @@ export default function GroupPage() {
             <div className="pointer-events-auto flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => navigate(`/group/${id}/confirm-gift`)}
+                onClick={() => navigate(`/group/${id}/confirm`)}
                 className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-[#797378] bg-white text-b2-sb text-black"
               >
                 선물 확정하기
