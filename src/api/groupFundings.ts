@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { apiClient, unwrap } from '../lib/apiClient'
 
 // ─── 공통 ─────────────────────────────────────────────────────
@@ -272,9 +273,21 @@ export function updateGroupFundingStatus(
   )
 }
 
+/** 함께 선물하기 참여(합류, POST /api/v1/fundings/{fundingId}/members)
+ *  로그인한 사용자를 이 펀딩의 멤버로 등록한다. 합류는 자동이 아니라 이 호출이 있어야 하고,
+ *  투표·편지 같은 첫 참여 액션 직전에 부른다. 이미 멤버면 BE가 409(FUNDING409_12)를 주는데
+ *  "첫 액션 때 합류" 흐름에선 정상 상황이라 조용히 넘긴다. */
+export async function joinGroupFunding(fundingId: number | string): Promise<void> {
+  try {
+    await unwrap<void>(apiClient.post(`/api/v1/fundings/${fundingId}/members`, {}))
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response?.status === 409) return
+    throw err
+  }
+}
+
 /** 함께 선물 나가기 (참여자·공동관리자, DELETE /api/v1/fundings/{fundingId}/members/me)
- *  나가면 투표 내역이 사라지고 참여자에서 제외됨. HOST는 사용 불가.
- *  TODO: BE 엔드포인트 확정 후 경로 확인 */
+ *  나가면 투표 내역이 사라지고 참여자에서 제외됨. HOST는 사용 불가. */
 export function leaveGroupFunding(fundingId: number | string) {
   return unwrap<void>(apiClient.delete(`/api/v1/fundings/${fundingId}/members/me`))
 }

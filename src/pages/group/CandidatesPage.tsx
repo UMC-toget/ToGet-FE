@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
-import { getGiftCandidates, getTogetherGiftDashboard, toggleGiftVote } from '../../api/groupFundings'
+import { getGiftCandidates, getTogetherGiftDashboard, joinGroupFunding, toggleGiftVote } from '../../api/groupFundings'
 import type { GiftCandidateItem, MemberSummary } from '../../api/groupFundings'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import { MOCK_CANDIDATES, MOCK_DASHBOARD } from './groupMock'
@@ -21,6 +21,8 @@ export default function CandidatesPage() {
   const [togglingId, setTogglingId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [members, setMembers] = useState<MemberSummary[]>([])
+  // 첫 투표 때 합류 API를 부르고 나면 켜져서, 이후 투표에선 합류를 다시 시도하지 않게 한다
+  const [joined, setJoined] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -47,6 +49,15 @@ export default function CandidatesPage() {
   // 후보 등록 권한 = 내 역할이 CREATOR/ADMIN. members[]에서 내 userId 매칭 (비로그인/미참여면 false)
   const myRole = members.find(m => m.userId === profile?.userId)?.role
   const isAdmin = myRole === 'CREATOR' || myRole === 'ADMIN'
+  // 이미 이 펀딩 멤버인지 (개설자·공동관리자 포함). 아니면 첫 투표 때 합류시킨다
+  const isMember = joined || (profile != null && members.some(m => m.userId === profile.userId))
+
+  // 첫 참여 액션(투표) 직전 호출 — 아직 멤버가 아니면 합류시킨다. 이미 멤버면 no-op
+  const ensureJoined = async () => {
+    if (isMember || !profile) return
+    await joinGroupFunding(id!)
+    setJoined(true)
+  }
 
   const voteCount = votedIds.size
   const atMax = voteCount >= MAX_VOTES
@@ -75,6 +86,7 @@ export default function CandidatesPage() {
     )
 
     try {
+      await ensureJoined()
       await toggleGiftVote(id!, fundingGiftId)
     } catch (e) {
       console.error('투표 실패', e)
