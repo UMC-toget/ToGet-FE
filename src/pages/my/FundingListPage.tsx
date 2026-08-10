@@ -61,6 +61,8 @@ export default function FundingListPage({ title, fundingType, renderCard }: Fund
   })
 
   const sorted = [...filtered].sort((a, b) => {
+    if (!a.endDate) return 1
+    if (!b.endDate) return -1
     const diff = new Date(a.endDate).getTime() - new Date(b.endDate).getTime()
     return sortOrder === 'endDateAsc' ? diff : -diff
   })

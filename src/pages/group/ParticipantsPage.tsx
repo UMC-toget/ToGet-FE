@@ -5,6 +5,7 @@ import { getTogetherGiftDashboard, updateMemberRole, type MemberSummary } from '
 import { MOCK_DASHBOARD } from './groupMock'
 import GroupSegmentTabs from './GroupSegmentTabs'
 import { ROLE_LABELS } from './groupConstants'
+import { useMyProfile } from '../../hooks/useMyProfile'
 
 // 접근: 로그인한 모든 역할 (역할 변경·권한 부여는 개설자·공동관리자) | 참여자 더보기
 const BADGE: Record<MemberSummary['role'], { label: string; className: string }> = {
@@ -17,6 +18,7 @@ const BADGE: Record<MemberSummary['role'], { label: string; className: string }>
 export default function ParticipantsPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { data: profile } = useMyProfile()
   const [members, setMembers] = useState<MemberSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [openMenuId, setOpenMenuId] = useState<number | null>(null)
@@ -88,6 +90,10 @@ export default function ParticipantsPage() {
                 openMenuId={openMenuId}
                 setOpenMenuId={setOpenMenuId}
                 onRoleChange={handleRoleChange}
+                myUserId={profile?.userId}
+                myNickname={profile?.nickname}
+                myName={profile?.name}
+                myProfileImageUrl={profile?.profileImageUrl}
               />
               <MemberSection
                 title="일반 참여자"
@@ -95,6 +101,10 @@ export default function ParticipantsPage() {
                 openMenuId={openMenuId}
                 setOpenMenuId={setOpenMenuId}
                 onRoleChange={handleRoleChange}
+                myUserId={profile?.userId}
+                myNickname={profile?.nickname}
+                myName={profile?.name}
+                myProfileImageUrl={profile?.profileImageUrl}
               />
             </div>
           </div>
@@ -119,9 +129,13 @@ interface MemberSectionProps {
   openMenuId: number | null
   setOpenMenuId: (id: number | null) => void
   onRoleChange: (memberId: number, role: 'ADMIN' | 'PARTICIPANT') => void
+  myUserId?: number
+  myNickname?: string
+  myName?: string
+  myProfileImageUrl?: string | null
 }
 
-function MemberSection({ title, members, openMenuId, setOpenMenuId, onRoleChange }: MemberSectionProps) {
+function MemberSection({ title, members, openMenuId, setOpenMenuId, onRoleChange, myUserId, myNickname, myName, myProfileImageUrl }: MemberSectionProps) {
   if (members.length === 0) return null
   return (
     <div className="flex flex-col gap-3">
@@ -135,6 +149,10 @@ function MemberSection({ title, members, openMenuId, setOpenMenuId, onRoleChange
             onToggleMenu={() => setOpenMenuId(openMenuId === m.fundingMemberId ? null : m.fundingMemberId)}
             onCloseMenu={() => setOpenMenuId(null)}
             onRoleChange={onRoleChange}
+            myUserId={myUserId}
+            myNickname={myNickname}
+            myName={myName}
+            myProfileImageUrl={myProfileImageUrl}
           />
         ))}
       </div>
@@ -148,10 +166,19 @@ interface MemberCardProps {
   onToggleMenu: () => void
   onCloseMenu: () => void
   onRoleChange: (memberId: number, role: 'ADMIN' | 'PARTICIPANT') => void
+  myUserId?: number
+  myNickname?: string
+  myName?: string
+  myProfileImageUrl?: string | null
 }
 
-function MemberCard({ member, menuOpen, onToggleMenu, onCloseMenu, onRoleChange }: MemberCardProps) {
-  const { role, name, profileImageUrl, fundingMemberId } = member
+function MemberCard({ member, menuOpen, onToggleMenu, onCloseMenu, onRoleChange, myUserId, myNickname, myName, myProfileImageUrl }: MemberCardProps) {
+  const { role, name, userId, profileImageUrl, fundingMemberId } = member
+  const displayName = name || (userId === myUserId ? myNickname : '') || ''
+  const isMe = (myUserId != null && String(userId) === String(myUserId)) ||
+    (Boolean(myNickname) && name === myNickname) ||
+    (Boolean(myName) && name === myName)
+  const displayProfileImageUrl = isMe ? (myProfileImageUrl ?? profileImageUrl) : profileImageUrl
   const badge = BADGE[role]
   const canChangeRole = role === 'ADMIN' || role === 'PARTICIPANT'
   const menuRef = useRef<HTMLDivElement>(null)
@@ -171,15 +198,15 @@ function MemberCard({ member, menuOpen, onToggleMenu, onCloseMenu, onRoleChange 
     <div className="flex items-center justify-between rounded-xl border border-[#EAE9EA] bg-white px-[14px] py-3">
       <div className="flex items-center gap-2">
         <div className="shrink-0">
-          {profileImageUrl ? (
-            <img src={profileImageUrl} alt={name} className="size-10 rounded-full object-cover" />
+          {displayProfileImageUrl ? (
+            <img src={displayProfileImageUrl} alt={displayName} className="size-10 rounded-full object-cover" />
           ) : (
             <div className="size-10 rounded-full bg-[#F7F5F8]" />
           )}
         </div>
         <div className="flex flex-col gap-1">
           <span className="text-b2-r text-[#797378]">{ROLE_LABELS[role]}</span>
-          <span className="text-b2-r text-black">{name}</span>
+          <span className="text-b2-r text-black">{displayName}</span>
         </div>
       </div>
 

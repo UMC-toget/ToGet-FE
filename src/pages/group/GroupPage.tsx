@@ -10,7 +10,7 @@ import CandidateCard from './CandidateCard'
 import GroupSegmentTabs from './GroupSegmentTabs'
 import { STATUS_LABELS, ROLE_LABELS } from './groupConstants'
 import { getTogetherGiftDashboard, updateGroupFundingStatus, leaveGroupFunding } from '../../api/groupFundings'
-import type { TogetherGiftDashboard, GroupFundingStatus, FundingMemberRole } from '../../api/groupFundings'
+import type { TogetherGiftDashboard, GroupFundingStatus, FundingMemberRole, MemberSummary } from '../../api/groupFundings'
 import { getContributions } from '../../api/contributions'
 import type { ContributionItem } from '../../api/contributions'
 import { MOCK_DASHBOARD, MOCK_CONTRIBUTIONS } from './groupMock'
@@ -21,7 +21,7 @@ import { useAuth } from '../../hooks/useAuth'
 import ribbonHost from '../../assets/ribbon-host.svg'
 import ribbonCoHost from '../../assets/ribbon-co-host.svg'
 import EmojiPopup from '../../components/common/EmojiPopup'
-import { formatDateDots } from '../../utils/formatDate'
+import { formatDateDots, getDdayLabel } from '../../utils/formatDate'
 import { copyToClipboard } from '../../utils/clipboard'
 import { setReturnUrl } from '../../utils/returnUrl'
 
@@ -104,14 +104,16 @@ export default function GroupPage() {
 
   const visibleMembers = group.members.slice(0, 3)
   const extraCount = Math.max(0, group.members.length - visibleMembers.length)
+  const getMemberProfileImageUrl = (member: MemberSummary) => {
+    const isMe = Boolean(profile) && (
+      String(member.userId) === String(profile?.userId) ||
+      member.name === profile?.nickname ||
+      member.name === profile?.name
+    )
+    return isMe ? (profile?.profileImageUrl ?? member.profileImageUrl) : member.profileImageUrl
+  }
 
-  // D-day 계산
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const anniversary = new Date(group.anniversaryDate)
-  anniversary.setHours(0, 0, 0, 0)
-  const diffDays = Math.round((anniversary.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-  const dDayLabel = diffDays > 0 ? `D-${diffDays}` : diffDays === 0 ? 'D-Day' : `D+${Math.abs(diffDays)}`
+  const dDayLabel = getDdayLabel(group.anniversaryDate)
 
   // 내 역할 = 대시보드 members[]에서 내 userId 매칭. 판별 불가(비로그인/미참여)면 최소 권한 PARTICIPANT로 취급
   const myRole: FundingMemberRole =
@@ -369,8 +371,12 @@ export default function GroupPage() {
                   {visibleMembers.map(m => (
                     <div key={m.fundingMemberId} className="flex items-center gap-2">
                       <div className="relative mt-[5px] shrink-0">
-                        {m.profileImageUrl ? (
-                          <img src={m.profileImageUrl} alt={m.name} className="size-[26px] rounded-full object-cover" />
+                        {getMemberProfileImageUrl(m) ? (
+                          <img
+                            src={getMemberProfileImageUrl(m) ?? undefined}
+                            alt={m.name}
+                            className="size-[26px] rounded-full object-cover"
+                          />
                         ) : (
                           <div className="size-[26px] rounded-full bg-[#E4E4E4]" />
                         )}
@@ -384,7 +390,9 @@ export default function GroupPage() {
                       </div>
                       <div className="flex flex-col gap-1">
                         <span className="text-[8px] font-normal leading-[10px] text-[#797378]">{ROLE_LABELS[m.role]}</span>
-                        <span className="max-w-[34px] truncate text-caption1-m text-[#111111]">{m.name}</span>
+                        <span className="max-w-[34px] truncate text-caption1-m text-[#111111]">
+                          {m.name || (m.userId === profile?.userId ? profile?.nickname : '')}
+                        </span>
                       </div>
                     </div>
                   ))}
