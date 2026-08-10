@@ -83,7 +83,7 @@ export default function FundingListPage({ title, fundingType, renderCard }: Fund
         }))}
       />
 
-      <div className="flex flex-1 flex-col gap-4 bg-background px-[18px] pb-8 pt-3">
+      <div className="flex flex-1 flex-col gap-4 bg-white px-[18px] pb-8 pt-3">
         <div className="flex items-center justify-between">
           <p className="text-caption1-r text-gray-500">
             {COUNT_LABELS[tab]} {sorted.length}개
