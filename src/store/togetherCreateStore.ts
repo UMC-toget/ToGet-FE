@@ -24,7 +24,7 @@ export interface TogetherCreateState {
     data: Partial<Pick<TogetherCreateState, 'roomName' | 'recipientName' | 'giftDate' | 'memo' | 'thumbnailImage'>>
   ) => void;
   addAccount: (data: Omit<SavedAccount, 'id'>) => void;
-  setAccounts: (accounts: SavedAccount[]) => void;
+  hydrateAccounts: (accounts: SavedAccount[]) => void;
   updateAccount: (id: string, data: Partial<Omit<SavedAccount, 'id'>>) => void;
   selectAccount: (id: string) => void;
   setInvite: (
@@ -61,7 +61,11 @@ export const useTogetherCreateStore = create<TogetherCreateState>((set) => ({
         selectedAccountId: id,
       };
     }),
-  setAccounts: (accounts) => set({ accounts }),
+  hydrateAccounts: (accounts) =>
+    set((state) => {
+      const apiIds = new Set(accounts.map((account) => account.id));
+      return { accounts: [...accounts, ...state.accounts.filter((account) => !apiIds.has(account.id))] };
+    }),
   updateAccount: (id, data) =>
     set((state) => ({
       accounts: state.accounts.map((acc) => (acc.id === id ? { ...acc, ...data } : acc)),

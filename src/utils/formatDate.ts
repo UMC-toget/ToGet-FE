@@ -31,7 +31,7 @@ export function formatDateKorean(date: Date): string {
  * getDdayLabel('2026-08-01') // 오늘이 2026-07-25면 'D-7'
  */
 export function getDdayLabel(dateString: string | null | undefined): string {
-  if (!dateString) return ''
+  if (!dateString?.trim()) return ''
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const target = new Date(dateString)

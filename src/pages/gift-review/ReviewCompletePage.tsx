@@ -66,7 +66,7 @@ export default function ReviewCompletePage() {
   const handlePreview = () => navigate(`/gift/review/${config.key}-mock`, { state: previewData })
 
   return (
-    <div className="relative mx-auto flex min-h-dvh w-full max-w-[402px] flex-col overflow-hidden bg-white pb-[140px] antialiased">
+    <div className="relative mx-auto flex min-h-dvh w-full max-w-[402px] flex-col overflow-hidden bg-white antialiased">
       <button
         type="button"
         aria-label="닫기"
@@ -113,10 +113,8 @@ export default function ReviewCompletePage() {
         </div>
       </div>
 
-      <div className="pointer-events-none fixed bottom-0 left-1/2 w-full max-w-[402px] -translate-x-1/2 bg-gradient-to-b from-white/0 to-white/80 px-[18px] pb-[34px] pt-10">
-        <Button className="pointer-events-auto" onClick={handlePreview}>
-          {config.previewLabel}
-        </Button>
+      <div className="px-[18px] pb-[34px] pt-10">
+        <Button onClick={handlePreview}>{config.previewLabel}</Button>
       </div>
 
       <Toast open={toastMessage !== null} message={toastMessage ?? ''} />

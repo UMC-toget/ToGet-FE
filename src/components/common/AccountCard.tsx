@@ -52,7 +52,7 @@ export default function AccountCard({
 
   return (
     <div
-      className={`flex flex-col gap-3 rounded-xl border bg-white px-3.5 py-3 ${
+      className={`flex flex-col gap-3 rounded-xl border bg-white px-3.5 py-3 transition-colors ${
         selected ? 'border-[#FEAAC9]' : 'border-gray-100'
       }`}
     >

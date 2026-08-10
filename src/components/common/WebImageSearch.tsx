@@ -5,6 +5,7 @@ import CloseIcon from "../icons/CloseIcon";
 import MoreVerticalIcon from "../icons/MoreVerticalIcon";
 import { searchWebImages } from "../../api/webImages";
 import type { WebImageResult } from "../../api/webImages";
+import { importImage } from "../../api/images";
 
 const RECENT_SEARCH_KEY = "toget:webImageSearchRecent";
 const RECENT_SEARCH_MAX = 10;
@@ -47,6 +48,7 @@ export default function WebImageSearch({
   );
   const [results, setResults] = useState<WebImageResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
   const [openMenuIndex, setOpenMenuIndex] = useState<number | null>(null);
   const activeMenuRef = useRef<HTMLDivElement | null>(null);
@@ -102,6 +104,7 @@ export default function WebImageSearch({
     setView("results");
     setOpenMenuIndex(null);
     setLoading(true);
+    setErrorMessage(null);
     setRecentSearches((prev) => {
       const next = [
         trimmed,
@@ -113,6 +116,10 @@ export default function WebImageSearch({
     try {
       const result = await searchWebImages(trimmed);
       setResults(result.images);
+    } catch (error) {
+      console.error("웹 이미지 검색 실패", error);
+      setResults([]);
+      setErrorMessage("이미지 검색에 실패했어요. 잠시 후 다시 시도해 주세요.");
     } finally {
       setLoading(false);
     }
@@ -136,7 +143,12 @@ export default function WebImageSearch({
     if (applying) return;
     setApplying(true);
     try {
-      const response = await fetch(image.imageUrl);
+      const imported = await importImage({
+        sourceImageUrl: image.imageUrl,
+        prefix: "web-images",
+      });
+      const response = await fetch(imported.imageUrl);
+      if (!response.ok) throw new Error(`가져온 이미지 다운로드 실패 (${response.status})`);
       const blob = await response.blob();
       const file = new File([blob], "web-image.jpg", {
         type: blob.type || "image/jpeg",
@@ -144,6 +156,7 @@ export default function WebImageSearch({
       onSelect(file);
     } catch (e) {
       console.error("웹 이미지 적용 실패", e);
+      setErrorMessage("이미지를 가져오지 못했어요. 다른 이미지를 선택해 주세요.");
     } finally {
       setApplying(false);
     }
@@ -251,6 +264,10 @@ export default function WebImageSearch({
             {loading ? (
               <p className="py-20 text-center text-b2-r text-gray-500">
                 검색 중이에요...
+              </p>
+            ) : errorMessage ? (
+              <p className="py-20 text-center text-b2-r text-gray-500">
+                {errorMessage}
               </p>
             ) : results.length > 0 ? (
               <div className="columns-2 gap-4 [&>*]:mb-3 [&>*]:break-inside-avoid">

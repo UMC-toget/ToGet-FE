@@ -32,7 +32,7 @@ const NAME_MAX = 20;
 
 export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled = false }: Props) {
   const navigate = useNavigate();
-  const { wishlist, addWishlistItem, removeWishlistItem } = useFundingCreateStore();
+  const { wishlist, addWishlistItem, updateWishlistItem, removeWishlistItem } = useFundingCreateStore();
   const [view, setView] = useState<View>('list');
 
   // 새 선물 등록 폼
@@ -49,7 +49,7 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
   const [selectedWishIds, setSelectedWishIds] = useState<Set<number>>(new Set());
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [showSortMenu, setShowSortMenu] = useState(false);
-  const { wishedProducts, isLoading: wishLoading } = useWishedProducts(wishTab, 'latest');
+  const { wishedProducts, isLoading: isWishLoading } = useWishedProducts(wishTab, 'latest');
 
   const totalAmount = wishlist.reduce((sum, item) => sum + item.price, 0);
   const isFormValid = Boolean(form.name.trim() && Number(form.price) > 0);
@@ -269,30 +269,64 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
         </div>
 
         {wishlist.length > 0 && (
-          <div className="flex-1 -mx-4.5 px-4.5 pt-5 pb-6 bg-gray-100">
-            <div className="px-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-black">등록된 {wishlist.length}개 선물</p>
-                <p className="text-sm font-semibold text-black">총 {totalAmount.toLocaleString()}원</p>
+          <div className="flex-1 -mx-4.5 bg-gray-100 px-4.5 pb-6">
+            <div className="px-3">
+              <div className="sticky top-0 z-10 flex items-center justify-between bg-gray-100 pb-5 pt-5">
+                <p className="text-sm font-medium text-black">등록된 {wishlist.length}개 상품</p>
+                <p className="text-sm font-semibold text-pink-500">총 {totalAmount.toLocaleString()}원</p>
               </div>
-              {wishlist.map((item) => (
-                <div key={item.id} className="flex items-center gap-3 border border-gray-100 rounded-xl p-3 bg-white">
-                  {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.name} className="w-12 h-12 rounded-lg object-cover" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
-                      선물
+              <div className="space-y-2">
+                {wishlist.map((item) => (
+                  <div key={item.id} className="flex items-center gap-3 rounded-xl bg-white p-3">
+                    <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-[#F5F4F5]/50">
+                      {item.imageUrl ? (
+                        <>
+                          <img
+                            src={item.imageUrl}
+                            alt=""
+                            className="size-full object-cover"
+                            onError={() => updateWishlistItem(item.id, { imageUrl: undefined, imageFile: undefined })}
+                          />
+                          <button
+                            type="button"
+                            aria-label={`${item.name} 이미지 삭제`}
+                            onClick={() => updateWishlistItem(item.id, { imageUrl: undefined, imageFile: undefined })}
+                            className="absolute inset-0 flex items-center justify-center bg-black/60 text-white"
+                          >
+                            <X size={16} className="rounded-full bg-white/80 p-0.5 text-gray-600" />
+                          </button>
+                        </>
+                      ) : (
+                        <label className="flex size-full cursor-pointer items-center justify-center text-gray-400">
+                          <span className="flex size-5 items-center justify-center rounded-full bg-gray-200 text-sm">+</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={(event) => {
+                              const file = event.target.files?.[0];
+                              if (!file) return;
+                              updateWishlistItem(item.id, { imageUrl: URL.createObjectURL(file), imageFile: file });
+                            }}
+                          />
+                        </label>
+                      )}
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{item.name}</p>
-                    <p className="text-xs text-gray-500">{item.price.toLocaleString()}원</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-gray-800">{item.name}</p>
+                      <p className="text-xs text-gray-500">{item.price.toLocaleString()}원</p>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label={`${item.name} 선물 삭제`}
+                      onClick={() => removeWishlistItem(item.id)}
+                      className="text-gray-400 transition-colors hover:text-gray-600"
+                    >
+                      <X size={16} />
+                    </button>
                   </div>
-                  <button onClick={() => removeWishlistItem(item.id)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                    <X size={16} />
-                  </button>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -390,12 +424,20 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
             </div>
 
             <div className="flex-1 overflow-y-auto grid grid-cols-2 gap-3 pb-2">
-              {filteredWishItems.map((item) => {
+              {!isWishLoading && filteredWishItems.map((item) => {
                 const selected = selectedWishIds.has(item.id);
                 return (
                   <button key={item.id} onClick={() => toggleWishSelect(item.id)} className="text-left">
-                    <div className="relative">
-                      <img src={item.image} alt={item.name} className="w-full aspect-square rounded-xl object-cover" />
+                    <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-100">
+                      <Gift className="absolute left-1/2 top-1/2 size-10 -translate-x-1/2 -translate-y-1/2 text-gray-300" />
+                      {item.image && (
+                        <img
+                          src={item.image}
+                          alt=""
+                          className="absolute inset-0 size-full object-contain p-3"
+                          onError={(event) => { event.currentTarget.style.display = 'none'; }}
+                        />
+                      )}
                       <span
                         className={`absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs
                           ${selected ? 'bg-gray-900 text-white' : 'bg-white/80 text-gray-500'}`}
@@ -409,9 +451,12 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
                   </button>
                 );
               })}
-              {filteredWishItems.length === 0 && (
+              {isWishLoading && (
+                <p className="col-span-2 text-xs text-gray-400 text-center py-8">위시를 불러오는 중이에요</p>
+              )}
+              {!isWishLoading && filteredWishItems.length === 0 && (
                 <p className="col-span-2 text-xs text-gray-400 text-center py-8">
-                  {wishLoading ? '불러오는 중...' : '검색 결과가 없어요'}
+                  {wishQuery || wishTab !== 'all' ? '검색 결과가 없어요' : '등록된 위시가 없어요'}
                 </p>
               )}
             </div>
