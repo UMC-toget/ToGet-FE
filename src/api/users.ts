@@ -59,6 +59,8 @@ export interface MyFunding {
   endDate: string | null
   thumbnailImageUrl: string | null
   createdAt: string
+  /** 종료된 내 선물 페이지에 대해 후기 작성 여부 (내 선물 카드의 작성/조회 버튼 분기용) */
+  hasReview: boolean
 }
 
 export interface MyFundingList {

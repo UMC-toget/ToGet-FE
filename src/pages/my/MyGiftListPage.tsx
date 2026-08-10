@@ -37,6 +37,7 @@ export default function MyGiftListPage() {
             funding={funding}
             onOpen={() => navigate(`/funding/${funding.fundingId}?owner=1`)}
             onShareInvite={() => handleShareInvite(funding)}
+            onWriteReview={() => navigate(`/gift/review/write/gift/${funding.fundingId}`)}
             onViewReview={() => navigate(`/gift/review/${funding.fundingId}/${funding.fundingId}`)}
           />
         )}
