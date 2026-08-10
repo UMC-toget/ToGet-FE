@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { SavedAccount } from './fundingCreateStore';
+import { mergeSavedAccounts, type SavedAccount } from './fundingCreateStore';
 
 export interface TogetherCreateState {
   // Step 1: 기본 정보
@@ -62,10 +62,7 @@ export const useTogetherCreateStore = create<TogetherCreateState>((set) => ({
       };
     }),
   hydrateAccounts: (accounts) =>
-    set((state) => {
-      const apiIds = new Set(accounts.map((account) => account.id));
-      return { accounts: [...accounts, ...state.accounts.filter((account) => !apiIds.has(account.id))] };
-    }),
+    set((state) => mergeSavedAccounts(accounts, state.accounts, state.selectedAccountId)),
   updateAccount: (id, data) =>
     set((state) => ({
       accounts: state.accounts.map((acc) => (acc.id === id ? { ...acc, ...data } : acc)),
