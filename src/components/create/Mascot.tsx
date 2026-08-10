@@ -57,14 +57,13 @@ export function useInvitationMeta() {
   return { backgrounds, characters, isLoading, backgroundError, characterError };
 }
 
-// 초대장 캐릭터 1~6번은 원래 프론트에 있던 고화질 벡터(SVG) 에셋과 동일한 캐릭터라,
-// 백엔드가 내려주는 imageUrl(래스터, 저해상도 이슈 있음) 대신 이 로컬 에셋으로 표시합니다.
-// 관리자가 새로 등록한 7번 이후 캐릭터는 로컬 에셋이 없으므로 imageUrl을 그대로 씁니다.
+// 백엔드 characters API가 내려주는 SVG를 우선 사용합니다.
+// imageUrl이 비어 있는 기존 데이터만 로컬 SVG로 보완합니다.
 const LOCAL_CHARACTER_IMAGES: Record<number, string> = { 1: char1, 2: char2, 3: char3, 4: char4, 5: char5, 6: char6 };
 
 export function getCharacterImageSrc(character?: Pick<CharacterMeta, 'id' | 'imageUrl'>): string | undefined {
   if (!character) return undefined;
-  return LOCAL_CHARACTER_IMAGES[character.id] ?? character.imageUrl;
+  return character.imageUrl || LOCAL_CHARACTER_IMAGES[character.id];
 }
 
 export function getInvitationAccent(hexCode?: string) {
