@@ -4,7 +4,6 @@ import Button from '../../components/common/Button'
 import InvitationHero from '../../components/invitation/InvitationHero'
 import { getInvitationCard } from '../../api/fundings'
 import { fetchCharacters } from '../../api/metaApi'
-import { CHARACTER_SVGS } from '../../components/invitation/characterAssets'
 import { getInviteThemeColor, getInviteGlowStyle } from '../../components/invitation/inviteTheme'
 
 /** 화이트 배경 테마 id — 로고를 흰 fill + 회색 외곽선 전용 SVG로 렌더 */
@@ -55,14 +54,9 @@ export default function InvitationPage() {
 
         setCharacterId(card.characterId ?? null)
 
-        // 로컬 SVG가 있으면 우선 사용(선명), 없으면 BE PNG로 폴백
-        const localSvg = card.characterId != null ? CHARACTER_SVGS[card.characterId] : undefined
-        if (localSvg) {
-          setCharacterImageUrl(localSvg)
-        } else {
-          const character = characters.find((c) => c.id === card.characterId)
-          if (character) setCharacterImageUrl(character.imageUrl)
-        }
+        // BE characters API가 SVG로 내려주므로 그대로 사용(위치·크기는 characterId 기반 보정 유지).
+        const character = characters.find((c) => c.id === card.characterId)
+        if (character) setCharacterImageUrl(character.imageUrl)
       } catch {
         // API 실패 시 기본값 유지
       }

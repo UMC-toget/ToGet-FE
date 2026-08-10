@@ -4,6 +4,7 @@ import Header from '../../components/common/Header'
 import ProcessBar from '../../components/common/ProcessBar'
 import Button from '../../components/common/Button'
 import ConfirmModal from '../../components/common/ConfirmModal'
+import EmojiPopup from '../../components/common/EmojiPopup'
 import ConfirmStep1 from './ConfirmStep1'
 import ConfirmStep2 from './ConfirmStep2'
 import ConfirmStep3 from './ConfirmStep3'
@@ -46,6 +47,7 @@ export default function ConfirmPage() {
   const [account, setAccount] = useState<FundingAccount | null>(null)
   const [loading, setLoading] = useState(true)
   const [showExitModal, setShowExitModal] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
@@ -122,7 +124,7 @@ export default function ConfirmPage() {
           settlementMemberIds: includedMembers.map(m => m.fundingMemberId),
         })
       }
-      navigate(`/group/${id}`, { replace: true })
+      setShowSuccess(true)
     } catch (e) {
       console.error('선물 확정 실패', e)
     } finally {
@@ -183,6 +185,9 @@ export default function ConfirmPage() {
                 ),
               )
             }
+            onSetAll={included =>
+              setMembers(prev => prev.map(m => ({ ...m, included })))
+            }
           />
         )}
         {step === 3 && (
@@ -215,6 +220,13 @@ export default function ConfirmPage() {
         cancelText="계속하기"
         onCancel={() => setShowExitModal(false)}
         onConfirm={() => navigate(-1)}
+      />
+
+      <EmojiPopup
+        open={showSuccess}
+        icon="success"
+        title="선물 후보 확정이 완료되었습니다"
+        buttons={[{ label: '선물 페이지로 돌아가기', variant: 'primary', onClick: () => navigate(`/group/${id}`, { replace: true }) }]}
       />
     </div>
   )
