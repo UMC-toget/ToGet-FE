@@ -1,24 +1,40 @@
+import type { ReactNode } from 'react'
 import togetLogoPink from '../../assets/toget-logo-pink.svg'
 import togetLogoWhite from '../../assets/toget-logo-white.svg'
 import heroCat from '../../assets/hero-cat-invitation.svg'
 import heroStars from '../../assets/hero-stars.svg'
 import heroStarWhite from '../../assets/hero-star-white.svg'
 import { getCharacterLayout } from './characterAssets'
+import { getInviteGlowStyle } from './inviteTheme'
 
 interface Props {
   /** BE characters API에서 받은 캐릭터 이미지 URL. 없으면 기본 고양이 사용 */
   characterImageUrl?: string
   /** 캐릭터 id — 캐릭터별 크기·위치 보정에 사용(예: 화난 캐릭터 2는 더 크게+아래로) */
   characterId?: number | null
-  /** 초대장 배경 테마 색. 로고를 이 색으로 틴트한다(피그마: 색 100%→30% 그라데이션) */
+  /** 초대장 배경 테마 색. 로고 틴트 + 글로우 색으로 쓰인다(피그마: 색 100%→30% 그라데이션) */
   logoColor?: string
-  /** 화이트 배경 테마(id8): 틴트 대신 흰 fill + 회색 외곽선 전용 로고 사용 */
+  /** 화이트 배경 테마(id8): 틴트 대신 흰 fill + 회색 외곽선 전용 로고 + 회색 글로우 사용 */
   whiteLogo?: boolean
+  /**
+   * 상단 제목 문구. 기본값은 E01 초대장 문구.
+   * 제목 없이 비주얼만 쓰고 싶으면(예: J 페이지) `null`을 넘긴다.
+   */
+  title?: ReactNode
 }
 
+const DEFAULT_TITLE = (
+  <>
+    따뜻한 축하를
+    <br />
+    함께 전해주시겠어요?
+  </>
+)
+
 /**
- * E01 상단 히어로 섹션: ToGet 로고 + 캐릭터 + 별/컨페티.
- * 핑크 글로우 배경은 카드 영역 뒤까지 이어져야 해서 InvitationPage에서 페이지 레벨로 깔아줌.
+ * 초대장 상단 비주얼: 색상 글로우 + ToGet 로고 + 캐릭터 + 별/컨페티 (+ 선택 제목).
+ * 글로우까지 이 컴포넌트가 그리므로 어느 페이지에든 드롭인으로 재사용 가능하다
+ * (E01 초대장 / J 후기 등). self-fetching 래퍼는 InvitationVisual 참고.
  * 좌표는 피그마 E01 프레임(402×874) 실측값 기준.
  * 402px 미만 화면에서도 중앙이 유지되도록 left-1/2 기준으로 배치 (가장자리는 좌우 대칭으로 잘림).
  */
@@ -27,10 +43,17 @@ export default function InvitationHero({
   characterId,
   logoColor = '#FE71A5',
   whiteLogo = false,
+  title = DEFAULT_TITLE,
 }: Props) {
   const characterLayout = getCharacterLayout(characterId)
   return (
     <section className="relative h-[454px] w-full">
+      {/* 색상 글로우 (테마 색 원형 그라데이션). 카드 영역 뒤까지 이어지도록 섹션 밖으로 넘쳐 흐름 */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 -translate-x-1/2 rounded-full"
+        style={getInviteGlowStyle(logoColor, whiteLogo)}
+      />
       {/* ToGet 로고 (피그마: x5 y178 393×106.65 — 프레임 중앙 기준)
           화이트 테마는 흰 fill + 회색 외곽선 전용 SVG를 그대로 렌더.
           그 외 색은 단색 그라데이션 SVG를 mask로 써서 배경 테마 색으로 틴트한다.
@@ -91,11 +114,11 @@ export default function InvitationHero({
       />
 
       {/* 제목 (피그마: y100, H2_SB 20px, 중앙 정렬 — 줄바꿈은 br로만 제어) */}
-      <p className="absolute left-1/2 top-[100px] -translate-x-1/2 whitespace-nowrap text-center text-h2-sb text-black">
-        따뜻한 축하를
-        <br />
-        함께 전해주시겠어요?
-      </p>
+      {title != null && (
+        <p className="absolute left-1/2 top-[100px] -translate-x-1/2 whitespace-nowrap text-center text-h2-sb text-black">
+          {title}
+        </p>
+      )}
     </section>
   )
 }
