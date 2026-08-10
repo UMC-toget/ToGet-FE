@@ -42,6 +42,8 @@ export interface TogetherGiftDashboard {
   recipientName: string
   introduction: string
   thumbnailImageUrl: string | null
+  /** 조회자의 역할 (BE가 직접 판별해 내려줌). 비회원·미합류 회원이면 null */
+  myRole: FundingMemberRole | null
   members: MemberSummary[]
   /** SELECTING 단계에서 상위 투표 선물 목록 */
   topGifts: TopGift[] | null
@@ -53,7 +55,7 @@ export interface TogetherGiftDashboard {
   messageIds: number[] | null
 }
 
-/** H01) 함께 선물 대시보드 조회 (로그인 필요) */
+/** H01) 함께 선물 대시보드 조회 (공개 — 로그인 불필요, 초대장 링크를 아는 누구나 조회 가능) */
 export function getTogetherGiftDashboard(fundingId: number | string) {
   return unwrap<TogetherGiftDashboard>(
     apiClient.get(`/api/v1/fundings/${fundingId}/dashboards/together-gift`),
