@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import AccountFormFields from '../common/AccountFormFields';
 import AccountCard from '../common/AccountCard';
@@ -7,6 +7,7 @@ import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import type { SavedAccount } from '../../store/fundingCreateStore';
 import { BANK_NAME_LABELS } from '../../api/userAccounts';
 import type { BankName } from '../../api/userAccounts';
+import { useUserAccounts } from '../../hooks/useUserAccounts';
 
 interface Props {
   onNext: () => void;
@@ -39,7 +40,8 @@ function resolveBankCode(displayName: string): BankName | undefined {
 }
 
 export default function Step4Account({ onNext, submitLabel = '다음', disabled = false }: Props) {
-  const { accounts, selectedAccountId, addAccount, updateAccount, selectAccount } = useFundingCreateStore();
+  const { accounts, selectedAccountId, addAccount, setAccounts, updateAccount, selectAccount } = useFundingCreateStore();
+  const { data: registeredAccounts } = useUserAccounts();
 
   const [view, setView] = useState<View>('list');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -47,6 +49,16 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
   const [showConfirm, setShowConfirm] = useState(false);
 
   const isFormValid = Boolean(form.bankCode && form.accountNumber.trim() && form.accountHolder.trim());
+
+  useEffect(() => {
+    if (!registeredAccounts) return;
+    setAccounts(registeredAccounts.map((account) => ({
+      id: String(account.userAccountId),
+      bankName: BANK_NAME_LABELS[account.bankName],
+      accountNumber: account.account,
+      accountHolder: account.accountOwner,
+    })));
+  }, [registeredAccounts, setAccounts]);
 
   const openAdd = () => {
     setForm(emptyForm);
@@ -116,7 +128,7 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
                     if (!bankCode) return null;
                     return (
                       <div key={acc.id} role="button" tabIndex={0} onClick={() => selectAccount(acc.id)} className="cursor-pointer">
-                        <AccountCard bankCode={bankCode} accountOwner={acc.accountHolder} account={acc.accountNumber} selected={selected}>
+                        <AccountCard bankCode={bankCode} accountOwner={acc.accountHolder} account={acc.accountNumber} selected={selected} selectable>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();

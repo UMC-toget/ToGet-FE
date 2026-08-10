@@ -83,6 +83,7 @@ export interface FundingCreateState {
   removeWishlistItem: (id: string) => void;
   setVisibility: (data: Partial<Pick<FundingCreateState, 'showProgress' | 'showAmount' | 'showParticipantCount' | 'showParticipantNames' | 'showMessages'>>) => void;
   addAccount: (data: Omit<SavedAccount, 'id'>) => void;
+  setAccounts: (accounts: SavedAccount[]) => void;
   updateAccount: (id: string, data: Partial<Omit<SavedAccount, 'id'>>) => void;
   removeAccount: (id: string) => void;
   selectAccount: (id: string) => void;
@@ -167,6 +168,7 @@ export const useFundingCreateStore = create<FundingCreateState>((set) => ({
         selectedAccountId: id,
       };
     }),
+  setAccounts: (accounts) => set({ accounts }),
   updateAccount: (id, data) =>
     set((state) => ({
       accounts: state.accounts.map((acc) => (acc.id === id ? { ...acc, ...data } : acc)),

@@ -19,8 +19,6 @@ import { MOCK_DASHBOARD, MOCK_CONTRIBUTIONS } from './groupMock'
 import EnvelopeButton from '../funding/EnvelopeButton'
 import LetterModal from '../funding/LetterModal'
 import { useAuth } from '../../hooks/useAuth'
-import ribbonHost from '../../assets/ribbon-host.svg'
-import ribbonCoHost from '../../assets/ribbon-co-host.svg'
 import EmojiPopup from '../../components/common/EmojiPopup'
 import { formatDateDots } from '../../utils/formatDate'
 import { copyToClipboard } from '../../utils/clipboard'
@@ -83,7 +81,7 @@ export default function GroupPage() {
   if (loading) {
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
-        <Header title="함께 선물 페이지" />
+        <Header title="함께 선물 페이지" onBack={() => navigate('/home', { replace: true })} />
         <div className="flex flex-1 items-center justify-center">
           <p className="text-b2-r text-gray-400">불러오는 중...</p>
         </div>
@@ -94,7 +92,7 @@ export default function GroupPage() {
   if (!group) {
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
-        <Header title="함께 선물 페이지" />
+        <Header title="함께 선물 페이지" onBack={() => navigate('/home', { replace: true })} />
         <div className="flex flex-1 items-center justify-center">
           <p className="text-b2-r text-gray-400">펀딩 정보를 불러올 수 없어요</p>
         </div>
@@ -163,7 +161,7 @@ export default function GroupPage() {
 
   return (
     <div className="mx-auto flex h-dvh w-full max-w-[402px] flex-col bg-white">
-      <Header title="함께 선물 페이지" />
+      <Header title="함께 선물 페이지" onBack={() => navigate('/home', { replace: true })} />
 
       {/* 세그먼트 탭: 개설자(CREATOR)일 때만 노출. 공동관리자·참여자에겐 탭 없음 */}
       {isHost && (
@@ -371,18 +369,11 @@ export default function GroupPage() {
                 <div className="flex items-center gap-[30px]">
                   {visibleMembers.map(m => (
                     <div key={m.fundingMemberId} className="flex items-center gap-2">
-                      <div className="relative mt-[5px] shrink-0">
+                      <div className="mt-[5px] shrink-0">
                         {m.profileImageUrl ? (
                           <img src={m.profileImageUrl} alt={m.name} className="size-[26px] rounded-full object-cover" />
                         ) : (
                           <DefaultAvatar className="size-[26px] shrink-0" />
-                        )}
-                        {(m.role === 'CREATOR' || m.role === 'ADMIN') && (
-                          <img
-                            src={m.role === 'CREATOR' ? ribbonHost : ribbonCoHost}
-                            alt=""
-                            className="absolute left-[5px] -top-[5px] w-[17px]"
-                          />
                         )}
                       </div>
                       <div className="flex flex-col gap-1">
