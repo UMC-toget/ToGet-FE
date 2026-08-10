@@ -106,6 +106,7 @@ export default function ConfirmEditPage() {
 
   const handleComplete = () => {
     navigate(`/group/${id}/confirm`, {
+      replace: true,
       state: { ...passedState, confirmedGifts: gifts },
     })
   }
@@ -399,7 +400,7 @@ export default function ConfirmEditPage() {
         confirmText="나가기"
         cancelText="계속 수정하기"
         onCancel={() => setShowExitModal(false)}
-        onConfirm={() => navigate(`/group/${id}/confirm`, { state: passedState })}
+        onConfirm={() => navigate(`/group/${id}/confirm`, { replace: true, state: passedState })}
       />
     </div>
   )

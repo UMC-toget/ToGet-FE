@@ -131,7 +131,7 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
                     if (!bankCode) return null;
                     return (
                       <div key={acc.id} role="button" tabIndex={0} onClick={() => selectAccount(acc.id)} className="cursor-pointer">
-                        <AccountCard bankCode={bankCode} accountOwner={acc.accountHolder} account={acc.accountNumber} selected={selected}>
+                        <AccountCard bankCode={bankCode} accountOwner={acc.accountHolder} account={acc.accountNumber} selected={selected} selectable>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();

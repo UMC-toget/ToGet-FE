@@ -10,7 +10,6 @@ import ConfirmStep3 from './ConfirmStep3'
 import ConfirmStep4 from './ConfirmStep4'
 import { getTogetherGiftDashboard, getGiftCandidates, postFinalSelections, type GiftCandidateItem, type MemberSummary } from '../../api/groupFundings'
 import { getFundingAccount, type FundingAccount } from '../../api/fundings'
-import { MOCK_CANDIDATES, MOCK_DASHBOARD, MOCK_ACCOUNT } from './groupMock'
 
 // 접근: 개설자 전용 | 선물 확정 플로우 4단계 (선물 확정 → 정산인원 → 금액 → 정산 시작)
 export interface ConfirmedGift {
@@ -58,17 +57,11 @@ export default function ConfirmPage() {
     ]).then(([candidatesRes, dashboardRes, accountRes]) => {
       const apiCandidates =
         candidatesRes.status === 'fulfilled' ? candidatesRes.value.candidates : []
-      const rawCandidates =
-        apiCandidates.length > 0
-          ? apiCandidates
-          : import.meta.env.DEV ? MOCK_CANDIDATES.candidates : []
+      const rawCandidates = apiCandidates
 
       const apiMembers =
         dashboardRes.status === 'fulfilled' ? dashboardRes.value.members : []
-      const rawMembers =
-        apiMembers.length > 0
-          ? apiMembers
-          : import.meta.env.DEV ? MOCK_DASHBOARD.members : []
+      const rawMembers = apiMembers
 
       setCandidates(rawCandidates)
 
@@ -83,8 +76,6 @@ export default function ConfirmPage() {
 
       if (accountRes.status === 'fulfilled') {
         setAccount(accountRes.value)
-      } else if (import.meta.env.DEV) {
-        setAccount(MOCK_ACCOUNT)
       }
     }).finally(() => setLoading(false))
   }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -125,13 +116,13 @@ export default function ConfirmPage() {
     if (submitting) return
     setSubmitting(true)
     try {
-      if (!import.meta.env.DEV && id) {
+      if (id) {
         await postFinalSelections(id, {
           giftIds: confirmedGifts.map(g => g.id),
           settlementMemberIds: includedMembers.map(m => m.fundingMemberId),
         })
       }
-      navigate(`/group/${id}`)
+      navigate(`/group/${id}`, { replace: true })
     } catch (e) {
       console.error('선물 확정 실패', e)
     } finally {
@@ -141,6 +132,7 @@ export default function ConfirmPage() {
 
   const handleGoToEdit = () => {
     navigate(`/group/${id}/confirm/edit`, {
+      replace: true,
       state: {
         confirmedGifts,
         step,
@@ -222,7 +214,7 @@ export default function ConfirmPage() {
         confirmText="나가기"
         cancelText="계속하기"
         onCancel={() => setShowExitModal(false)}
-        onConfirm={() => navigate(`/group/${id}`)}
+        onConfirm={() => navigate(-1)}
       />
     </div>
   )
