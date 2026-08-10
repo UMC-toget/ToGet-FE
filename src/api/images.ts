@@ -10,3 +10,12 @@ export interface PresignedUrlResult {
 export function requestPresignedUrl(payload: { prefix?: string; fileName: string; contentType: string }) {
   return unwrap<PresignedUrlResult>(apiClient.post('/api/v1/images/presigned-url', payload))
 }
+
+export interface ImportedImageResult {
+  imageUrl: string
+}
+
+/** 외부 이미지를 서비스 S3로 가져와 안정적인 URL로 변환합니다. */
+export function importImage(payload: { sourceImageUrl: string; prefix?: string }) {
+  return unwrap<ImportedImageResult>(apiClient.post('/api/v1/images/imports', payload))
+}
