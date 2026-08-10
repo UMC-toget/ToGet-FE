@@ -55,7 +55,8 @@ export interface MyFunding {
   /** 0~100 */
   progressRate: number
   status: FundingStatus
-  endDate: string
+  /** 함께 선물(TOGETHER_GIFT)은 선물 확정 전까지 null (BE 응답 기준) */
+  endDate: string | null
   thumbnailImageUrl: string | null
   createdAt: string
 }

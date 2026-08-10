@@ -1,19 +1,8 @@
 import { useState } from 'react'
+import DefaultAvatar from '../../components/common/DefaultAvatar'
 import type { MemberWithStatus } from './ConfirmPage'
 
 // ConfirmPage 서브 컴포넌트 (개설자 전용) | 2단계 정산인원 확정하기 — 포함·제외 토글
-function PlainAvatar({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 40 40"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <rect width="40" height="40" rx="20" fill="#F7F5F8" />
-    </svg>
-  )
-}
 
 interface Props {
   members: MemberWithStatus[]
@@ -69,7 +58,7 @@ export default function ConfirmStep2({ members, onToggle }: Props) {
                     className="size-10 shrink-0 rounded-full object-cover"
                   />
                 ) : (
-                  <PlainAvatar className="size-10 shrink-0" />
+                  <DefaultAvatar className="size-10 shrink-0" />
                 )}
                 <div className="flex min-w-0 flex-col gap-1">
                   <span className="text-b2-r text-[#797378]">

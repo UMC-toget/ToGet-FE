@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
+import DefaultAvatar from '../../components/common/DefaultAvatar'
 import { getTogetherGiftDashboard, type MemberSummary } from '../../api/groupFundings'
 import { MOCK_DASHBOARD } from './groupMock'
 import { ROLE_LABELS } from './groupConstants'
@@ -93,7 +94,7 @@ function MemberCard({ member }: { member: MemberSummary }) {
         <div className="shrink-0">
           {profileImageUrl
             ? <img src={profileImageUrl} alt={name} className="size-10 rounded-full object-cover" />
-            : <div className="size-10 rounded-full bg-[#F7F5F8]" />
+            : <DefaultAvatar className="size-10 shrink-0" />
           }
         </div>
         <div className="flex flex-col gap-1">

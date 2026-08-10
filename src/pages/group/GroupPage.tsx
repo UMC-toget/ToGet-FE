@@ -4,6 +4,8 @@ import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
 import StickyBottomBar from '../../components/common/StickyBottomBar'
 import Toast from '../../components/common/Toast'
+import DefaultAvatar from '../../components/common/DefaultAvatar'
+import avatarCat from '../../assets/avatar-cat.svg'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import LinkIcon from '../../components/icons/LinkIcon'
 import CandidateCard from './CandidateCard'
@@ -184,8 +186,12 @@ export default function GroupPage() {
       <div className="flex-1 overflow-y-auto pb-[140px] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {/* 대표 이미지 + 상태 칩 */}
         <div className="relative h-[190px] bg-background">
-          {group.thumbnailImageUrl && (
+          {group.thumbnailImageUrl ? (
             <img src={group.thumbnailImageUrl} alt="" className="absolute inset-0 size-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <img src={avatarCat} alt="" className="size-16 opacity-30" />
+            </div>
           )}
           <div className="absolute inset-x-[18px] top-[18px] flex items-center justify-between">
             <span className={`rounded-full border px-4 py-2 text-b2-m ${statusChipClass}`}>
@@ -372,7 +378,7 @@ export default function GroupPage() {
                         {m.profileImageUrl ? (
                           <img src={m.profileImageUrl} alt={m.name} className="size-[26px] rounded-full object-cover" />
                         ) : (
-                          <div className="size-[26px] rounded-full bg-[#E4E4E4]" />
+                          <DefaultAvatar className="size-[26px] shrink-0" />
                         )}
                         {(m.role === 'CREATOR' || m.role === 'ADMIN') && (
                           <img

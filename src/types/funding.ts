@@ -42,8 +42,9 @@ export interface MyFundingSummary {
   targetAmount: number
   currentAmount: number
   gaugePercent: number
-  /** D-day 배지 계산 기준. 요약 API는 기념일을 따로 내려주지 않아 펀딩 마감일을 사용합니다 */
-  anniversaryDate: string
+  /** D-day 배지 계산 기준. 요약 API는 기념일을 따로 내려주지 않아 펀딩 마감일을 사용합니다.
+   * 함께 선물(TOGETHER_GIFT)은 선물 확정 전까지 null. */
+  anniversaryDate: string | null
 }
 
 export interface FundingDetail {
