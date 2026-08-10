@@ -89,7 +89,7 @@ export function createUserAccount(payload: UserAccountInput) {
 }
 
 export function updateUserAccount(userAccountId: number, payload: Partial<UserAccountInput>) {
-  return unwrap<UserAccount>(apiClient.put(`/api/v1/user-accounts/${userAccountId}`, payload))
+  return unwrap<UserAccount>(apiClient.patch(`/api/v1/user-accounts/${userAccountId}`, payload))
 }
 
 export function deleteUserAccount(userAccountId: number) {
