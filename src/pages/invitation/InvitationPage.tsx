@@ -1,19 +1,7 @@
-import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Button from '../../components/common/Button'
 import InvitationHero from '../../components/invitation/InvitationHero'
-import { getInvitationCard } from '../../api/fundings'
-import { fetchCharacters } from '../../api/metaApi'
-import { getInviteThemeColor, getInviteGlowStyle } from '../../components/invitation/inviteTheme'
-
-/** 화이트 배경 테마 id — 로고를 흰 fill + 회색 외곽선 전용 SVG로 렌더 */
-const WHITE_THEME_BACKGROUND_ID = 8
-
-const DEFAULT_INVITATION = {
-  title: '따뜻한 선물 초대장이 도착했어요',
-  content: '',
-  creatorName: null as string | null,
-}
+import { useInvitationCard } from '../../components/invitation/useInvitationCard'
 
 /**
  * E01) 내 선물 참여: 초대장 팝업
@@ -24,61 +12,16 @@ export default function InvitationPage() {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  const [invitation, setInvitation] = useState(DEFAULT_INVITATION)
-  // 로고·글로우 모두 테마 색(피그마 빨주노초파남보검정) 사용. 글로우는 이 색 50%.
-  // 화이트 테마(id8)는 테마 색이 회색(#C1BCC0)이라 글로우도 회색으로 뜬다.
-  const [themeColor, setThemeColor] = useState<string>('#FE71A5')
-  const [whiteLogo, setWhiteLogo] = useState(false)
-  const [characterId, setCharacterId] = useState<number | null>(null)
-  const [characterImageUrl, setCharacterImageUrl] = useState<string | undefined>(undefined)
-
-  useEffect(() => {
-    if (!id) return
-
-    const load = async () => {
-      try {
-        const [card, characters] = await Promise.all([
-          getInvitationCard(id),
-          fetchCharacters().catch(() => []),
-        ])
-
-        setInvitation({
-          title: card.title,
-          content: card.content,
-          creatorName: card.creatorName,
-        })
-
-        // 로고·글로우 테마 색, 화이트 테마(id8)는 전용 로고
-        setThemeColor(getInviteThemeColor(card.backgroundId))
-        setWhiteLogo(card.backgroundId === WHITE_THEME_BACKGROUND_ID)
-
-        setCharacterId(card.characterId ?? null)
-
-        // BE characters API가 SVG로 내려주므로 그대로 사용(위치·크기는 characterId 기반 보정 유지).
-        const character = characters.find((c) => c.id === card.characterId)
-        if (character) setCharacterImageUrl(character.imageUrl)
-      } catch {
-        // API 실패 시 기본값 유지
-      }
-    }
-
-    load()
-  }, [id])
+  const invitation = useInvitationCard(id)
 
   return (
     <div className="relative mx-auto flex min-h-dvh w-full max-w-[402px] flex-col overflow-hidden bg-white">
-      {/* 글로우 배경 (테마 색 원형 그라데이션). 위치·크기·색 계산은 getInviteGlowStyle 참고 */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 -translate-x-1/2 rounded-full"
-        style={getInviteGlowStyle(themeColor, whiteLogo)}
-      />
-
+      {/* 글로우·로고·별·캐릭터는 InvitationHero가 한 덩어리로 그린다(J 등 타 섹션과 공용) */}
       <InvitationHero
-        characterImageUrl={characterImageUrl}
-        characterId={characterId}
-        logoColor={themeColor}
-        whiteLogo={whiteLogo}
+        characterImageUrl={invitation.characterImageUrl}
+        characterId={invitation.characterId}
+        logoColor={invitation.themeColor}
+        whiteLogo={invitation.whiteLogo}
       />
 
       <div className="relative flex flex-1 flex-col items-center gap-5 px-[18px]">
