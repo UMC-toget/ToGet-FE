@@ -70,10 +70,10 @@ export function WishForm({
                 key={option.type}
                 type="button"
                 onClick={() => onWishTypeChange(option.type)}
-                className={`rounded-full px-4 py-3 text-b2-m ${
+                className={`rounded-full border px-4 py-3 text-b2-m ${
                   wishType === option.type
-                    ? 'bg-gray-900 text-white'
-                    : 'border border-gray-300 bg-white text-gray-700'
+                    ? 'border-gray-900 bg-gray-900 text-white'
+                    : 'border-gray-300 bg-white text-gray-700'
                 }`}
               >
                 {option.label}
