@@ -29,8 +29,8 @@ export default function TogetherGiftListCard({ funding, onOpen, onShareInvite }:
           />
         </span>
         <div className="flex w-[246px] items-center justify-between gap-2">
-          <div className="flex min-w-0 items-start gap-2">
-            <div className={`flex min-w-0 flex-col gap-1 ${dimClass}`}>
+          <div className="flex items-start gap-2">
+            <div className={`flex w-[113px] shrink-0 flex-col gap-1 ${dimClass}`}>
               <p className="truncate text-b2-m text-black">{funding.title}</p>
               <p className="truncate text-caption1-r text-gray-700">
                 선물 받는 사람 : <span className="text-caption1-m">{funding.recipientName}</span>
