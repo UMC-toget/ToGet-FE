@@ -34,7 +34,8 @@ export default function GiftBrowseSection() {
     setExpanded(false)
   }
 
-  // 비로그인 상태에서 상품 카드/위시 등록 버튼을 선택하면 로그인 화면으로 보냅니다 (피그마 B01 기준).
+  // 비로그인 상태에서 위시 등록 버튼을 선택하면 로그인 화면으로 보냅니다. 상품 카드 클릭(정보 확인)은
+  // 비로그인 상태에서도 가능합니다.
   const handleLoginRequired = () => navigate('/login')
 
   // 카테고리와 가격대 필터는 교집합으로 함께 서버에 전달합니다.
@@ -83,7 +84,7 @@ export default function GiftBrowseSection() {
         </div>
       </div>
       {visibleProducts.length > 0 ? (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8">
           {visibleProducts.map((product, index) => (
             <ProductCard
               key={product.id}
