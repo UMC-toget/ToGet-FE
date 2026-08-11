@@ -203,11 +203,25 @@ export default function ImageCropper({ file, aspectRatio, onCancel, onConfirm }:
     if (!ctx) return;
 
     ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+
+    // 크롭 결과에 투명 영역이 있으면(배경 제거된 이미지) PNG로, 없으면 기존처럼 JPEG로 저장합니다.
+    // JPEG는 알파 채널이 없어서 무조건 저장하면 투명 배경이 검은색으로 눌러앉기 때문입니다.
+    const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let hasTransparency = false;
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i] < 250) {
+        hasTransparency = true;
+        break;
+      }
+    }
+    const mimeType = hasTransparency ? 'image/png' : 'image/jpeg';
+    const extension = hasTransparency ? '.png' : '.jpg';
+
     canvas.toBlob((blob) => {
       if (!blob) return;
-      const out = new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' });
+      const out = new File([blob], file.name.replace(/\.\w+$/, extension), { type: mimeType });
       onConfirm(out);
-    }, 'image/jpeg', 0.9);
+    }, mimeType, hasTransparency ? undefined : 0.9);
   };
 
   const cr = cropRect;
