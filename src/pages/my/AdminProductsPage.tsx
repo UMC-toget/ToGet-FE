@@ -5,6 +5,7 @@ import Header from '../../components/common/Header'
 import Toast from '../../components/common/Toast'
 import SelectModeBar from '../../components/common/SelectModeBar'
 import SelectCheckBadge from '../../components/common/SelectCheckBadge'
+import CategoryChips from '../../components/common/CategoryChips'
 import GiftIcon from '../../components/icons/GiftIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import { getProducts, deleteProduct } from '../../api/products'
@@ -88,20 +89,7 @@ export default function AdminProductsPage() {
       <Header title="선물 관리" />
 
       <div className="flex flex-col gap-4 px-[18px] py-5">
-        <div className="flex items-center gap-2">
-          {GIFT_CATEGORIES.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => changeCategory(c)}
-              className={`rounded-full px-4 py-3 text-b2-m ${
-                c === category ? 'bg-gray-900 text-white' : 'border border-gray-300 bg-white text-gray-700'
-              }`}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
+        <CategoryChips categories={GIFT_CATEGORIES} selected={category} onSelect={(c) => changeCategory(c as (typeof GIFT_CATEGORIES)[number])} />
 
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
