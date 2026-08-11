@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { deleteWishlistItem, updateWishlistItem } from '../../../api/wishlists'
 import type { WishlistUpdateRequest } from '../../../api/wishlists'
 
-const TOAST_DURATION_MS = 3000
+const TOAST_DURATION_MS = 2000
 const PENDING_TOAST_KEY = 'toget:wishPendingToast'
 
 type PendingWishUndo =
