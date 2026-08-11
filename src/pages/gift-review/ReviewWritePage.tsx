@@ -42,6 +42,13 @@ const CARD_NATIVE_WIDTH = 402
 const CARD_NATIVE_HEIGHT = 624
 
 /**
+ * 히어로+편지를 카드 프레임 안에서 위로 당기는 오프셋(네이티브 402px 기준 px).
+ * InvitationHero 내부 좌표(제목 top:100 등)는 그대로 두고, 이 프레임 레벨에서만 통째로 끌어올린다.
+ * 제목(top:100) 위 여백이 비어 있어 이 정도까지는 아무 것도 잘리지 않는다.
+ */
+const HERO_VERTICAL_PULL_UP = 28
+
+/**
  * 초대장 카드(히어로 + 편지 박스)를 컨테이너 실측 폭에 맞춰 통째로 축소 렌더.
  * 컨테이너에 aspect-ratio(366:568)를 걸어 높이를 폭에서 자동 계산하고, 그 안의 366×568 네이티브 레이어를
  * transform: scale로 한 번에 줄인다. 미리보기 카드와 확대 모달이 컨테이너 폭만 다른 "같은 카드"가 되도록
@@ -104,7 +111,9 @@ function InvitationCardFrame({
             position: 'relative',
             width: CARD_NATIVE_WIDTH,
             height: CARD_NATIVE_HEIGHT,
-            transform: `scale(${scale})`,
+            // scale 다음에 translateY를 붙여 네이티브 px(HERO_VERTICAL_PULL_UP)로 끌어올린 뒤 함께 축소되게 한다
+            // (translateY를 scale보다 앞에 두면 스케일과 무관한 고정 px 이동이 되어 프레임 크기별로 비율이 어긋난다)
+            transform: `scale(${scale}) translateY(-${HERO_VERTICAL_PULL_UP}px)`,
             transformOrigin: 'top left',
           }}
         >
