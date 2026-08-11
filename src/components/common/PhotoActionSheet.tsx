@@ -69,7 +69,7 @@ export default function PhotoActionSheet({ onClose, onSelect, aspectRatio = 364 
 
   return (
     <BottomSheet open onClose={onClose}>
-      <ul className="flex w-full flex-col">
+      <ul className="flex w-full flex-col pb-4">
         <li>
           <button
             type="button"

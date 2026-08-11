@@ -79,9 +79,9 @@ export default function ProductCard({ product, rank, isLoggedIn, wished, onLogin
           <span className="text-caption1-r text-gray-700">{product.brand}</span>
           <ChevronRightIcon className="size-3 translate-y-0.5 text-gray-700" />
         </div>
-        <p className="mt-3 min-h-[36px] leading-[1.5] text-b2-m text-black">{product.name}</p>
+        <p className="mt-3 line-clamp-2 min-h-[42px] leading-[1.5] text-b2-m text-black">{product.name}</p>
       </div>
-      <p className="mt-6 text-b2-m text-black">
+      <p className="mt-3 text-b2-m text-black">
         <span className="font-semibold">{product.price.toLocaleString()}</span>원
       </p>
     </button>

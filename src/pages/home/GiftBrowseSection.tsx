@@ -83,7 +83,7 @@ export default function GiftBrowseSection() {
         </div>
       </div>
       {visibleProducts.length > 0 ? (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8">
           {visibleProducts.map((product, index) => (
             <ProductCard
               key={product.id}
