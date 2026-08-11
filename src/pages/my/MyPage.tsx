@@ -99,7 +99,7 @@ export default function MyPage() {
           )}
           <span className="flex flex-col items-start gap-2 text-left">
             <span className="text-b1-m text-black">
-              {isAdmin ? '관리자' : isLoggedIn ? (profile?.nickname ?? '회원') : '로그인 및 회원가입'}
+              {isAdmin ? '투겟/관리자' : isLoggedIn ? (profile?.nickname ?? '회원') : '로그인 및 회원가입'}
             </span>
             <span className="text-caption1-r text-gray-600">
               {isLoggedIn
