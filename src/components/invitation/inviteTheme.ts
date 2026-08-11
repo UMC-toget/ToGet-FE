@@ -21,6 +21,12 @@ export const INVITE_THEME_COLORS: Record<number, string> = {
 export const getInviteThemeColor = (backgroundId?: number | null): string =>
   (backgroundId != null && INVITE_THEME_COLORS[backgroundId]) || '#FE71A5'
 
+/** 화이트 배경 테마 id — 로고를 흰 fill + 회색 외곽선 전용 SVG로 렌더 */
+export const WHITE_THEME_BACKGROUND_ID = 8
+
+/** backgroundId가 화이트 테마(id8)인지 여부. 조회(useInvitationCard)·작성 미리보기가 동일 규칙을 공유한다. */
+export const isWhiteInviteTheme = (backgroundId?: number | null): boolean => backgroundId === WHITE_THEME_BACKGROUND_ID
+
 /**
  * 초대장 글로우 배경 style.
  * 중심에 테마 색 50% → 가장자리 투명 원형 그라데이션. 절대 위치(top)와 크기 포함.

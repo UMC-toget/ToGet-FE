@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getInvitationCard } from '../../api/fundings'
 import { fetchCharacters } from '../../api/metaApi'
-import { getInviteThemeColor } from './inviteTheme'
-
-/** 화이트 배경 테마 id — 로고를 흰 fill + 회색 외곽선 전용 SVG로 렌더 */
-const WHITE_THEME_BACKGROUND_ID = 8
+import { getInviteThemeColor, isWhiteInviteTheme } from './inviteTheme'
 
 export interface InvitationCardData {
   /** 초대장 제목(카드 본문용) */
@@ -59,7 +56,7 @@ export function useInvitationCard(fundingId?: string): InvitationCardData {
           content: card.content,
           creatorName: card.creatorName,
           themeColor: getInviteThemeColor(card.backgroundId),
-          whiteLogo: card.backgroundId === WHITE_THEME_BACKGROUND_ID,
+          whiteLogo: isWhiteInviteTheme(card.backgroundId),
           characterId: card.characterId ?? null,
           characterImageUrl: character?.imageUrl,
         })
