@@ -1,8 +1,11 @@
 import type { MyFundingSummary } from '../../types/funding'
 import { getDdayLabel } from '../../utils/formatDate'
+import { truncateText } from '../../utils/truncateText'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import LinkIcon from '../../components/icons/LinkIcon'
 import completeCat from '../../assets/complete-cat.svg'
+
+const TITLE_MAX_LENGTH = 12
 
 interface MyFundingCardProps {
   funding: MyFundingSummary
@@ -35,7 +38,9 @@ export default function MyFundingCard({ funding, onOpen, onShareInvite }: MyFund
           <div className="flex items-start justify-between gap-2">
             <div className="flex shrink-0 flex-col gap-[9px]">
               <div className="flex items-center gap-2">
-                <p className="whitespace-nowrap text-b2-m text-black">{funding.title}</p>
+                <p className="whitespace-nowrap text-b2-m text-black">
+                  {truncateText(funding.title, TITLE_MAX_LENGTH)}
+                </p>
                 {dDayLabel && (
                   <span className="shrink-0 rounded-full bg-pink-100/50 px-2 py-1 text-caption2-m text-pink-500">
                     {dDayLabel}

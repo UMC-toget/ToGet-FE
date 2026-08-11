@@ -32,7 +32,7 @@ export default function BottomNav({ active }: BottomNavProps) {
 
   return (
     <>
-      <nav className="fixed bottom-4 left-1/2 z-40 flex w-full max-w-[402px] -translate-x-1/2 items-center justify-between px-[18px]">
+      <nav className="fixed bottom-8 left-1/2 z-40 flex w-full max-w-[402px] -translate-x-1/2 items-center justify-between px-[18px]">
         <div
           className={`flex items-center gap-5 rounded-full border border-gray-200 bg-gray-100/80 py-1 shadow-[0px_20px_250px_0px_rgba(0,0,0,0.04)] backdrop-blur-[30px] ${pillPadding}`}
         >
