@@ -11,6 +11,7 @@ import {
 } from '../../api/groupFundings'
 import { getFundingAccount, type FundingAccount } from '../../api/fundings'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
+import { formatAccountNumber } from '../../utils/accountNumber'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import { MOCK_SETTLEMENTS, MOCK_ACCOUNT, MOCK_DASHBOARD } from './groupMock'
 import { copyToClipboard } from '../../utils/clipboard'
@@ -83,6 +84,7 @@ export default function SettlePage() {
   }, [id, profile])
 
   const accountNumber = account?.account ?? ''
+  const formattedAccountNumber = account ? formatAccountNumber(account.account, account.bankName) : ''
   const bankLabel = account ? (BANK_NAME_LABELS[account.bankName] ?? account.bankName) : ''
   const accountOwner = account?.accountOwner ?? ''
 
@@ -169,7 +171,7 @@ export default function SettlePage() {
                 <div className="rounded-xl border border-[#D5D2D5] px-4">
                   <div className="flex flex-col divide-y divide-gray-200">
                     <InfoRow label="은행" value={bankLabel} />
-                    <InfoRow label="계좌번호" value={accountNumber} />
+                    <InfoRow label="계좌번호" value={formattedAccountNumber} />
                     <InfoRow label="예금주" value={accountOwner} />
                   </div>
                 </div>

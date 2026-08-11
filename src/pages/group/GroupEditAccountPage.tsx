@@ -11,6 +11,7 @@ import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import { useTogetherCreateStore } from '../../store/togetherCreateStore'
 import type { SavedAccount } from '../../store/fundingCreateStore'
 import { useBanks } from '../../hooks/useUserAccounts'
+import { formatAccountNumber, normalizeAccountNumber } from '../../utils/accountNumber'
 
 // 접근: 개설자 전용 | 선물 페이지 수정 2단계 — 계좌 정보 (G섹션 store 재사용)
 
@@ -36,6 +37,7 @@ export default function GroupEditAccountPage() {
 
   const isFormValid = Boolean(form.bankName.trim() && form.accountNumber.trim() && form.accountHolder.trim())
   const isEdit = view === 'edit'
+  const selectedBankCode = banks.find(bank => bank.displayName === form.bankName)?.code
 
   const openAdd = () => {
     setForm(emptyForm)
@@ -100,6 +102,7 @@ export default function GroupEditAccountPage() {
               <div className="mt-4 flex flex-col gap-2">
                 {accounts.map(acc => {
                   const selected = acc.id === selectedAccountId
+                  const bankCode = banks.find(bank => bank.displayName === acc.bankName)?.code
                   return (
                     <div
                       key={acc.id}
@@ -124,7 +127,7 @@ export default function GroupEditAccountPage() {
                           <p className="text-caption1-r text-[#5B565A] mt-1">{acc.bankName}</p>
                           <div className="flex flex-col">
                             <p className="text-b2-m text-black">{acc.accountHolder}</p>
-                            <p className="text-b2-m text-black">{acc.accountNumber}</p>
+                            <p className="text-b2-m text-black">{formatAccountNumber(acc.accountNumber, bankCode)}</p>
                           </div>
                         </div>
                         <span
@@ -206,8 +209,8 @@ export default function GroupEditAccountPage() {
             <input
               type="text"
               inputMode="numeric"
-              value={form.accountNumber}
-              onChange={e => setForm({ ...form, accountNumber: e.target.value.replace(/[^0-9]/g, '').slice(0, 15) })}
+              value={formatAccountNumber(form.accountNumber, selectedBankCode)}
+              onChange={e => setForm({ ...form, accountNumber: normalizeAccountNumber(e.target.value).slice(0, 15) })}
               placeholder="본인의 계좌번호를 정확히 입력해주세요"
               className="flex-1 bg-transparent text-b1-r text-black placeholder:text-gray-400 focus:outline-none"
             />
