@@ -11,7 +11,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useMyFundings } from "./useMyFundings";
 import type { MyFundingSummary } from "../../types/funding";
 
-const TOAST_DURATION_MS = 2500;
+const TOAST_DURATION_MS = 2000;
 
 /** 홈 페이지 (B01: 비로그인 / B02: 로그인 — 진행 중인 내 선물 없음/1개/여러 개 상태를 모두 다룸) */
 export default function HomePage() {

@@ -10,13 +10,13 @@ const WISH_TYPE_OPTIONS: { type: WishType; label: string }[] = [
   { type: 'give', label: '주고 싶은' },
 ]
 
-const NAME_MAX_LENGTH = 30
+const NAME_MAX_LENGTH = 20
 const PRICE_MAX_LENGTH = 15
 
 interface WishFormProps {
   title: string
   submitText: string
-  wishType: WishType
+  wishType: WishType | ''
   onWishTypeChange: (type: WishType) => void
   name: string
   onNameChange: (name: string) => void
@@ -70,10 +70,10 @@ export function WishForm({
                 key={option.type}
                 type="button"
                 onClick={() => onWishTypeChange(option.type)}
-                className={`rounded-full px-4 py-3 text-b2-m ${
+                className={`rounded-full border px-4 py-3 text-b2-m ${
                   wishType === option.type
-                    ? 'bg-gray-900 text-white'
-                    : 'border border-gray-300 bg-white text-gray-700'
+                    ? 'border-gray-900 bg-gray-900 text-white'
+                    : 'border-gray-300 bg-white text-gray-700'
                 }`}
               >
                 {option.label}
@@ -91,12 +91,9 @@ export function WishForm({
           }
           value={name}
           maxLength={NAME_MAX_LENGTH}
-          hideCounter
           onChange={(e) => onNameChange(e.target.value)}
           placeholder={
-            wishType === 'receive'
-              ? '받고 싶은 선물 이름을 입력해 주세요'
-              : '주고 싶은 선물 이름을 입력해 주세요'
+            wishType === 'give' ? '주고 싶은 선물 이름을 입력해 주세요' : '받고 싶은 선물 이름을 입력해 주세요'
           }
         />
 
@@ -124,7 +121,7 @@ export function WishForm({
             </>
           }
           value={purchaseUrl}
-          onChange={(e) => onPurchaseUrlChange(e.target.value)}
+          onChange={(e) => onPurchaseUrlChange(e.target.value.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, ''))}
           placeholder="구매처 링크를 입력해 주세요"
         />
 

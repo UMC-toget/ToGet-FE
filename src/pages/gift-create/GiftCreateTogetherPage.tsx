@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { isAxiosError } from 'axios'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import StepIndicator from '../../components/create/StepIndicator'
@@ -15,10 +15,12 @@ import { BANK_NAME_LABELS, createUserAccount, getUserAccounts, type BankName } f
 import { getMyFundings } from '../../api/users'
 import { useAuth } from '../../hooks/useAuth'
 import { uploadImage } from '../../utils/uploadImage'
+import { deleteTogetherDraft, getTogetherDraft, saveTogetherDraft } from '../../api/togetherDraft'
 
 const STEPS = ['기본 정보', '계좌 정보', '초대장 만들기']
 const TOTAL_STEPS = STEPS.length
 const REQUEST_TIMEOUT_MS = 20_000
+const TOGETHER_DRAFT_META_KEY = 'toget:together-draft-meta'
 
 const BANK_NAME_ALIASES: Partial<Record<string, BankName>> = {
   국민은행: 'KB',
@@ -77,15 +79,70 @@ function getCreateErrorMessage(error: unknown): string {
 /** 함께 선물 페이지 만들기 플로우 (G02) */
 export default function GiftCreateTogetherPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { isLoggedIn } = useAuth()
-  const wasLoggedInOnEntry = useRef(isLoggedIn)
+  const [wasLoggedInOnEntry] = useState(isLoggedIn)
+  const continueDraft = Boolean((location.state as { continueDraft?: boolean } | null)?.continueDraft)
   const togetherForm = useTogetherCreateStore()
+  const resetTogetherForm = useTogetherCreateStore((s) => s.reset)
   const [step, setStep] = useState(1)
   const [showExitModal, setShowExitModal] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [createError, setCreateError] = useState('')
   const [createdFundingId, setCreatedFundingId] = useState<number | null>(null)
+  const [isSavingDraft, setIsSavingDraft] = useState(false)
+  const [isRestoringDraft, setIsRestoringDraft] = useState(continueDraft)
   const isComplete = step > TOTAL_STEPS
+
+  useEffect(() => {
+    if (!continueDraft) {
+      resetTogetherForm()
+      return
+    }
+    let cancelled = false
+    getTogetherDraft()
+      .then((draft) => {
+        if (cancelled) return
+        if (!draft) {
+          resetTogetherForm()
+          return
+        }
+        const account = draft.account
+        const restoredAccount = account
+          ? {
+              id: String(account.userAccountId),
+              bankName: account.bankDisplayName,
+              accountNumber: account.bankAccount,
+              accountHolder: account.accountOwner,
+            }
+          : null
+        let meta: { inviteBackgroundId?: number; inviteColor?: string; inviteCharacter?: number } = {}
+        try {
+          meta = JSON.parse(localStorage.getItem(TOGETHER_DRAFT_META_KEY) ?? '{}')
+        } catch {
+          // 손상된 로컬 메타데이터는 서버 draft 복원을 방해하지 않습니다.
+        }
+        useTogetherCreateStore.setState({
+          roomName: draft.title ?? '',
+          recipientName: draft.receiver ?? '',
+          giftDate: draft.anniversaryDate ?? '',
+          memo: draft.description ?? '',
+          thumbnailImage: draft.thumbnailImageUrl,
+          accounts: restoredAccount ? [restoredAccount] : [],
+          selectedAccountId: restoredAccount?.id ?? null,
+          inviteTitle: draft.cardTitle ?? '',
+          inviteContent: draft.cardContent ?? '',
+          inviteBackgroundId: meta.inviteBackgroundId ?? null,
+          inviteColor: meta.inviteColor ?? '#FCE4F0',
+          inviteCharacter: meta.inviteCharacter ?? 1,
+        })
+        const restoredStep = Number(draft.step)
+        setStep(Number.isInteger(restoredStep) && restoredStep >= 1 && restoredStep <= TOTAL_STEPS ? restoredStep : 1)
+      })
+      .catch((error) => setCreateError(getCreateErrorMessage(error)))
+      .finally(() => { if (!cancelled) setIsRestoringDraft(false) })
+    return () => { cancelled = true }
+  }, [continueDraft, resetTogetherForm])
 
   const handleBack = () => {
     if (step > 1) setStep((s) => s - 1)
@@ -93,6 +150,64 @@ export default function GiftCreateTogetherPage() {
   }
 
   const handleNext = () => setStep((s) => s + 1)
+
+  const handleSaveDraft = async () => {
+    if (isSavingDraft) return
+    setIsSavingDraft(true)
+    setCreateError('')
+    try {
+      const thumbnailImageUrl = togetherForm.thumbnailImage instanceof File
+        ? await uploadImage('drafts/thumbnails', togetherForm.thumbnailImage)
+        : togetherForm.thumbnailImage ?? undefined
+      const selectedAccount = togetherForm.accounts.find((account) => account.id === togetherForm.selectedAccountId)
+      let userAccountId: number | undefined
+      if (selectedAccount) {
+        const bankName = resolveBankCode(selectedAccount.bankName)
+        if (!bankName) throw new Error('선택한 은행 정보를 확인해 주세요.')
+        const normalizedAccount = selectedAccount.accountNumber.replace(/\D/g, '')
+        const registeredAccounts = await getUserAccounts()
+        const registeredAccount = registeredAccounts.find((account) =>
+          account.bankName === bankName &&
+          account.account === normalizedAccount &&
+          account.accountOwner === selectedAccount.accountHolder,
+        )
+        userAccountId = registeredAccount?.userAccountId ?? (await createUserAccount({
+          bankName,
+          accountOwner: selectedAccount.accountHolder,
+          account: normalizedAccount,
+        })).userAccountId
+      }
+      await saveTogetherDraft({
+        step,
+        title: togetherForm.roomName || undefined,
+        receiver: togetherForm.recipientName || undefined,
+        anniversaryDate: togetherForm.giftDate || undefined,
+        description: togetherForm.memo || undefined,
+        thumbnailImageUrl,
+        userAccountId,
+        invitationCard: {
+          title: togetherForm.inviteTitle,
+          content: togetherForm.inviteContent,
+        },
+      })
+      try {
+        localStorage.setItem(TOGETHER_DRAFT_META_KEY, JSON.stringify({
+          inviteBackgroundId: togetherForm.inviteBackgroundId,
+          inviteColor: togetherForm.inviteColor,
+          inviteCharacter: togetherForm.inviteCharacter,
+        }))
+      } catch {
+        // 서버 draft 저장은 완료됐으므로 로컬 디자인 메타 저장 실패로 이동을 막지 않습니다.
+      }
+      setShowExitModal(false)
+      navigate('/home')
+    } catch (error) {
+      setCreateError(getCreateErrorMessage(error))
+      setShowExitModal(false)
+    } finally {
+      setIsSavingDraft(false)
+    }
+  }
 
   const completeCreation = (fundingId: number) => {
     setCreatedFundingId(fundingId)
@@ -189,6 +304,8 @@ export default function GiftCreateTogetherPage() {
         throw new Error('준비방은 생성됐지만 생성된 페이지를 찾지 못했어요. 홈에서 확인해 주세요.')
       }
 
+      await deleteTogetherDraft().catch(() => undefined)
+      localStorage.removeItem(TOGETHER_DRAFT_META_KEY)
       completeCreation(fundingId)
     } catch (error) {
       setCreateError(getCreateErrorMessage(error))
@@ -197,7 +314,7 @@ export default function GiftCreateTogetherPage() {
     }
   }
 
-  if (!wasLoggedInOnEntry.current) return <Navigate to="/login" replace />
+  if (!wasLoggedInOnEntry) return <Navigate to="/login" replace />
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
@@ -220,6 +337,9 @@ export default function GiftCreateTogetherPage() {
       )}
 
       <div className="flex-1 px-[18px] pb-6 flex flex-col overflow-hidden">
+        {isRestoringDraft && <p className="py-16 text-center text-b2-r text-gray-400">작성 내용을 불러오는 중...</p>}
+        {!isRestoringDraft && (
+          <>
         {step === 1 && <TogetherStep1BasicInfo onNext={handleNext} />}
         {step === 2 && <TogetherStep2Account onNext={handleNext} />}
         {step === 3 && (
@@ -236,6 +356,8 @@ export default function GiftCreateTogetherPage() {
             onViewFunding={() => navigate(`/group/${createdFundingId}`)}
           />
         )}
+          </>
+        )}
       </div>
 
       <Toast open={Boolean(createError)} message={createError} standalone />
@@ -245,9 +367,9 @@ export default function GiftCreateTogetherPage() {
         title="작성 중인 선물 페이지를 저장할까요?"
         description={'지금 나가면 현재까지 입력한 내용이 저장되고,\n다음에 다시 이어서 작성할 수 있어요'}
         cancelText="계속 작성하기"
-        confirmText="저장하고 나가기"
+        confirmText={isSavingDraft ? '저장 중...' : '저장하고 나가기'}
         onCancel={() => setShowExitModal(false)}
-        onConfirm={() => navigate('/home')}
+        onConfirm={handleSaveDraft}
       />
     </div>
   )

@@ -5,7 +5,7 @@ import Button from '../../components/common/Button'
 import StickyBottomBar from '../../components/common/StickyBottomBar'
 import Toast from '../../components/common/Toast'
 import DefaultAvatar from '../../components/common/DefaultAvatar'
-import avatarCat from '../../assets/avatar-cat.svg'
+import togetherFundingFallback from '../../assets/together-funding-empty.svg'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import LinkIcon from '../../components/icons/LinkIcon'
 import CandidateCard from './CandidateCard'
@@ -188,9 +188,7 @@ export default function GroupPage() {
           {group.thumbnailImageUrl ? (
             <img src={group.thumbnailImageUrl} alt="" className="absolute inset-0 size-full object-cover" />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <img src={avatarCat} alt="" className="size-16 opacity-30" />
-            </div>
+            <img src={togetherFundingFallback} alt="" className="absolute inset-0 size-full object-cover" />
           )}
           <div className="absolute inset-x-[18px] top-[18px] flex items-center justify-between">
             <span className={`rounded-full border px-4 py-2 text-b2-m ${statusChipClass}`}>

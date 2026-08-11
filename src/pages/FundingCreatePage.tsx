@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import ConfirmModal from '../components/common/ConfirmModal';
@@ -17,8 +17,10 @@ import { useMyProfile } from '../hooks/useMyProfile';
 import { uploadImage } from '../utils/uploadImage';
 import Toast from '../components/common/Toast';
 import { getMyFundings } from '../api/users';
+import { deleteIndividualDraft, getIndividualDraft, saveIndividualDraft } from '../api/individualDraft';
 
 const TOTAL_STEPS = 5;
+const INDIVIDUAL_DRAFT_META_KEY = 'toget:individual-draft-meta';
 
 const BANK_NAME_ALIASES: Partial<Record<string, BankName>> = {
   국민은행: 'KB',
@@ -47,16 +49,22 @@ export default function FundingCreatePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isLoggedIn } = useAuth();
-  const wasLoggedInOnEntry = useRef(isLoggedIn);
+  const [wasLoggedInOnEntry] = useState(isLoggedIn);
+  const continueDraft = Boolean((location.state as { continueDraft?: boolean } | null)?.continueDraft);
   const { data: profile } = useMyProfile();
   const commitAsFunding = useFundingCreateStore((s) => s.commitAsFunding);
   const fundingForm = useFundingCreateStore();
+  const resetFundingForm = useFundingCreateStore((s) => s.reset);
   const didInitialize = useRef(false);
   const [step, setStep] = useState(1);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState('');
   const [createdFundingId, setCreatedFundingId] = useState<number | null>(null);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isRestoringDraft, setIsRestoringDraft] = useState(
+    continueDraft,
+  );
   const isComplete = step > TOTAL_STEPS;
 
   // 편집 화면에서 사용하던 Zustand 값이 새 만들기 화면으로 새어 들어오지 않도록 초기화합니다.
@@ -64,10 +72,77 @@ export default function FundingCreatePage() {
   useLayoutEffect(() => {
     if (didInitialize.current) return;
     didInitialize.current = true;
-    if (!(location.state as { continueDraft?: boolean } | null)?.continueDraft) {
-      fundingForm.reset();
+    if (!continueDraft) {
+      resetFundingForm();
     }
-  }, [fundingForm, location.state]);
+  }, [continueDraft, resetFundingForm]);
+
+  useEffect(() => {
+    if (!continueDraft) return;
+    let cancelled = false;
+
+    getIndividualDraft()
+      .then((draft) => {
+        if (cancelled) return;
+        if (!draft) {
+          resetFundingForm();
+          return;
+        }
+        const invitation = draft.invitationCard;
+        const account = draft.account;
+        const restoredAccount = account
+          ? {
+              id: String(account.userAccountId),
+              bankName: account.bankDisplayName,
+              accountNumber: account.bankAccount,
+              accountHolder: account.accountOwner,
+            }
+          : null;
+        let meta: { inviteBackgroundId?: number; inviteColor?: string; inviteCharacter?: number } = {};
+        try {
+          meta = JSON.parse(localStorage.getItem(INDIVIDUAL_DRAFT_META_KEY) ?? '{}');
+        } catch {
+          // 손상된 로컬 메타데이터는 서버 draft 복원을 방해하지 않습니다.
+        }
+        const visibility = draft.visibilitySettings;
+
+        useFundingCreateStore.setState({
+          title: draft.title ?? '',
+          anniversaryDate: draft.anniversaryDate ?? '',
+          preparationStartDate: draft.startDate ?? '',
+          preparationEndDate: draft.endDate ?? '',
+          greeting: draft.greeting ?? '',
+          thumbnailImage: draft.thumbnailUrl,
+          wishlist: draft.gifts.map((gift, index) => ({
+            id: `draft-${index}`,
+            name: gift.giftName,
+            price: gift.giftPrice,
+            imageUrl: gift.giftImageUrl,
+            link: gift.giftShopUrl,
+          })),
+          showProgress: visibility?.showProgress ?? true,
+          showAmount: visibility?.showAmount ?? true,
+          showParticipantCount: visibility?.showParticipantCount ?? true,
+          showParticipantNames: visibility?.showParticipantNames ?? true,
+          showMessages: visibility?.showMessages ?? false,
+          accounts: restoredAccount ? [restoredAccount] : [],
+          selectedAccountId: restoredAccount?.id ?? null,
+          inviteTitle: invitation?.title ?? '',
+          inviteContent: invitation?.content ?? '',
+          inviteBackgroundId: invitation?.backgroundId ?? meta.inviteBackgroundId ?? null,
+          inviteColor: meta.inviteColor ?? '#FCE4F0',
+          inviteCharacter: invitation?.characterId ?? meta.inviteCharacter ?? 1,
+        });
+        const restoredStep = Number(draft.step);
+        setStep(Number.isInteger(restoredStep) && restoredStep >= 1 && restoredStep <= TOTAL_STEPS ? restoredStep : 1);
+      })
+      .catch((error) => setCreateError(error instanceof Error ? error.message : '임시저장 내용을 불러오지 못했어요.'))
+      .finally(() => {
+        if (!cancelled) setIsRestoringDraft(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [continueDraft, resetFundingForm]);
 
   const handleBack = () => {
     if (step === 1) {
@@ -81,6 +156,82 @@ export default function FundingCreatePage() {
   const handleExit = () => setShowSaveModal(true);
 
   const handleNext = () => setStep((s) => s + 1);
+
+  const handleSaveDraft = async () => {
+    if (isSavingDraft) return;
+    setIsSavingDraft(true);
+    setCreateError('');
+    try {
+      const thumbnailImageUrl = fundingForm.thumbnailImage instanceof File
+        ? await uploadImage('drafts/thumbnails', fundingForm.thumbnailImage)
+        : fundingForm.thumbnailImage ?? undefined;
+      const gifts = await Promise.all(fundingForm.wishlist.map(async (gift) => ({
+        giftName: gift.name,
+        giftPrice: gift.price,
+        giftImageUrl: gift.imageFile
+          ? await uploadImage('drafts/gifts', gift.imageFile)
+          : gift.imageUrl,
+        giftShopUrl: gift.link,
+      })));
+      const selectedAccount = fundingForm.accounts.find((account) => account.id === fundingForm.selectedAccountId);
+      let userAccountId: number | undefined;
+      if (selectedAccount) {
+        const bankName = resolveBankCode(selectedAccount.bankName);
+        if (!bankName) throw new Error('선택한 은행 정보를 확인해 주세요.');
+        const normalizedAccount = selectedAccount.accountNumber.replace(/\D/g, '');
+        const registeredAccounts = await getUserAccounts();
+        const registeredAccount = registeredAccounts.find((account) =>
+          account.bankName === bankName &&
+          account.account === normalizedAccount &&
+          account.accountOwner === selectedAccount.accountHolder,
+        );
+        userAccountId = registeredAccount?.userAccountId ?? (await createUserAccount({
+          bankName,
+          accountOwner: selectedAccount.accountHolder,
+          account: normalizedAccount,
+        })).userAccountId;
+      }
+
+      await saveIndividualDraft({
+        step,
+        title: fundingForm.title || undefined,
+        anniversaryDate: fundingForm.anniversaryDate || undefined,
+        startDate: fundingForm.preparationStartDate || undefined,
+        endDate: fundingForm.preparationEndDate || undefined,
+        greeting: fundingForm.greeting || undefined,
+        thumbnailUrl: thumbnailImageUrl,
+        userAccountId,
+        gifts,
+        visibilitySettings: {
+          showProgress: fundingForm.showProgress,
+          showAmount: fundingForm.showAmount,
+          showParticipantCount: fundingForm.showParticipantCount,
+          showParticipantNames: fundingForm.showParticipantNames,
+          showMessages: fundingForm.showMessages,
+        },
+        invitationCard: {
+          title: fundingForm.inviteTitle,
+          content: fundingForm.inviteContent,
+        },
+      });
+      try {
+        localStorage.setItem(INDIVIDUAL_DRAFT_META_KEY, JSON.stringify({
+          inviteBackgroundId: fundingForm.inviteBackgroundId,
+          inviteColor: fundingForm.inviteColor,
+          inviteCharacter: fundingForm.inviteCharacter,
+        }));
+      } catch {
+        // 서버 draft 저장은 완료됐으므로 로컬 디자인 메타 저장 실패로 이동을 막지 않습니다.
+      }
+      setShowSaveModal(false);
+      handleGoHome();
+    } catch (error) {
+      setCreateError(error instanceof Error ? error.message : '임시저장에 실패했어요.');
+      setShowSaveModal(false);
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
 
   const handleCreateFunding = async () => {
     if (isCreating) return;
@@ -116,6 +267,8 @@ export default function FundingCreatePage() {
       // 직전 시도에서 POST는 성공했지만 응답에 ID가 없었던 경우, 같은 펀딩을 중복 생성하지 않고
       // 목록에서 확인한 실제 ID로 완료 화면을 복구합니다.
       if (recentMatchingFunding) {
+        await deleteIndividualDraft().catch(() => undefined);
+        localStorage.removeItem(INDIVIDUAL_DRAFT_META_KEY);
         commitAsFunding(String(recentMatchingFunding.fundingId));
         setCreatedFundingId(recentMatchingFunding.fundingId);
         setStep(TOTAL_STEPS + 1);
@@ -193,6 +346,8 @@ export default function FundingCreatePage() {
       }
 
       commitAsFunding(String(fundingId));
+      await deleteIndividualDraft().catch(() => undefined);
+      localStorage.removeItem(INDIVIDUAL_DRAFT_META_KEY);
       setCreatedFundingId(fundingId);
       setStep(TOTAL_STEPS + 1);
     } catch (error) {
@@ -212,7 +367,7 @@ export default function FundingCreatePage() {
 
   // 처음부터 비로그인으로 들어온 경우에만 로그인 화면으로 보냅니다. 작성 중 세션이 만료된 경우에는
   // 현재 폼을 지우지 않고 API 오류를 보여줘서 사용자가 입력 내용을 잃지 않도록 합니다.
-  if (!wasLoggedInOnEntry.current) return <Navigate to="/login" replace />;
+  if (!wasLoggedInOnEntry) return <Navigate to="/login" replace />;
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
@@ -236,6 +391,9 @@ export default function FundingCreatePage() {
 
       {/* 컨텐츠 */}
       <div className="flex-1 px-4 pb-6 flex flex-col overflow-hidden">
+        {isRestoringDraft && <p className="py-16 text-center text-b2-r text-gray-400">작성 내용을 불러오는 중...</p>}
+        {!isRestoringDraft && (
+          <>
         {step === 1 && <Step1BasicInfo onNext={handleNext} />}
         {step === 2 && <Step2Wishlist onNext={handleNext} />}
         {step === 3 && <Step3Visibility onNext={handleNext} />}
@@ -243,6 +401,8 @@ export default function FundingCreatePage() {
         {step === 5 && <Step5Invite onNext={handleCreateFunding} submitLabel={isCreating ? '생성 중...' : '저장'} disabled={isCreating} />}
         {isComplete && createdFundingId != null && (
           <StepComplete fundingId={createdFundingId} onViewFunding={handleViewFunding} onGoHome={handleGoHome} />
+        )}
+          </>
         )}
       </div>
 
@@ -254,12 +414,9 @@ export default function FundingCreatePage() {
         title="작성 중인 선물 페이지를 저장할까요?"
         description={'지금 나가면 현재까지 입력한 내용이 저장되고,\n다음에 다시 이어서 작성할 수 있어요'}
         cancelText="계속 작성하기"
-        confirmText="저장하고 나가기"
+        confirmText={isSavingDraft ? '저장 중...' : '저장하고 나가기'}
         onCancel={() => setShowSaveModal(false)}
-        onConfirm={() => {
-          setShowSaveModal(false);
-          handleGoHome();
-        }}
+        onConfirm={handleSaveDraft}
       />
     </div>
   );
