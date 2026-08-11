@@ -115,7 +115,7 @@ export default function InvitationHero({
 
       {/* 제목 (피그마: y100, H2_SB 20px, 중앙 정렬 — 줄바꿈은 br로만 제어) */}
       {title != null && (
-        <p className="absolute left-1/2 top-[100px] -translate-x-1/2 whitespace-nowrap text-center text-h2-sb text-black">
+        <p className="absolute left-1/2 top-[100px] w-max -translate-x-1/2 whitespace-pre-line text-center text-h2-sb text-black">
           {title}
         </p>
       )}
