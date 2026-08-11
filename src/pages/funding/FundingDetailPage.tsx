@@ -39,6 +39,7 @@ export default function FundingDetailPage() {
   const [thumbnailApiUrl, setThumbnailApiUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const store = useFundingCreateStore()
+  const useDevelopmentMock = import.meta.env.DEV && new URLSearchParams(location.search).get('mock') === '1'
 
   // 개설자: my-gift 대시보드, 비개설자: shared-fundings + 메세지는 공통으로 contributions 사용
   useEffect(() => {
@@ -67,21 +68,24 @@ export default function FundingDetailPage() {
         setRealFunding(sharedFundingToFundingDetail(shared, messages))
         setThumbnailApiUrl(shared.thumbnailImageUrl ?? null)
       } catch {
-        // shared-fundings도 실패하면 mock 유지
+        // 실제 API 조회가 모두 실패하면 아래에서 오류 안내를 표시합니다.
       }
     }).finally(() => setIsLoading(false))
   }, [id])
 
-  // 실제 API 데이터 우선, 없으면 mock (비개설자 또는 API 실패 시)
-  const funding = realFunding ?? mockFunding
+  // 목 데이터는 개발 환경에서 ?mock=1을 명시한 경우에만 사용합니다.
+  // API 실패 시 다른 사용자의 목 정보가 실제 데이터처럼 노출되면 안 됩니다.
+  const funding = realFunding ?? (useDevelopmentMock ? mockFunding : null)
   const { revertToOriginal } = store
 
   // 실제 API 데이터가 있으면 그대로 사용 (API = source of truth)
-  // mock 모드면 스토어 오버레이 유지 (편집 데모 플로우용)
-  const displayFunding = realFunding ?? (mockFunding.isOwner ? buildFundingFromStore(store, mockFunding) : mockFunding)
+  // 명시적인 개발 mock 모드에서만 스토어 오버레이를 유지합니다.
+  const displayFunding = realFunding ?? (useDevelopmentMock && mockFunding.isOwner
+    ? buildFundingFromStore(store, mockFunding)
+    : funding)
   const thumbnailSrc = realFunding
     ? thumbnailApiUrl
-    : mockFunding.isOwner ? getThumbnailSrc(store.thumbnailImage) : null
+    : useDevelopmentMock && mockFunding.isOwner ? getThumbnailSrc(store.thumbnailImage) : null
 
   // 수정 화면(FundingEditSelectPage)에서 navigate state로 전달한 토스트를 일정 시간 표시
   const [toastState, setToastState] = useState<{ message: string; undo?: boolean } | null>(
@@ -127,6 +131,25 @@ export default function FundingDetailPage() {
       setOpenedMessage(message)
     }
   }
+
+  if (!isLoading && (!funding || !displayFunding)) {
+    return (
+      <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
+        <Header title="선물 페이지" onBack={() => navigate('/home')} />
+        <div className="flex flex-1 flex-col items-center justify-center gap-5 px-[18px] text-center">
+          <div>
+            <p className="text-h3-sb text-black">선물 페이지를 불러오지 못했어요</p>
+            <p className="mt-2 text-b2-r text-gray-500">
+              페이지 주소가 올바른지 확인한 뒤 다시 시도해 주세요.
+            </p>
+          </div>
+          <Button onClick={() => navigate('/home')}>홈으로 돌아가기</Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!funding || !displayFunding) return null
 
   const isEnded = displayFunding.status === 'ENDED'
   // 비개설자는 마감된 페이지에서 하단 CTA(마음 전하기) 숨김 (진행 중이면 참여 가능)
