@@ -5,31 +5,33 @@ import Header from '../../components/common/Header'
 import TextField from '../../components/common/TextField'
 import Button from '../../components/common/Button'
 import Toast from '../../components/common/Toast'
+import PlusIcon from '../../components/icons/PlusIcon'
 import { getProduct, createProduct, updateProduct } from '../../api/products'
+import { GIFT_CATEGORIES } from '../home/products'
 import { uploadImage } from '../../utils/uploadImage'
 import { useRequireAdmin } from '../../hooks/useRequireAdmin'
 
 const PRODUCT_IMAGE_PREFIX = 'products'
+const NAME_MAX_LENGTH = 20
+const BRAND_MAX_LENGTH = 20
 
 interface ProductFormState {
+  category: (typeof GIFT_CATEGORIES)[number] | ''
   name: string
   price: string
-  description: string
   purchaseUrl: string
-  category: string
   brand: string
 }
 
 const EMPTY_FORM: ProductFormState = {
+  category: '',
   name: '',
   price: '',
-  description: '',
   purchaseUrl: '',
-  category: '',
   brand: '',
 }
 
-/** [관리자 전용] 상품 등록/수정 폼. :productId 유무로 등록/수정 모드를 구분합니다. */
+/** [관리자 전용] 선물 등록/수정 폼. :productId 유무로 등록/수정 모드를 구분합니다 (피그마 4668:71375 기준) */
 export default function AdminProductFormPage() {
   useRequireAdmin()
   const { productId } = useParams<{ productId: string }>()
@@ -51,12 +53,12 @@ export default function AdminProductFormPage() {
 
   useEffect(() => {
     if (!existingProduct) return
+    const category = GIFT_CATEGORIES.find((c) => c === existingProduct.category) ?? ''
     setForm({
+      category,
       name: existingProduct.name,
       price: String(existingProduct.price),
-      description: existingProduct.description ?? '',
       purchaseUrl: existingProduct.purchaseUrl,
-      category: existingProduct.category ?? '',
       brand: existingProduct.brand ?? '',
     })
     setImagePreviewUrl(existingProduct.imageUrl ?? null)
@@ -75,11 +77,10 @@ export default function AdminProductFormPage() {
       const payload = {
         name: form.name,
         price: Number(form.price),
-        description: form.description || undefined,
         imageUrl,
         purchaseUrl: form.purchaseUrl,
         category: form.category || undefined,
-        brand: form.brand || undefined,
+        brand: form.brand,
       }
       if (isEditMode) {
         return updateProduct(Number(productId), payload)
@@ -93,29 +94,107 @@ export default function AdminProductFormPage() {
     },
     onError: () => {
       setErrorMessage(
-        isEditMode ? '상품 수정에 실패했어요. 다시 시도해 주세요.' : '상품 등록에 실패했어요. 다시 시도해 주세요.',
+        isEditMode ? '선물 수정에 실패했어요. 다시 시도해 주세요.' : '선물 등록에 실패했어요. 다시 시도해 주세요.',
       )
     },
   })
 
-  const isFormValid = form.name.trim().length > 0 && Number(form.price) > 0 && form.purchaseUrl.trim().length > 0
+  const isFormValid =
+    form.category !== '' &&
+    form.brand.trim().length > 0 &&
+    form.name.trim().length > 0 &&
+    Number(form.price) > 0 &&
+    form.purchaseUrl.trim().length > 0 &&
+    (imagePreviewUrl !== null || imageFile !== null)
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-12">
-      <Header title={isEditMode ? '상품 수정' : '상품 등록'} />
+      <Header title={isEditMode ? '선물 수정' : '선물 등록'} />
 
-      <div className="flex flex-col gap-5 px-[18px] py-6">
-        <div className="flex flex-col items-center gap-2">
+      <div className="flex flex-col gap-4 px-[18px] py-6">
+        <div className="flex flex-col gap-2">
+          <label className="text-b1-m text-black">
+            선물 유형 <span className="text-pink-500">*</span>
+          </label>
+          <div className="flex items-center gap-2">
+            {GIFT_CATEGORIES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setForm({ ...form, category: c })}
+                className={`rounded-full px-4 py-2 text-b2-m ${
+                  form.category === c ? 'bg-gray-900 text-white' : 'border border-gray-300 bg-white text-gray-700'
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <TextField
+          label={
+            <>
+              브랜드 이름 <span className="text-pink-500">*</span>
+            </>
+          }
+          value={form.brand}
+          maxLength={BRAND_MAX_LENGTH}
+          placeholder="등록할 브랜드 이름을 입력해주세요"
+          onChange={(e) => setForm({ ...form, brand: e.target.value })}
+        />
+
+        <TextField
+          label={
+            <>
+              선물 이름 <span className="text-pink-500">*</span>
+            </>
+          }
+          value={form.name}
+          maxLength={NAME_MAX_LENGTH}
+          placeholder="등록할 선물 이름을 입력해주세요"
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+        />
+
+        <TextField
+          label={
+            <>
+              선물 가격 <span className="text-pink-500">*</span>
+            </>
+          }
+          value={form.price ? Number(form.price).toLocaleString() : ''}
+          inputMode="numeric"
+          placeholder="선물 가격을 입력해 주세요"
+          suffix="원"
+          onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^0-9]/g, '') })}
+        />
+
+        <TextField
+          label={
+            <>
+              선물 구매처 링크 <span className="text-pink-500">*</span>
+            </>
+          }
+          value={form.purchaseUrl}
+          placeholder="구매 가능한 링크를 입력해 주세요"
+          onChange={(e) => setForm({ ...form, purchaseUrl: e.target.value.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, '') })}
+        />
+
+        <div className="flex flex-col gap-2">
+          <label className="text-b1-m text-black">
+            선물 이미지 <span className="text-pink-500">*</span>
+          </label>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="flex size-24 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-background"
+            className="relative flex size-[123px] items-center justify-center overflow-hidden rounded-2xl bg-background"
           >
-            {imagePreviewUrl ? (
+            {imagePreviewUrl && (
               <img src={imagePreviewUrl} alt="" className="size-full object-cover" />
-            ) : (
-              <span className="text-caption1-r text-gray-500">사진 추가</span>
             )}
+            <span className="absolute flex size-8 items-center justify-center rounded-2xl bg-gray-100 text-gray-700 shadow-sm">
+              <PlusIcon className="size-5" />
+            </span>
           </button>
           <input
             ref={fileInputRef}
@@ -129,62 +208,11 @@ export default function AdminProductFormPage() {
           />
         </div>
 
-        <TextField
-          label="상품명"
-          value={form.name}
-          maxLength={100}
-          placeholder="상품명을 입력해 주세요"
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-        />
-
-        <TextField
-          label="가격"
-          value={form.price ? Number(form.price).toLocaleString() : ''}
-          inputMode="numeric"
-          placeholder="가격을 입력해 주세요"
-          suffix="원"
-          onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^0-9]/g, '') })}
-        />
-
-        <TextField
-          label="구매 링크"
-          value={form.purchaseUrl}
-          placeholder="https://..."
-          onChange={(e) => setForm({ ...form, purchaseUrl: e.target.value.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, '') })}
-        />
-
-        <TextField
-          label="브랜드"
-          value={form.brand}
-          maxLength={50}
-          placeholder="브랜드를 입력해 주세요 (선택)"
-          onChange={(e) => setForm({ ...form, brand: e.target.value })}
-        />
-
-        <TextField
-          label="카테고리"
-          value={form.category}
-          maxLength={50}
-          placeholder="카테고리를 입력해 주세요 (선택)"
-          onChange={(e) => setForm({ ...form, category: e.target.value })}
-        />
-
-        <div className="flex w-full flex-col gap-2">
-          <label className="text-b1-m text-black">상품 설명</label>
-          <textarea
-            value={form.description}
-            placeholder="상품 설명을 입력해 주세요 (선택)"
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            rows={4}
-            className="w-full resize-none rounded-lg border border-transparent bg-background px-4 py-3 text-b1-m text-black outline-none placeholder:text-gray-400 focus-within:border-gray-700"
-          />
-        </div>
-
         <Button
           disabled={!isFormValid || saveMutation.isPending}
           onClick={() => saveMutation.mutate()}
         >
-          {isEditMode ? '수정하기' : '등록하기'}
+          {isEditMode ? '수정 완료' : '추가 완료'}
         </Button>
       </div>
 
