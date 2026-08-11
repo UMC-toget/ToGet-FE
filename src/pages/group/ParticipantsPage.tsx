@@ -1,22 +1,25 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
+import DefaultAvatar from '../../components/common/DefaultAvatar'
 import { getTogetherGiftDashboard, updateMemberRole, type MemberSummary } from '../../api/groupFundings'
 import { MOCK_DASHBOARD } from './groupMock'
 import GroupSegmentTabs from './GroupSegmentTabs'
 import { ROLE_LABELS } from './groupConstants'
+import { useMyProfile } from '../../hooks/useMyProfile'
 
 // 접근: 로그인한 모든 역할 (역할 변경·권한 부여는 개설자·공동관리자) | 참여자 더보기
 const BADGE: Record<MemberSummary['role'], { label: string; className: string }> = {
-  HOST: { label: '방장', className: 'bg-pink-500 text-white' },
-  CO_HOST: { label: '부방장', className: 'bg-[#FFE3ED] text-pink-500' },
-  MEMBER: { label: '참여자', className: 'bg-[#C1BCC0] text-white' },
+  CREATOR: { label: '방장', className: 'bg-pink-500 text-white' },
+  ADMIN: { label: '부방장', className: 'bg-[#FFE3ED] text-pink-500' },
+  PARTICIPANT: { label: '참여자', className: 'bg-[#C1BCC0] text-white' },
 }
 
 
 export default function ParticipantsPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { data: profile } = useMyProfile()
   const [members, setMembers] = useState<MemberSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [openMenuId, setOpenMenuId] = useState<number | null>(null)
@@ -29,7 +32,7 @@ export default function ParticipantsPage() {
       .finally(() => setLoading(false))
   }, [id])
 
-  const handleRoleChange = async (memberId: number, newRole: 'CO_HOST' | 'MEMBER') => {
+  const handleRoleChange = async (memberId: number, newRole: 'ADMIN' | 'PARTICIPANT') => {
     setOpenMenuId(null)
     setMembers(prev => prev.map(m => m.fundingMemberId === memberId ? { ...m, role: newRole } : m))
     try {
@@ -39,8 +42,8 @@ export default function ParticipantsPage() {
     }
   }
 
-  const managers = members.filter(m => m.role === 'HOST' || m.role === 'CO_HOST')
-  const regularMembers = members.filter(m => m.role === 'MEMBER')
+  const managers = members.filter(m => m.role === 'CREATOR' || m.role === 'ADMIN')
+  const regularMembers = members.filter(m => m.role === 'PARTICIPANT')
 
   return (
     <div className="mx-auto flex h-dvh w-full max-w-[402px] flex-col bg-white">
@@ -88,6 +91,10 @@ export default function ParticipantsPage() {
                 openMenuId={openMenuId}
                 setOpenMenuId={setOpenMenuId}
                 onRoleChange={handleRoleChange}
+                myUserId={profile?.userId}
+                myNickname={profile?.nickname}
+                myName={profile?.name}
+                myProfileImageUrl={profile?.profileImageUrl}
               />
               <MemberSection
                 title="일반 참여자"
@@ -95,6 +102,10 @@ export default function ParticipantsPage() {
                 openMenuId={openMenuId}
                 setOpenMenuId={setOpenMenuId}
                 onRoleChange={handleRoleChange}
+                myUserId={profile?.userId}
+                myNickname={profile?.nickname}
+                myName={profile?.name}
+                myProfileImageUrl={profile?.profileImageUrl}
               />
             </div>
           </div>
@@ -118,10 +129,14 @@ interface MemberSectionProps {
   members: MemberSummary[]
   openMenuId: number | null
   setOpenMenuId: (id: number | null) => void
-  onRoleChange: (memberId: number, role: 'CO_HOST' | 'MEMBER') => void
+  onRoleChange: (memberId: number, role: 'ADMIN' | 'PARTICIPANT') => void
+  myUserId?: number
+  myNickname?: string
+  myName?: string
+  myProfileImageUrl?: string | null
 }
 
-function MemberSection({ title, members, openMenuId, setOpenMenuId, onRoleChange }: MemberSectionProps) {
+function MemberSection({ title, members, openMenuId, setOpenMenuId, onRoleChange, myUserId, myNickname, myName, myProfileImageUrl }: MemberSectionProps) {
   if (members.length === 0) return null
   return (
     <div className="flex flex-col gap-3">
@@ -135,6 +150,10 @@ function MemberSection({ title, members, openMenuId, setOpenMenuId, onRoleChange
             onToggleMenu={() => setOpenMenuId(openMenuId === m.fundingMemberId ? null : m.fundingMemberId)}
             onCloseMenu={() => setOpenMenuId(null)}
             onRoleChange={onRoleChange}
+            myUserId={myUserId}
+            myNickname={myNickname}
+            myName={myName}
+            myProfileImageUrl={myProfileImageUrl}
           />
         ))}
       </div>
@@ -147,13 +166,22 @@ interface MemberCardProps {
   menuOpen: boolean
   onToggleMenu: () => void
   onCloseMenu: () => void
-  onRoleChange: (memberId: number, role: 'CO_HOST' | 'MEMBER') => void
+  onRoleChange: (memberId: number, role: 'ADMIN' | 'PARTICIPANT') => void
+  myUserId?: number
+  myNickname?: string
+  myName?: string
+  myProfileImageUrl?: string | null
 }
 
-function MemberCard({ member, menuOpen, onToggleMenu, onCloseMenu, onRoleChange }: MemberCardProps) {
-  const { role, name, profileImageUrl, fundingMemberId } = member
+function MemberCard({ member, menuOpen, onToggleMenu, onCloseMenu, onRoleChange, myUserId, myNickname, myName, myProfileImageUrl }: MemberCardProps) {
+  const { role, name, userId, profileImageUrl, fundingMemberId } = member
+  const displayName = name || (userId === myUserId ? myNickname : '') || ''
+  const isMe = (myUserId != null && String(userId) === String(myUserId)) ||
+    (Boolean(myNickname) && name === myNickname) ||
+    (Boolean(myName) && name === myName)
+  const displayProfileImageUrl = isMe ? (myProfileImageUrl ?? profileImageUrl) : profileImageUrl
   const badge = BADGE[role]
-  const canChangeRole = role === 'CO_HOST' || role === 'MEMBER'
+  const canChangeRole = role === 'ADMIN' || role === 'PARTICIPANT'
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -171,15 +199,15 @@ function MemberCard({ member, menuOpen, onToggleMenu, onCloseMenu, onRoleChange 
     <div className="flex items-center justify-between rounded-xl border border-[#EAE9EA] bg-white px-[14px] py-3">
       <div className="flex items-center gap-2">
         <div className="shrink-0">
-          {profileImageUrl ? (
-            <img src={profileImageUrl} alt={name} className="size-10 rounded-full object-cover" />
+          {displayProfileImageUrl ? (
+            <img src={displayProfileImageUrl} alt={displayName} className="size-10 rounded-full object-cover" />
           ) : (
-            <div className="size-10 rounded-full bg-[#F7F5F8]" />
+            <DefaultAvatar className="size-10 shrink-0" />
           )}
         </div>
         <div className="flex flex-col gap-1">
           <span className="text-b2-r text-[#797378]">{ROLE_LABELS[role]}</span>
-          <span className="text-b2-r text-black">{name}</span>
+          <span className="text-b2-r text-black">{displayName}</span>
         </div>
       </div>
 
@@ -202,7 +230,7 @@ function MemberCard({ member, menuOpen, onToggleMenu, onCloseMenu, onRoleChange 
             <button
               type="button"
               className="w-full pl-[9px] pr-2 py-1 text-left text-caption2-r text-black"
-              onClick={() => onRoleChange(fundingMemberId, 'MEMBER')}
+              onClick={() => onRoleChange(fundingMemberId, 'PARTICIPANT')}
             >
               참여자
             </button>
@@ -210,7 +238,7 @@ function MemberCard({ member, menuOpen, onToggleMenu, onCloseMenu, onRoleChange 
             <button
               type="button"
               className="w-full pl-[9px] pr-2 py-1 text-left text-caption2-r text-black"
-              onClick={() => onRoleChange(fundingMemberId, 'CO_HOST')}
+              onClick={() => onRoleChange(fundingMemberId, 'ADMIN')}
             >
               부방장
             </button>

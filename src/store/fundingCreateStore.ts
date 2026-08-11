@@ -6,6 +6,8 @@ export interface WishlistItem {
   price: number;
   link?: string;
   imageUrl?: string;
+  /** 새로 등록한 선물 이미지를 펀딩 생성 시 S3에 업로드하기 위한 원본 파일 */
+  imageFile?: File;
 }
 
 export interface SavedAccount {
@@ -34,6 +36,7 @@ export interface EditableSnapshot {
   selectedAccountId: string | null;
   inviteTitle: string;
   inviteContent: string;
+  inviteBackgroundId: number | null;
   inviteColor: string;
   inviteCharacter: number;
 }
@@ -65,6 +68,7 @@ export interface FundingCreateState {
   // Step 5: 초대장
   inviteTitle: string;
   inviteContent: string;
+  inviteBackgroundId: number | null;
   inviteColor: string;
   inviteCharacter: number;
 
@@ -76,13 +80,15 @@ export interface FundingCreateState {
   // actions
   setStep1: (data: Partial<Pick<FundingCreateState, 'title' | 'anniversaryDate' | 'preparationStartDate' | 'preparationEndDate' | 'greeting' | 'thumbnailImage'>>) => void;
   addWishlistItem: (item: WishlistItem) => void;
+  updateWishlistItem: (id: string, data: Partial<Omit<WishlistItem, 'id'>>) => void;
   removeWishlistItem: (id: string) => void;
   setVisibility: (data: Partial<Pick<FundingCreateState, 'showProgress' | 'showAmount' | 'showParticipantCount' | 'showParticipantNames' | 'showMessages'>>) => void;
   addAccount: (data: Omit<SavedAccount, 'id'>) => void;
+  hydrateAccounts: (accounts: SavedAccount[]) => void;
   updateAccount: (id: string, data: Partial<Omit<SavedAccount, 'id'>>) => void;
   removeAccount: (id: string) => void;
   selectAccount: (id: string) => void;
-  setInvite: (data: Partial<Pick<FundingCreateState, 'inviteTitle' | 'inviteContent' | 'inviteColor' | 'inviteCharacter'>>) => void;
+  setInvite: (data: Partial<Pick<FundingCreateState, 'inviteTitle' | 'inviteContent' | 'inviteBackgroundId' | 'inviteColor' | 'inviteCharacter'>>) => void;
   loadForEdit: (fundingId: string, data: EditableSnapshot) => void;
   /** 만들기 플로우를 막 끝낸 시점에 호출 - 지금 스토어에 있는 값을 그대로 이 fundingId의 "원본"으로 확정합니다.
    *  (편집 화면 진입 시 별도 목데이터로 덮어쓰지 않고, 방금 입력한 내용을 그대로 유지하기 위함) */
@@ -108,6 +114,7 @@ const initialState = {
   selectedAccountId: null,
   inviteTitle: '',
   inviteContent: '',
+  inviteBackgroundId: null,
   inviteColor: '#FCE4F0',
   inviteCharacter: 1,
   editFundingId: null,
@@ -138,6 +145,7 @@ function extractEditableFields(state: FundingCreateState): EditableSnapshot {
     selectedAccountId: state.selectedAccountId,
     inviteTitle: state.inviteTitle,
     inviteContent: state.inviteContent,
+    inviteBackgroundId: state.inviteBackgroundId,
     inviteColor: state.inviteColor,
     inviteCharacter: state.inviteCharacter,
   };
@@ -149,6 +157,10 @@ export const useFundingCreateStore = create<FundingCreateState>((set) => ({
   setStep1: (data) => set((state) => ({ ...state, ...data })),
 
   addWishlistItem: (item) => set((state) => ({ wishlist: [...state.wishlist, item] })),
+  updateWishlistItem: (id, data) =>
+    set((state) => ({
+      wishlist: state.wishlist.map((item) => item.id === id ? { ...item, ...data } : item),
+    })),
   removeWishlistItem: (id) => set((state) => ({ wishlist: state.wishlist.filter((i) => i.id !== id) })),
 
   setVisibility: (data) => set((state) => ({ ...state, ...data })),
@@ -160,6 +172,12 @@ export const useFundingCreateStore = create<FundingCreateState>((set) => ({
         accounts: [...state.accounts, { id, ...data }],
         selectedAccountId: id,
       };
+    }),
+  hydrateAccounts: (accounts) =>
+    set((state) => {
+      const apiIds = new Set(accounts.map((account) => account.id));
+      const localAccounts = state.accounts.filter((account) => !apiIds.has(account.id));
+      return { accounts: [...accounts, ...localAccounts] };
     }),
   updateAccount: (id, data) =>
     set((state) => ({
@@ -207,7 +225,7 @@ const STEP_FIELDS: Record<number, (keyof EditableSnapshot)[]> = {
   2: ['wishlist'],
   3: ['showProgress', 'showAmount', 'showParticipantCount', 'showParticipantNames', 'showMessages'],
   4: ['accounts', 'selectedAccountId'],
-  5: ['inviteTitle', 'inviteContent', 'inviteColor', 'inviteCharacter'],
+  5: ['inviteTitle', 'inviteContent', 'inviteBackgroundId', 'inviteColor', 'inviteCharacter'],
 };
 
 /** 특정 단계(1~5)의 필드가 원본 스냅샷과 달라졌는지 (수정 화면의 "변경됨" 뱃지/저장 버튼 활성화에 사용) */

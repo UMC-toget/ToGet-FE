@@ -36,13 +36,15 @@ export interface FundingMessage {
 /** 홈 화면 '진행 중인 내 선물 모으기' 카드용 요약 정보 (D04 공개 범위 토글과 무관 — 개설자 본인만 보는 카드) */
 export interface MyFundingSummary {
   id: string
+  fundingType: 'MY_GIFT' | 'TOGETHER_GIFT'
   title: string
   thumbnailImage: string | null
   targetAmount: number
   currentAmount: number
   gaugePercent: number
-  /** D-day 배지 계산 기준. 요약 API는 기념일을 따로 내려주지 않아 펀딩 마감일을 사용합니다 */
-  anniversaryDate: string
+  /** D-day 배지 계산 기준. 요약 API는 기념일을 따로 내려주지 않아 펀딩 마감일을 사용합니다.
+   * 함께 선물(TOGETHER_GIFT)은 선물 확정 전까지 null. */
+  anniversaryDate: string | null
 }
 
 export interface FundingDetail {

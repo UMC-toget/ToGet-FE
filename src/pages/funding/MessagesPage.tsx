@@ -69,6 +69,7 @@ export default function MessagesPage() {
               label={getMessageDisplayName(message, funding)}
               canOpen={canOpenMessage(message, funding)}
               onOpen={() => setOpenedMessage(message)}
+              size="lg"
             />
           ))}
         </div>

@@ -9,11 +9,11 @@ export const REVIEW_API_TYPE: Record<ReviewWriteType, 'review' | 'news' | 'heart
 
 /**
  * 작성 화면 → 완료 화면 → 조회 화면으로 넘기는 임시 데이터 (서버 연동 전, navigate state로 전달)
- * 조회 화면(GiftReviewDetailPage)은 이 값이 없으면(직접 URL 접근 등) 실제 조회 API → mockReview 순으로 대체한다.
+ * 조회 화면(GiftReviewDetailPage)은 이 값이 없으면(직접 URL 접근 등) 실제 조회 API로 대체한다.
  */
 export interface ReviewPreviewData {
-  /** 후기를 작성한(선물을 받은) 사람 이름 */
-  senderName: string
+  /** 후기를 작성한 사람 이름. REVIEW/NEWS는 값 있음, HEARTFELT(마음전하기)는 항상 null */
+  authorName: string | null
   /** 받는 사람 인사말 (LetterCard 헤더, 예: "선물을 준 모두에게") */
   title: string
   content: string
@@ -46,6 +46,8 @@ interface ReviewWriteTypeConfig {
   imageLabel: string
   /** 등록 가능한 최대 이미지 개수 (gift만 여러 장, news/message는 대표 이미지 1장) */
   maxImages: number
+  /** 초대장 카드 상단 히어로 헤딩 (2줄, \n으로 줄바꿈) */
+  heroHeading: string
   /** 작성 완료 후 이동 경로 (캐릭터 선택·완료 화면은 별도 이슈라 임시 경로) */
   completePath: string
 }
@@ -69,6 +71,7 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
     showFrom: true,
     imageLabel: '선물 이미지',
     maxImages: 5,
+    heroHeading: '따뜻한 축하와 선물\n감사합니다!',
     completePath: '/gift/review/complete/gift',
   },
   news: {
@@ -83,6 +86,7 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
     showFrom: true,
     imageLabel: '선물 이미지',
     maxImages: 1,
+    heroHeading: '함께 준비한\n소중한 선물을 전달했어요!',
     completePath: '/gift/review/complete/news',
   },
   message: {
@@ -97,12 +101,13 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
     showFrom: false,
     imageLabel: '대표 이미지',
     maxImages: 1,
+    heroHeading: '함께 마음을 담아\n준비했어요',
     completePath: '/gift/review/complete/message',
   },
 }
 
 /** 제목 글자수 제한 */
-export const REVIEW_TITLE_MAX_LENGTH = 20
+export const REVIEW_TITLE_MAX_LENGTH = 15
 /** 내용 글자수 제한 */
 export const REVIEW_CONTENT_MAX_LENGTH = 60
 

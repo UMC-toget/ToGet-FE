@@ -52,7 +52,7 @@ function WishCreateCard({ icon, title, description, onClick }: WishCreateCardInf
       </span>
       <span className="flex flex-1 flex-col gap-1">
         <span className="text-b2-m text-black">{title}</span>
-        <span className="whitespace-pre-line text-caption1-r text-gray-600">{description}</span>
+        <span className="whitespace-pre-line text-caption1-r leading-normal text-gray-600">{description}</span>
       </span>
       <ChevronRightIcon className="size-6 shrink-0 text-gray-700" />
     </button>

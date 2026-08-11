@@ -46,6 +46,8 @@ export interface ReviewDetail {
   backgroundId: number | null
   images: string[]
   createdAt: string
+  /** REVIEW/NEWS는 값 있음(개설자 닉네임 우선, 없으면 이름), HEARTFELT는 항상 null */
+  authorName: string | null
 }
 
 // ─── API 함수 ─────────────────────────────────────────────────

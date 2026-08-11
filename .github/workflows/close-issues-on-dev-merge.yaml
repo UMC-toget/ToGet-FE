@@ -49,13 +49,14 @@ jobs:
                   repo: context.repo.repo,
                   issue_number: issueNumber,
                 })
+                const STATUS_LABELS = ['status:todo', 'status:in-progress', 'status:review', 'status:blocked']
                 const labelNames = issue.labels.map((l) => (typeof l === 'string' ? l : l.name))
-                if (labelNames.includes('status:review')) {
+                for (const staleStatus of labelNames.filter((l) => STATUS_LABELS.includes(l))) {
                   await github.rest.issues.removeLabel({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     issue_number: issueNumber,
-                    name: 'status:review',
+                    name: staleStatus,
                   }).catch(() => {})
                 }
                 await github.rest.issues.addLabels({

@@ -1,7 +1,9 @@
-// lib/apiClient.ts의 API_BASE_URL과 동일한 fallback을 써야 한다 — 여기만 빈 문자열로 두면
-// VITE_API_BASE_URL 미설정 시(.env.local에 없음) 프론트 자기 자신의 상대 경로로 요청이 나가
-// 조용히 404가 난다 (metaApi.ts의 fetchInvitationBackgrounds/fetchCharacters가 이 버그로 실패했었음).
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'https://dev.api.toget.kr'
+// Preview 환경변수가 비어 있거나 '.', './' 같은 상대 경로여도 프론트 주소로 요청하지 않도록
+// 절대 HTTP(S) URL만 허용하고, 그 외에는 개발 API 서버를 사용합니다.
+const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
+const BASE_URL = /^https?:\/\//i.test(configuredBaseUrl ?? '')
+  ? configuredBaseUrl!.replace(/\/+$/, '')
+  : 'https://dev.api.toget.kr'
 
 interface ApiResponse<T> {
   isSuccess: boolean

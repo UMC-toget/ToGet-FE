@@ -4,13 +4,13 @@ import Header from '../../components/common/Header'
 import ProcessBar from '../../components/common/ProcessBar'
 import Button from '../../components/common/Button'
 import ConfirmModal from '../../components/common/ConfirmModal'
+import EmojiPopup from '../../components/common/EmojiPopup'
 import ConfirmStep1 from './ConfirmStep1'
 import ConfirmStep2 from './ConfirmStep2'
 import ConfirmStep3 from './ConfirmStep3'
 import ConfirmStep4 from './ConfirmStep4'
-import { getTogetherGiftDashboard, getGiftCandidates, type GiftCandidateItem, type MemberSummary } from '../../api/groupFundings'
+import { getTogetherGiftDashboard, getGiftCandidates, postFinalSelections, type GiftCandidateItem, type MemberSummary } from '../../api/groupFundings'
 import { getFundingAccount, type FundingAccount } from '../../api/fundings'
-import { MOCK_CANDIDATES, MOCK_DASHBOARD, MOCK_ACCOUNT } from './groupMock'
 
 // 접근: 개설자 전용 | 선물 확정 플로우 4단계 (선물 확정 → 정산인원 → 금액 → 정산 시작)
 export interface ConfirmedGift {
@@ -47,6 +47,7 @@ export default function ConfirmPage() {
   const [account, setAccount] = useState<FundingAccount | null>(null)
   const [loading, setLoading] = useState(true)
   const [showExitModal, setShowExitModal] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
@@ -58,17 +59,11 @@ export default function ConfirmPage() {
     ]).then(([candidatesRes, dashboardRes, accountRes]) => {
       const apiCandidates =
         candidatesRes.status === 'fulfilled' ? candidatesRes.value.candidates : []
-      const rawCandidates =
-        apiCandidates.length > 0
-          ? apiCandidates
-          : import.meta.env.DEV ? MOCK_CANDIDATES.candidates : []
+      const rawCandidates = apiCandidates
 
       const apiMembers =
         dashboardRes.status === 'fulfilled' ? dashboardRes.value.members : []
-      const rawMembers =
-        apiMembers.length > 0
-          ? apiMembers
-          : import.meta.env.DEV ? MOCK_DASHBOARD.members : []
+      const rawMembers = apiMembers
 
       setCandidates(rawCandidates)
 
@@ -83,8 +78,6 @@ export default function ConfirmPage() {
 
       if (accountRes.status === 'fulfilled') {
         setAccount(accountRes.value)
-      } else if (import.meta.env.DEV) {
-        setAccount(MOCK_ACCOUNT)
       }
     }).finally(() => setLoading(false))
   }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -121,12 +114,19 @@ export default function ConfirmPage() {
       setStep((step + 1) as 2 | 3 | 4)
       return
     }
-    // 4단계: 정산 시작 API 호출 (BE 미구현 → 홈으로 이동)
+    // 4단계: 선물·정산 참여자 확정 → SETTLING 전환 후 홈으로
     if (submitting) return
     setSubmitting(true)
     try {
-      // TODO: await confirmGiftsAndStartSettlement(id!, { ... })
-      navigate(`/group/${id}`)
+      if (id) {
+        await postFinalSelections(id, {
+          giftIds: confirmedGifts.map(g => g.id),
+          settlementMemberIds: includedMembers.map(m => m.fundingMemberId),
+        })
+      }
+      setShowSuccess(true)
+    } catch (e) {
+      console.error('선물 확정 실패', e)
     } finally {
       setSubmitting(false)
     }
@@ -134,6 +134,7 @@ export default function ConfirmPage() {
 
   const handleGoToEdit = () => {
     navigate(`/group/${id}/confirm/edit`, {
+      replace: true,
       state: {
         confirmedGifts,
         step,
@@ -184,6 +185,9 @@ export default function ConfirmPage() {
                 ),
               )
             }
+            onSetAll={included =>
+              setMembers(prev => prev.map(m => ({ ...m, included })))
+            }
           />
         )}
         {step === 3 && (
@@ -215,7 +219,14 @@ export default function ConfirmPage() {
         confirmText="나가기"
         cancelText="계속하기"
         onCancel={() => setShowExitModal(false)}
-        onConfirm={() => navigate(`/group/${id}`)}
+        onConfirm={() => navigate(-1)}
+      />
+
+      <EmojiPopup
+        open={showSuccess}
+        icon="success"
+        title="선물 후보 확정이 완료되었습니다"
+        buttons={[{ label: '선물 페이지로 돌아가기', variant: 'primary', onClick: () => navigate(`/group/${id}`, { replace: true }) }]}
       />
     </div>
   )

@@ -1,7 +1,11 @@
 import type { MyFundingSummary } from '../../types/funding'
 import { getDdayLabel } from '../../utils/formatDate'
+import { truncateText } from '../../utils/truncateText'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import LinkIcon from '../../components/icons/LinkIcon'
+import completeCat from '../../assets/complete-cat.svg'
+
+const TITLE_MAX_LENGTH = 12
 
 interface MyFundingCardProps {
   funding: MyFundingSummary
@@ -11,26 +15,41 @@ interface MyFundingCardProps {
 
 /** 홈 '진행 중인 내 선물 모으기' 카드 (피그마 #1706:62326) */
 export default function MyFundingCard({ funding, onOpen, onShareInvite }: MyFundingCardProps) {
+  const dDayLabel = getDdayLabel(funding.anniversaryDate)
+
   return (
     <div className="flex w-full shrink-0 flex-col gap-5 rounded-xl border border-gray-100 bg-white px-3.5 py-3">
       <button type="button" onClick={onOpen} className="flex w-full items-start gap-3 text-left">
-        <span className="flex size-20 shrink-0 items-center justify-center rounded-lg bg-background">
-          {funding.thumbnailImage && (
-            <img src={funding.thumbnailImage} alt="" className="h-[52px] w-[48px] object-cover" />
+        <span
+          className={`flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg ${funding.thumbnailImage ? 'bg-background' : 'bg-pink-100'}`}
+        >
+          {funding.thumbnailImage ? (
+            <img
+              src={funding.thumbnailImage}
+              alt=""
+              draggable={false}
+              className="h-[52px] w-[48px] object-cover"
+            />
+          ) : (
+            <img src={completeCat} alt="" className="size-16 object-contain" />
           )}
         </span>
         <div className="flex flex-1 flex-col gap-[18px]">
           <div className="flex items-start justify-between gap-2">
-            <div className="flex items-start gap-2">
-              <div className="flex shrink-0 flex-col gap-[9px]">
-                <p className="whitespace-nowrap text-b2-m text-black">{funding.title}</p>
-                <p className="whitespace-nowrap text-caption1-r text-gray-700">
-                  목표 {funding.targetAmount.toLocaleString()}원
+            <div className="flex shrink-0 flex-col gap-[9px]">
+              <div className="flex items-center gap-2">
+                <p className="whitespace-nowrap text-b2-m text-black">
+                  {truncateText(funding.title, TITLE_MAX_LENGTH)}
                 </p>
+                {dDayLabel && (
+                  <span className="shrink-0 rounded-full bg-pink-100/50 px-2 py-1 text-caption2-m text-pink-500">
+                    {dDayLabel}
+                  </span>
+                )}
               </div>
-              <span className="shrink-0 rounded-full bg-pink-100/50 px-2 py-0.5 text-caption2-m text-pink-500">
-                {getDdayLabel(funding.anniversaryDate)}
-              </span>
+              <p className="whitespace-nowrap text-caption1-r text-gray-700">
+                목표 {funding.targetAmount.toLocaleString()}원
+              </p>
             </div>
             <ChevronRightIcon className="size-6 shrink-0 text-black" />
           </div>

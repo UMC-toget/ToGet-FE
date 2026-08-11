@@ -16,6 +16,7 @@ export interface TogetherCreateState {
   // Step 3: 초대장 만들기
   inviteTitle: string;
   inviteContent: string;
+  inviteBackgroundId: number | null;
   inviteColor: string;
   inviteCharacter: number;
 
@@ -23,10 +24,11 @@ export interface TogetherCreateState {
     data: Partial<Pick<TogetherCreateState, 'roomName' | 'recipientName' | 'giftDate' | 'memo' | 'thumbnailImage'>>
   ) => void;
   addAccount: (data: Omit<SavedAccount, 'id'>) => void;
+  hydrateAccounts: (accounts: SavedAccount[]) => void;
   updateAccount: (id: string, data: Partial<Omit<SavedAccount, 'id'>>) => void;
   selectAccount: (id: string) => void;
   setInvite: (
-    data: Partial<Pick<TogetherCreateState, 'inviteTitle' | 'inviteContent' | 'inviteColor' | 'inviteCharacter'>>
+    data: Partial<Pick<TogetherCreateState, 'inviteTitle' | 'inviteContent' | 'inviteBackgroundId' | 'inviteColor' | 'inviteCharacter'>>
   ) => void;
   reset: () => void;
 }
@@ -41,6 +43,7 @@ const initialState = {
   selectedAccountId: null,
   inviteTitle: '',
   inviteContent: '',
+  inviteBackgroundId: null,
   inviteColor: '#FCE4F0',
   inviteCharacter: 1,
 };
@@ -57,6 +60,11 @@ export const useTogetherCreateStore = create<TogetherCreateState>((set) => ({
         accounts: [...state.accounts, { id, ...data }],
         selectedAccountId: id,
       };
+    }),
+  hydrateAccounts: (accounts) =>
+    set((state) => {
+      const apiIds = new Set(accounts.map((account) => account.id));
+      return { accounts: [...accounts, ...state.accounts.filter((account) => !apiIds.has(account.id))] };
     }),
   updateAccount: (id, data) =>
     set((state) => ({

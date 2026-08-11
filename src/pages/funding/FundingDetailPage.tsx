@@ -4,19 +4,19 @@ import type { FundingDetail, FundingMessage } from '../../types/funding'
 import { formatDateKorean, getDdayLabel } from '../../utils/formatDate'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
-import ConfirmModal from '../../components/common/ConfirmModal'
+import EmojiPopup from '../../components/common/EmojiPopup'
 import Toast from '../../components/common/Toast'
 import { useMockFunding } from './useMockFunding'
 import { getMessageDisplayName } from './messageUtils'
 import { useFundingCreateStore } from '../../store/fundingCreateStore'
 import { buildFundingFromStore, getThumbnailSrc } from './buildFundingFromStore'
-import { getMockEditData } from './editFundingMock'
 import ProgressCard from './ProgressCard'
 import MessageSection from './MessageSection'
 import LetterModal from './LetterModal'
 import ParticipantList from './ParticipantList'
 import { getMyGiftDashboard, dashboardToFundingDetail, updateFundingStatus, getSharedFunding, sharedFundingToFundingDetail } from '../../api/fundings'
 import { getContributions, getContribution } from '../../api/contributions'
+import avatarCat from '../../assets/avatar-cat.svg'
 
 type OwnerTab = 'mine' | 'participants'
 
@@ -74,20 +74,7 @@ export default function FundingDetailPage() {
 
   // 실제 API 데이터 우선, 없으면 mock (비개설자 또는 API 실패 시)
   const funding = realFunding ?? mockFunding
-  const { editFundingId, title: storeTitle, commitAsFunding, loadForEdit, revertToOriginal } = store
-
-  // 개설자 뷰인데 이 fundingId가 아직 스토어에 반영돼 있지 않다면:
-  // - 이번 세션에 만들기 플로우로 실제 입력한 내용이 있으면(title 존재) 그 값을 그대로 원본으로 확정하고
-  // - 아무것도 입력한 적이 없으면(콜드 진입) 데모용 기본값으로 채워 넣습니다.
-  useEffect(() => {
-    if (!funding.isOwner || !id) return
-    if (editFundingId === id) return
-    if (storeTitle.trim()) {
-      commitAsFunding(id)
-    } else {
-      loadForEdit(id, getMockEditData())
-    }
-  }, [funding.isOwner, id, editFundingId, storeTitle, commitAsFunding, loadForEdit])
+  const { revertToOriginal } = store
 
   // 실제 API 데이터가 있으면 그대로 사용 (API = source of truth)
   // mock 모드면 스토어 오버레이 유지 (편집 데모 플로우용)
@@ -142,27 +129,31 @@ export default function FundingDetailPage() {
   }
 
   const isEnded = displayFunding.status === 'ENDED'
-  const showBottomBar = !funding.isOwner || activeTab === 'mine'
+  // 비개설자는 마감된 페이지에서 하단 CTA(마음 전하기) 숨김 (진행 중이면 참여 가능)
+  const showBottomBar = funding.isOwner ? activeTab === 'mine' : !isEnded
   const showParticipants = funding.isOwner && activeTab === 'participants'
 
   return (
     <div className={`mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white ${showBottomBar ? 'pb-[140px]' : 'pb-6'}`}>
-      <Header title={isLoading ? '' : `${displayFunding.hostName}님의 선물 페이지`} />
+      <Header
+        title={isLoading ? '' : `${displayFunding.hostName}님의 선물 페이지`}
+        onBack={() => navigate('/home')}
+      />
 
       <div className={`flex flex-1 flex-col ${isLoading ? 'invisible' : ''}`}>
       {funding.isOwner && (
-        <div className="mx-[18px] mt-3 flex gap-1 rounded-lg bg-gray-100 p-1">
+        <div className="mx-[18px] mt-6 flex gap-1 rounded-lg bg-gray-100 p-[5px] text-center text-gray-600">
           <button
             type="button"
             onClick={() => setActiveTab('mine')}
-            className={`flex-1 rounded-[4px] py-2 text-b2-m transition-colors ${activeTab === 'mine' ? 'bg-white text-black' : 'text-gray-600'}`}
+            className={`flex-1 rounded-[4px] py-2.5 text-b2-m transition-colors ${activeTab === 'mine' ? 'bg-white text-black' : 'text-gray-600'}`}
           >
             내 선물 페이지
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('participants')}
-            className={`flex-1 rounded-[4px] py-2 text-b2-m transition-colors ${activeTab === 'participants' ? 'bg-white text-black' : 'text-gray-600'}`}
+            className={`flex-1 rounded-[4px] py-2.5 text-b2-m transition-colors ${activeTab === 'participants' ? 'bg-white text-black' : 'text-gray-600'}`}
           >
             참여자 목록
           </button>
@@ -180,12 +171,9 @@ export default function FundingDetailPage() {
             {thumbnailSrc ? (
               <img src={thumbnailSrc} alt="" className="absolute inset-0 h-full w-full object-cover" />
             ) : (
-              <p className="text-caption1-r text-[#888888]">대표 이미지 삽입 영역</p>
+              <img src={avatarCat} alt="" className="size-16 opacity-30" />
             )}
-            <div className="absolute inset-x-[18px] top-6 flex items-start justify-between">
-              <span className="rounded-full border border-gray-300 bg-white px-4 py-2 text-b2-m leading-normal text-gray-700">
-                {displayFunding.category}
-              </span>
+            <div className="absolute inset-x-[18px] top-6 flex items-start">
               {isEnded ? (
                 <span className="rounded-full bg-gray-900 px-4 py-2 text-b2-m leading-normal text-white">
                   마감된 페이지
@@ -232,7 +220,7 @@ export default function FundingDetailPage() {
               {isEnded ? (
                 <button
                   type="button"
-                  onClick={() => navigate(`/gift/review/write/news/${id}`)}
+                  onClick={() => navigate(`/gift/review/write/gift/${id}`)}
                   className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-gray-600 bg-white text-sm font-semibold text-black"
                 >
                   선물 후기 남기기
@@ -243,7 +231,7 @@ export default function FundingDetailPage() {
                   onClick={() => setShowEndConfirm(true)}
                   className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-gray-600 bg-white text-sm font-semibold text-black"
                 >
-                  페이지 종료하기
+                  페이지 마감하기
                 </button>
               )}
               <Button className="flex-1" onClick={() => navigate(`/funding/${id}/edit`)}>
@@ -271,14 +259,15 @@ export default function FundingDetailPage() {
         onClose={() => setOpenedMessage(null)}
       />
 
-      <ConfirmModal
+      <EmojiPopup
         open={showEndConfirm}
-        title="아직 종료일이 남아있어요"
-        description={'지금 종료하면 현재 금액으로 확정되고,\n친구들은 더 이상 참여할 수 없어요.'}
-        cancelText="취소하기"
-        confirmText="종료하기"
-        onCancel={() => setShowEndConfirm(false)}
-        onConfirm={handleEndFunding}
+        title="페이지를 마감하시겠어요?"
+        description={'한 번 마감된 페이지는 다시 진행할 수 없으니\n한번 더 확인해주세요'}
+        buttons={[
+          { label: '취소하기', variant: 'secondary', onClick: () => setShowEndConfirm(false) },
+          { label: '마감하기', variant: 'primary', onClick: handleEndFunding },
+        ]}
+        onDimClick={() => setShowEndConfirm(false)}
       />
 
       <Toast

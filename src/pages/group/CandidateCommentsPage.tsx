@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
-import { getGiftCandidateDetail } from '../../api/groupFundings'
+import { getGiftCandidateDetail, postGiftCandidateComment } from '../../api/groupFundings'
 import type { GiftCandidateComment, GiftCandidateDetail } from '../../api/groupFundings'
 import { MOCK_CANDIDATE_DETAIL } from './groupMock'
 
@@ -36,14 +36,22 @@ export default function CandidateCommentsPage() {
       .finally(() => setLoading(false))
   }, [id, candidateId])
 
-  const submitComment = () => {
+  const submitComment = async () => {
     const text = commentText.trim()
-    if (!text) return
+    if (!text || !id || !candidateId) return
+    setCommentText('')
+    let commentId = Date.now()
+    if (!import.meta.env.DEV) {
+      try {
+        commentId = (await postGiftCandidateComment(id, candidateId, text)).commentId
+      } catch (e) {
+        console.error('의견 작성 실패', e)
+      }
+    }
     setComments(prev => [
       ...prev,
-      { commentId: Date.now(), authorName: '나', authorProfileImageUrl: null, content: text },
+      { commentId, authorName: '나', authorProfileImageUrl: null, content: text },
     ])
-    setCommentText('')
   }
 
   if (loading) {

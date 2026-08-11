@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useRequireAuth } from '../../hooks/useRequireAuth'
 import Button from '../../components/common/Button'
 import Toast from '../../components/common/Toast'
 import CloseIcon from '../../components/icons/CloseIcon'
@@ -12,6 +13,8 @@ const TOAST_DURATION_MS = 2000
 
 /** J파트 작성물 3종 공용 완료 화면 (/gift/review/complete/:type, 피그마 #1933:103464 외) */
 export default function ReviewCompletePage() {
+  useRequireAuth()
+
   const { type } = useParams<{ type: string }>()
   const navigate = useNavigate()
   const location = useLocation()
@@ -59,11 +62,11 @@ export default function ReviewCompletePage() {
   }
 
   // TODO: BE 연동 후 실제 발급된 id로 교체. 작성 데이터(previewData)가 있으면 그대로 들고 가고,
-  // 없으면(새로고침 등으로 유실된 경우) 조회 화면이 mockReview로 대체한다.
+  // 없으면(새로고침 등으로 유실된 경우) 조회 화면이 빈 상태를 보여준다.
   const handlePreview = () => navigate(`/gift/review/${config.key}-mock`, { state: previewData })
 
   return (
-    <div className="relative mx-auto flex min-h-dvh w-full max-w-[402px] flex-col overflow-hidden bg-white pb-[140px] antialiased">
+    <div className="relative mx-auto flex min-h-dvh w-full max-w-[402px] flex-col overflow-hidden bg-white antialiased">
       <button
         type="button"
         aria-label="닫기"
@@ -110,10 +113,8 @@ export default function ReviewCompletePage() {
         </div>
       </div>
 
-      <div className="pointer-events-none fixed bottom-0 left-1/2 w-full max-w-[402px] -translate-x-1/2 bg-gradient-to-b from-white/0 to-white/80 px-[18px] pb-[34px] pt-10">
-        <Button className="pointer-events-auto" onClick={handlePreview}>
-          {config.previewLabel}
-        </Button>
+      <div className="px-[18px] pb-[34px] pt-10">
+        <Button onClick={handlePreview}>{config.previewLabel}</Button>
       </div>
 
       <Toast open={toastMessage !== null} message={toastMessage ?? ''} />

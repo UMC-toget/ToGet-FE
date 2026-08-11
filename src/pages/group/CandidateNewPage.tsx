@@ -10,10 +10,11 @@ import SearchIcon from '../../components/icons/SearchIcon'
 import CaretDownIcon from '../../components/icons/CaretDownIcon'
 import CheckIcon from '../../components/icons/CheckIcon'
 import CloseIcon from '../../components/icons/CloseIcon'
-import PhotoActionSheet from '../../components/create/PhotoActionSheet'
+import PhotoActionSheet from '../../components/common/PhotoActionSheet'
 import { postGiftCandidate } from '../../api/groupFundings'
-import { MOCK_WISH_ITEMS } from '../../utils/wishData'
-import type { WishSourceItem, WishCategory } from '../../utils/wishData'
+import { useWishedProducts } from '../wish/hooks/useWishedProducts'
+import type { WishType } from '../../store/wishStore'
+import type { Product } from '../home/products'
 
 // 접근: 공동관리자 · 개설자 (CO_HOST 이상) | H06 선물 후보 등록하기
 const MEMO_MAX_LENGTH = 60
@@ -25,14 +26,15 @@ export default function CandidateNewPage() {
   const navigate = useNavigate()
 
   const [pageStep, setPageStep] = useState<PageStep>('select')
-  const [selectedWishItem, setSelectedWishItem] = useState<WishSourceItem | null>(null)
+  const [selectedWishItem, setSelectedWishItem] = useState<Product | null>(null)
 
   const [showWishSheet, setShowWishSheet] = useState(false)
   const [wishCalledFrom, setWishCalledFrom] = useState<'select' | 'direct'>('select')
   const [wishSearch, setWishSearch] = useState('')
-  const [wishFilter, setWishFilter] = useState<'all' | WishCategory>('all')
-  const [selectedWishId, setSelectedWishId] = useState<string | null>(null)
+  const [wishFilter, setWishFilter] = useState<'all' | WishType>('all')
+  const [selectedWishId, setSelectedWishId] = useState<number | null>(null)
   const [showOverflowToast, setShowOverflowToast] = useState(false)
+  const { wishedProducts, isLoading: wishLoading } = useWishedProducts(wishFilter, 'latest')
 
   // 직접 입력 폼 상태
   const [inputName, setInputName] = useState('')
@@ -59,13 +61,12 @@ export default function CandidateNewPage() {
     setTimeout(() => setErrorToast(null), 3000)
   }
 
-  const filteredWishItems = MOCK_WISH_ITEMS.filter(item => {
-    const matchCategory = wishFilter === 'all' || item.category === wishFilter
+  const filteredWishItems = wishedProducts.filter(item => {
     const q = wishSearch.trim().toLowerCase()
-    return matchCategory && (q === '' || item.name.toLowerCase().includes(q) || item.brand.toLowerCase().includes(q))
+    return q === '' || item.name.toLowerCase().includes(q) || item.brand.toLowerCase().includes(q)
   })
 
-  const handleWishToggle = (item: WishSourceItem) => {
+  const handleWishToggle = (item: Product) => {
     if (selectedWishId === item.id) {
       setSelectedWishId(null)
     } else if (selectedWishId !== null) {
@@ -77,7 +78,7 @@ export default function CandidateNewPage() {
   }
 
   const handleWishConfirm = () => {
-    const item = MOCK_WISH_ITEMS.find(i => i.id === selectedWishId)
+    const item = wishedProducts.find(i => i.id === selectedWishId)
     if (!item) return
     setShowWishSheet(false)
     setWishSearch('')
@@ -255,7 +256,7 @@ export default function CandidateNewPage() {
       {pageStep === 'direct' && (
         <div className="flex flex-1 flex-col overflow-y-auto px-[18px] pb-8 pt-7">
           <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2.5">
               <h2 className="text-h3-sb text-black">후보 선물을 등록해주세요</h2>
               <p className="text-caption1-r text-[#797378]">등록자 이름이 함께 표시돼요</p>
             </div>
@@ -582,7 +583,7 @@ export default function CandidateNewPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            {(['all', 'received', 'given'] as const).map(f => (
+            {(['all', 'receive', 'give'] as const).map(f => (
               <button
                 key={f}
                 type="button"
@@ -591,7 +592,7 @@ export default function CandidateNewPage() {
                   wishFilter === f ? 'bg-gray-900 text-white' : 'border border-gray-300 bg-white text-gray-700'
                 }`}
               >
-                {f === 'all' ? '전체' : f === 'received' ? '받고 싶은' : '주고 싶은'}
+                {f === 'all' ? '전체' : f === 'receive' ? '받고 싶은' : '주고 싶은'}
               </button>
             ))}
           </div>
@@ -637,6 +638,11 @@ export default function CandidateNewPage() {
                   </button>
                 )
               })}
+              {filteredWishItems.length === 0 && (
+                <p className="col-span-2 py-8 text-center text-caption1-r text-gray-400">
+                  {wishLoading ? '불러오는 중...' : '검색 결과가 없어요'}
+                </p>
+              )}
             </div>
           </div>
 
