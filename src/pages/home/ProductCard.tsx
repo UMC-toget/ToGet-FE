@@ -11,7 +11,7 @@ interface ProductCardProps {
   isLoggedIn: boolean
   /** 위시 등록 여부 (전역 위시 스토어 기준) */
   wished: boolean
-  /** 비로그인 상태에서 카드/위시 버튼 클릭 시 호출 (로그인 화면으로 라우팅) */
+  /** 비로그인 상태에서 위시 버튼 클릭 시 호출 (로그인 화면으로 라우팅). 카드 클릭(상품 정보 보기)은 비로그인 상태에서도 가능합니다. */
   onLoginRequired: () => void
   /** 위시 버튼 클릭 시 호출 (위시 유형 선택 바텀시트 오픈 — 이미 등록된 상품이면 현재 유형이 미리 선택된 채로 열림) */
   onWishClick: () => void
@@ -23,10 +23,6 @@ export default function ProductCard({ product, rank, isLoggedIn, wished, onLogin
   const [linkConfirmOpen, setLinkConfirmOpen] = useState(false)
 
   const handleCardClick = () => {
-    if (!isLoggedIn) {
-      onLoginRequired()
-      return
-    }
     if (product.link) setLinkConfirmOpen(true)
   }
 
