@@ -1,4 +1,4 @@
-import { useState, memo, useCallback } from 'react'
+import { useState, useRef, memo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PlusIcon from '../../components/icons/PlusIcon'
 import MoreVerticalIcon from '../../components/icons/MoreVerticalIcon'
@@ -55,7 +55,8 @@ const WishProductCard = memo(function WishProductCard({
   const navigate = useNavigate()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [imageBroken, setImageBroken] = useState(false)
-  const hasBackground = useImageHasBackground(product.image || null)
+  const imgRef = useRef<HTMLImageElement>(null)
+  const hasBackground = useImageHasBackground(imgRef, product.image || null)
 
   const handleCardClick = useCallback(() => {
     if (isEditMode) {
@@ -101,6 +102,7 @@ const WishProductCard = memo(function WishProductCard({
         >
           {product.image && !imageBroken ? (
             <img
+              ref={imgRef}
               src={product.image}
               alt={product.name}
               crossOrigin="anonymous"
