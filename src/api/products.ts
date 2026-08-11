@@ -40,3 +40,29 @@ export function getProducts(params?: GetProductsParams) {
 export function getProduct(productId: number) {
   return unwrap<ApiProduct>(apiClient.get(`/api/v1/products/${productId}`))
 }
+
+/** 상품 등록/수정 요청 본문. name/price/purchaseUrl은 필수입니다. [관리자 전용] */
+export interface ProductInput {
+  name: string
+  price: number
+  description?: string
+  imageUrl?: string
+  purchaseUrl: string
+  category?: string
+  brand?: string
+}
+
+/** [관리자 전용] 상품 등록 */
+export function createProduct(payload: ProductInput) {
+  return unwrap<{ productId: number }>(apiClient.post('/api/v1/products', payload))
+}
+
+/** [관리자 전용] 상품 수정 */
+export function updateProduct(productId: number, payload: ProductInput) {
+  return unwrap<ApiProduct>(apiClient.put(`/api/v1/products/${productId}`, payload))
+}
+
+/** [관리자 전용] 상품 삭제 */
+export function deleteProduct(productId: number) {
+  return unwrap<void>(apiClient.delete(`/api/v1/products/${productId}`))
+}
