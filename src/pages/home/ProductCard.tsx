@@ -94,7 +94,7 @@ export default function ProductCard({ product, rank, isLoggedIn, wished, onLogin
         open={linkConfirmOpen}
         title="외부 사이트로 이동할까요?"
         description={'상품 정보를 확인하기 위해\n외부 사이트로 이동해요.'}
-        cancelText="취소"
+        cancelText="돌아가기"
         confirmText="이동하기"
         onCancel={() => setLinkConfirmOpen(false)}
         onConfirm={() => {
