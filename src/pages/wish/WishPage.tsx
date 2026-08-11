@@ -210,10 +210,9 @@ export default function WishPage() {
         )}
       </div>
 
-      {/* Edit Mode Sticky Selection Bar (피그마 1716:99536 기준) */}
+      {/* Edit Mode Sticky Selection Bar (피그마 1716:99536 기준: 삭제 버튼-중앙 텍스트-대칭용 빈 자리) */}
       {isEditMode && (
         <div className="fixed bottom-0 left-1/2 z-30 flex h-14 w-full max-w-[402px] -translate-x-1/2 items-center justify-between border-t border-gray-200 bg-gray-100/80 px-[18px] backdrop-blur-[30px]">
-          <p className="text-b1-m text-black">{selectedIds.length}개의 선물이 선택됨</p>
           <button
             type="button"
             aria-label="선택한 선물 삭제"
@@ -223,6 +222,9 @@ export default function WishPage() {
           >
             <TrashIcon className="size-6" />
           </button>
+          <p className="text-b1-m text-black">{selectedIds.length}개의 선물이 선택됨</p>
+          {/* 중앙 텍스트를 대칭으로 맞추기 위한 빈 자리 (좌측 삭제 버튼과 동일 크기) */}
+          <span className="size-6" aria-hidden />
         </div>
       )}
 
