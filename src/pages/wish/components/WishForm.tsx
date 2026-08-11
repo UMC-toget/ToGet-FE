@@ -124,7 +124,7 @@ export function WishForm({
             </>
           }
           value={purchaseUrl}
-          onChange={(e) => onPurchaseUrlChange(e.target.value)}
+          onChange={(e) => onPurchaseUrlChange(e.target.value.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, ''))}
           placeholder="구매처 링크를 입력해 주세요"
         />
 
