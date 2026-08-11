@@ -150,7 +150,7 @@ export default function AdminProductFormPage() {
           label="구매 링크"
           value={form.purchaseUrl}
           placeholder="https://..."
-          onChange={(e) => setForm({ ...form, purchaseUrl: e.target.value })}
+          onChange={(e) => setForm({ ...form, purchaseUrl: e.target.value.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, '') })}
         />
 
         <TextField
