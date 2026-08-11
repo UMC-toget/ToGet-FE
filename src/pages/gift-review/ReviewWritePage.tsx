@@ -9,8 +9,8 @@ import PhotoActionSheet from '../../components/common/PhotoActionSheet'
 import { useRequireAuth } from '../../hooks/useRequireAuth'
 import ChevronLeftIcon from '../../components/icons/ChevronLeftIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
-import ExpandIcon from '../../components/icons/ExpandIcon'
 import CloseIcon from '../../components/icons/CloseIcon'
+import ZoomOutIcon from '../../components/icons/ZoomOutIcon'
 import PlusIcon from '../../components/icons/PlusIcon'
 import { LETTER_COLORS } from '../../components/common/letterPalette'
 import InvitationHero from '../../components/invitation/InvitationHero'
@@ -306,19 +306,22 @@ export default function ReviewWritePage() {
             fromName={config.showFrom ? profile?.nickname ?? '' : null}
             accentColor={invitationThemeColor}
           />
-          <span className="absolute bottom-3 right-3 z-20 flex size-7 items-center justify-center rounded-[14px] bg-gray-100 shadow-sm">
-            <ExpandIcon className="size-4 text-gray-500" />
+          <span
+            className="absolute bottom-3 right-3 z-20 flex items-center justify-center rounded-[14px] bg-[#EAE9EA]"
+            style={{ width: 28, height: 28, padding: '7.78px', boxShadow: '0 10px 125px 0 rgba(0,0,0,0.04)' }}
+          >
+            <ZoomOutIcon width={13} height={13} className="text-gray-700" />
           </span>
         </button>
 
-        <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-1">
+        <div className="flex items-center gap-2">
           {REVIEW_TABS.map((t) => (
             <button
               key={t.key}
               type="button"
               onClick={() => setTab(t.key)}
-              className={`flex-1 rounded px-2.5 py-2 text-b2-m ${
-                tab === t.key ? 'bg-white text-black' : 'bg-transparent text-gray-600'
+              className={`rounded-full px-3.5 py-2 text-b2-m ${
+                tab === t.key ? 'bg-gray-900 text-white' : 'border border-gray-200 bg-white text-gray-600'
               }`}
             >
               {t.label}
