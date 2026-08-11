@@ -5,10 +5,18 @@ import { getCharacterImageSrc, getInvitationAccent, useInvitationMeta } from './
 import { TogetLogoMark, InviteSparkles } from './Step5Invite';
 import { useMyProfile } from '../../hooks/useMyProfile';
 
+export interface TogetherInviteInitialValue {
+  title: string;
+  content: string;
+  characterId: number;
+  backgroundId: number;
+}
+
 interface Props {
   onNext: () => void;
   submitLabel?: string;
   disabled?: boolean;
+  initialValue?: TogetherInviteInitialValue;
 }
 
 type Tab = 'message' | 'color' | 'character';
@@ -16,8 +24,12 @@ type Tab = 'message' | 'color' | 'character';
 const TITLE_MAX = 15;
 const CONTENT_MAX = 60;
 
-export default function TogetherStep3Invite({ onNext, submitLabel = '저장', disabled = false }: Props) {
+export default function TogetherStep3Invite({ onNext, submitLabel = '저장', disabled = false, initialValue }: Props) {
   const { inviteTitle, inviteContent, inviteBackgroundId, inviteColor, inviteCharacter, setInvite } = useTogetherCreateStore();
+  const initialTitle = initialValue?.title;
+  const initialContent = initialValue?.content;
+  const initialCharacterId = initialValue?.characterId;
+  const initialBackgroundId = initialValue?.backgroundId;
   const [tab, setTab] = useState<Tab>('message');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const { backgrounds, characters, isLoading, backgroundError, characterError } = useInvitationMeta();
@@ -36,6 +48,27 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
       });
     }
   }, [backgrounds, characters, inviteBackgroundId, inviteColor, inviteCharacter, setInvite]);
+
+  useEffect(() => {
+    if (
+      initialTitle == null ||
+      initialContent == null ||
+      initialCharacterId == null ||
+      initialBackgroundId == null
+    ) return;
+    setInvite({
+      inviteTitle: initialTitle,
+      inviteContent: initialContent,
+      inviteCharacter: initialCharacterId,
+      inviteBackgroundId: initialBackgroundId,
+    });
+  }, [
+    initialBackgroundId,
+    initialCharacterId,
+    initialContent,
+    initialTitle,
+    setInvite,
+  ]);
 
   // "from." 은 선물 페이지 제목이 아니라 가입한 사용자(로그인 계정)의 닉네임으로 표시합니다.
   const previewName = profile?.nickname ?? '회원';

@@ -11,6 +11,7 @@ import { useUserAccounts } from '../../hooks/useUserAccounts';
 
 interface Props {
   onNext: () => void;
+  initialSelectedAccountId?: string | number | null;
 }
 
 type View = 'list' | 'add' | 'edit';
@@ -37,7 +38,7 @@ function resolveBankCode(displayName: string): BankName | undefined {
     )?.[0];
 }
 
-export default function TogetherStep2Account({ onNext }: Props) {
+export default function TogetherStep2Account({ onNext, initialSelectedAccountId }: Props) {
   const { accounts, selectedAccountId, addAccount, hydrateAccounts, updateAccount, selectAccount } = useTogetherCreateStore();
   const { data: registeredAccounts, isLoading: isAccountsLoading } = useUserAccounts();
 
@@ -55,6 +56,15 @@ export default function TogetherStep2Account({ onNext }: Props) {
       accountHolder: account.accountOwner,
     })));
   }, [hydrateAccounts, registeredAccounts]);
+
+  useEffect(() => {
+    if (!registeredAccounts || initialSelectedAccountId == null) return;
+    const accountId = String(initialSelectedAccountId);
+    const accountExists = registeredAccounts.some(
+      (account) => String(account.userAccountId) === accountId,
+    );
+    if (accountExists) selectAccount(accountId);
+  }, [initialSelectedAccountId, registeredAccounts, selectAccount]);
 
   const isFormValid = Boolean(form.bankCode && form.accountNumber.trim() && form.accountHolder.trim());
 
