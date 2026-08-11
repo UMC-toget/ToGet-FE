@@ -208,8 +208,8 @@ export default function GroupPage() {
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between gap-2">
-              {group.title && (
-                <h2 className="text-h3-sb text-[#000]">{group.title}</h2>
+              {group.fundingTitle && (
+                <h2 className="text-h3-sb text-[#000]">{group.fundingTitle}</h2>
               )}
               {/* 함께선물 나가기: 선물 고르는 중 상태의 로그인한 비개설자(공동관리자·참여자)만. 비로그인은 아직 미참여라 미노출 */}
               {group.status === 'SELECTING' && !isHost && effectiveLoggedIn && (
