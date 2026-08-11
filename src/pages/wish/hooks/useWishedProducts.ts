@@ -4,6 +4,7 @@ import { getWishlist } from '../../../api/wishlists'
 import type { WishlistItemResponse } from '../../../api/wishlists'
 import { getProducts } from '../../../api/products'
 import type { WishType } from '../../../store/wishStore'
+import type { ApiProduct } from '../../../api/products'
 import type { Product } from '../../home/products'
 
 export type SortOrder = 'latest' | 'oldest'
@@ -11,13 +12,15 @@ export type SortOrder = 'latest' | 'oldest'
 /** 상품 카탈로그에서 가져온 productId가 없는(직접 입력한) 위시 아이템에 붙이는 기본 브랜드 표기 */
 const CUSTOM_WISH_BRAND = '위시 선물'
 
-function itemToProduct(item: WishlistItemResponse, brandById: Map<number, string>): Product {
+function itemToProduct(item: WishlistItemResponse, productById: Map<number, ApiProduct>): Product {
+  const catalogProduct = item.productId != null ? productById.get(item.productId) : undefined
   return {
     id: item.wishlistItemId,
-    brand: (item.productId != null && brandById.get(item.productId)) || CUSTOM_WISH_BRAND,
+    brand: catalogProduct?.brand || CUSTOM_WISH_BRAND,
     name: item.name,
     price: item.price,
-    image: item.imageUrl,
+    // 카탈로그 상품은 최신 원본 이미지를 우선 사용합니다. 위시 생성 당시 저장된 URL은 만료될 수 있습니다.
+    image: catalogProduct?.imageUrl || item.imageUrl || '',
     occasion: '',
     link: item.purchaseUrl,
   }
@@ -47,18 +50,18 @@ export function useWishedProducts(
     staleTime: 5 * 60 * 1000,
   })
 
-  const brandById = useMemo(() => {
-    const map = new Map<number, string>()
+  const productById = useMemo(() => {
+    const map = new Map<number, ApiProduct>()
     for (const product of productsData?.products ?? []) {
-      if (product.brand) map.set(product.productId, product.brand)
+      map.set(product.productId, product)
     }
     return map
   }, [productsData])
 
   const wishedProducts = useMemo<Product[]>(() => {
     if (!data?.wishlistItems) return []
-    return data.wishlistItems.map((item) => itemToProduct(item, brandById))
-  }, [data, brandById])
+    return data.wishlistItems.map((item) => itemToProduct(item, productById))
+  }, [data, productById])
 
   const searchWishedProducts = useMemo(() => {
     return (keyword: string) => {

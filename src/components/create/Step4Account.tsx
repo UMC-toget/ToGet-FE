@@ -1,16 +1,13 @@
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Search, Pencil } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
+import AccountFormFields from '../common/AccountFormFields';
+import AccountCard from '../common/AccountCard';
+import AccountConfirmModal from '../common/AccountConfirmModal';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import type { SavedAccount } from '../../store/fundingCreateStore';
-import { searchBanks } from '../../utils/bankData';
-import bankShinhan from '../../assets/bank-shinhan.png';
-import bankKakao from '../../assets/bank-kakao.png';
-
-// 지금은 신한/카카오뱅크 로고 자산만 있어 나머지 은행은 이모지로 대체합니다.
-const BANK_LOGOS: Partial<Record<string, string>> = {
-  '신한은행': bankShinhan,
-  '카카오뱅크': bankKakao,
-};
+import { BANK_NAME_LABELS } from '../../api/userAccounts';
+import type { BankName } from '../../api/userAccounts';
+import { useUserAccounts } from '../../hooks/useUserAccounts';
 
 interface Props {
   onNext: () => void;
@@ -21,24 +18,47 @@ interface Props {
 type View = 'list' | 'add' | 'edit';
 
 interface AccountFormState {
-  bankName: string;
+  bankCode: BankName | '';
   accountNumber: string;
   accountHolder: string;
 }
 
-const emptyForm: AccountFormState = { bankName: '', accountNumber: '', accountHolder: '' };
+const emptyForm: AccountFormState = { bankCode: '', accountNumber: '', accountHolder: '' };
+
+// 예전 로컬 은행 목록과 라벨이 다른 일부 표기(레거시로 저장된 계좌) 보정용
+const BANK_NAME_ALIASES: Partial<Record<string, BankName>> = {
+  국민은행: 'KB',
+  우체국예금: 'POST_OFFICE',
+  대구은행: 'IM_BANK',
+};
+
+function resolveBankCode(displayName: string): BankName | undefined {
+  return BANK_NAME_ALIASES[displayName] ??
+    (Object.entries(BANK_NAME_LABELS) as Array<[BankName, string]>).find(
+      ([, label]) => label === displayName,
+    )?.[0];
+}
 
 export default function Step4Account({ onNext, submitLabel = '다음', disabled = false }: Props) {
-  const { accounts, selectedAccountId, addAccount, updateAccount, selectAccount } = useFundingCreateStore();
+  const { accounts, selectedAccountId, addAccount, hydrateAccounts, updateAccount, selectAccount } = useFundingCreateStore();
+  const { data: registeredAccounts, isLoading: isAccountsLoading } = useUserAccounts();
 
   const [view, setView] = useState<View>('list');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<AccountFormState>(emptyForm);
-  const [showBankSheet, setShowBankSheet] = useState(false);
-  const [bankQuery, setBankQuery] = useState('');
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const isFormValid = Boolean(form.bankName.trim() && form.accountNumber.trim() && form.accountHolder.trim());
+  useEffect(() => {
+    if (!registeredAccounts) return;
+    hydrateAccounts(registeredAccounts.map((account) => ({
+      id: String(account.userAccountId),
+      bankName: BANK_NAME_LABELS[account.bankName],
+      accountNumber: account.account,
+      accountHolder: account.accountOwner,
+    })));
+  }, [hydrateAccounts, registeredAccounts]);
+
+  const isFormValid = Boolean(form.bankCode && form.accountNumber.trim() && form.accountHolder.trim());
 
   const openAdd = () => {
     setForm(emptyForm);
@@ -46,7 +66,11 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
   };
 
   const openEdit = (acc: SavedAccount) => {
-    setForm({ bankName: acc.bankName, accountNumber: acc.accountNumber, accountHolder: acc.accountHolder });
+    setForm({
+      bankCode: resolveBankCode(acc.bankName) ?? '',
+      accountNumber: acc.accountNumber,
+      accountHolder: acc.accountHolder,
+    });
     setEditingId(acc.id);
     setView('edit');
   };
@@ -57,19 +81,18 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
   };
 
   const confirmAdd = () => {
-    addAccount(form);
+    if (form.bankCode === '') return;
+    addAccount({ bankName: BANK_NAME_LABELS[form.bankCode], accountNumber: form.accountNumber, accountHolder: form.accountHolder });
     setShowConfirm(false);
     setView('list');
   };
 
   const handleSubmitEdit = () => {
-    if (!editingId) return;
-    updateAccount(editingId, form);
+    if (!editingId || form.bankCode === '') return;
+    updateAccount(editingId, { bankName: BANK_NAME_LABELS[form.bankCode], accountNumber: form.accountNumber, accountHolder: form.accountHolder });
     setView('list');
     setEditingId(null);
   };
-
-  const bankResults = searchBanks(bankQuery);
 
   // ── 계좌 목록 화면 ──────────────────────────────────────────
   if (view === 'list') {
@@ -92,6 +115,9 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
               <span className="flex-1 text-left">새로운 계좌 등록하기</span>
               <ChevronRight size={16} className="text-gray-400 shrink-0" />
             </button>
+            {isAccountsLoading && (
+              <p className="text-center text-xs text-gray-400">등록된 계좌를 불러오는 중이에요</p>
+            )}
           </div>
 
           {accounts.length > 0 && (
@@ -101,40 +127,21 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
                 <div className="space-y-2">
                   {accounts.map((acc) => {
                     const selected = acc.id === selectedAccountId;
+                    const bankCode = resolveBankCode(acc.bankName);
+                    if (!bankCode) return null;
                     return (
-                      <div
-                        key={acc.id}
-                        className={`border rounded-xl p-4 bg-white transition-colors ${selected ? 'border-gray-800' : 'border-gray-100'}`}
-                      >
-                        <button
-                          onClick={() => selectAccount(acc.id)}
-                          className="w-full flex items-center gap-3 text-left"
-                        >
-                          <div className="w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center text-lg shrink-0 overflow-hidden">
-                            {BANK_LOGOS[acc.bankName] ? (
-                              <img src={BANK_LOGOS[acc.bankName]} alt="" className="w-full h-full object-contain" />
-                            ) : (
-                              '🏦'
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs text-gray-400">{acc.bankName}</p>
-                            <p className="text-sm font-semibold text-black">{acc.accountHolder}</p>
-                            <p className="text-sm font-semibold text-black">{acc.accountNumber}</p>
-                          </div>
-                          <span
-                            aria-hidden
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? 'border-pink-500' : 'border-gray-300'}`}
+                      <div key={acc.id} role="button" tabIndex={0} onClick={() => selectAccount(acc.id)} className="cursor-pointer">
+                        <AccountCard bankCode={bankCode} accountOwner={acc.accountHolder} account={acc.accountNumber} selected={selected} selectable>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEdit(acc);
+                            }}
+                            className="w-full py-2 text-xs font-medium text-black bg-gray-100 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors"
                           >
-                            {selected && <span className="w-2.5 h-2.5 rounded-full bg-pink-500" />}
-                          </span>
-                        </button>
-                        <button
-                          onClick={() => openEdit(acc)}
-                          className="w-full mt-3 py-2 text-xs font-medium text-gray-500 bg-gray-100 rounded-lg flex items-center justify-center gap-1 hover:bg-gray-200 transition-colors"
-                        >
-                          <Pencil size={12} /> 계좌 수정하기
-                        </button>
+                            <Pencil size={16} /> 계좌 수정하기
+                          </button>
+                        </AccountCard>
                       </div>
                     );
                   })}
@@ -173,39 +180,17 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
           친구들이 선물에 함께할 때 이 계좌 정보를 확인할 수 있어요
         </p>
 
-        <div>
-          <label className="text-xs text-gray-500 mb-2 block">은행명 <span className="text-red-400">*</span></label>
-          <button
-            onClick={() => setShowBankSheet(true)}
-            className="w-full flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 text-sm text-left focus:border-gray-800 transition-colors"
-          >
-            <span className={form.bankName ? 'text-gray-800' : 'text-gray-400'}>
-              {form.bankName || '은행명을 정확히 선택해주세요'}
-            </span>
-            <Search size={16} className="text-gray-400" />
-          </button>
-        </div>
-
-        <div>
-          <label className="text-xs text-gray-500 mb-2 block">계좌번호 <span className="text-red-400">*</span></label>
-          <input
-            type="text"
-            inputMode="numeric"
-            placeholder="본인의 계좌번호를 정확히 입력해주세요"
-            value={form.accountNumber}
-            onChange={(e) => setForm({ ...form, accountNumber: e.target.value.replace(/[^0-9]/g, '') })}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none focus:border-gray-800 transition-colors"
-          />
-        </div>
-
-        <div>
-          <label className="text-xs text-gray-500 mb-2 block">예금주 <span className="text-red-400">*</span></label>
-          <input
-            type="text"
-            placeholder="예금주 이름을 정확히 입력해 주세요"
-            value={form.accountHolder}
-            onChange={(e) => setForm({ ...form, accountHolder: e.target.value.replace(/[0-9]/g, '') })}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none focus:border-gray-800 transition-colors"
+        {/* AccountFormFields는 자체 px-[18px] 좌우 여백을 가진 채 페이지 최상단에서 쓰이도록 설계되어,
+            부모(px-4)의 여백과 겹치지 않도록 -mx-4로 상쇄합니다. */}
+        <div className="-mx-4">
+          <AccountFormFields
+            showIntro={false}
+            accountHolder={form.accountHolder}
+            onAccountHolderChange={(value) => setForm({ ...form, accountHolder: value })}
+            accountNumber={form.accountNumber}
+            onAccountNumberChange={(value) => setForm({ ...form, accountNumber: value })}
+            bankCode={form.bankCode}
+            onBankCodeChange={(bank) => setForm({ ...form, bankCode: bank })}
           />
         </div>
       </div>
@@ -218,96 +203,8 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
         {isEdit ? '수정 완료' : '등록 완료'}
       </button>
 
-      {/* 은행 검색 시트: 포함검색 + 초성검색("ㅅㅎ") + 영문 유사어 검색("shin") 지원 */}
-      {showBankSheet && (
-        <div className="fixed inset-0 bg-black/40 flex items-end z-50">
-          <div className="bg-white w-full max-w-sm mx-auto rounded-t-2xl p-4 h-[70vh] flex flex-col">
-            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-3" />
-            <p className="text-sm font-semibold text-gray-700 mb-2">은행명</p>
-            <div className="relative mb-3">
-              <input
-                autoFocus
-                type="text"
-                value={bankQuery}
-                onChange={(e) => setBankQuery(e.target.value)}
-                placeholder="은행명을 검색 후 선택해주세요"
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none focus:border-gray-800 transition-colors"
-              />
-              <Search size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
-            </div>
-            <div className="flex-1 overflow-y-auto space-y-1">
-              {bankResults.length === 0 && (
-                <p className="text-xs text-gray-400 text-center py-6">일치하는 은행이 없어요</p>
-              )}
-              {bankResults.map((bank) => {
-                const idx = bankQuery ? bank.name.indexOf(bankQuery) : -1;
-                return (
-                  <button
-                    key={bank.name}
-                    onClick={() => {
-                      setForm({ ...form, bankName: bank.name });
-                      setShowBankSheet(false);
-                      setBankQuery('');
-                    }}
-                    className="w-full flex items-center justify-between px-2 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span>{bank.emoji}</span>
-                      <span>
-                        {idx !== -1 ? (
-                          <>
-                            {bank.name.slice(0, idx)}
-                            <span className="text-pink-400 font-semibold">
-                              {bank.name.slice(idx, idx + bankQuery.length)}
-                            </span>
-                            {bank.name.slice(idx + bankQuery.length)}
-                          </>
-                        ) : (
-                          bank.name
-                        )}
-                      </span>
-                    </span>
-                    <ChevronRight size={14} className="text-gray-300" />
-                  </button>
-                );
-              })}
-            </div>
-            <button
-              onClick={() => { setShowBankSheet(false); setBankQuery(''); }}
-              className="w-full mt-3 py-3 text-sm text-gray-400"
-            >
-              닫기
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* 계좌 확인 모달 (등록 시에만) — 돈이 오가는 단계라 한 번 더 확인시킴 */}
-      {showConfirm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-6">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-xl">
-            <div className="text-3xl mb-2">❗</div>
-            <h3 className="text-base font-bold text-gray-900 mb-2">계좌 정보를 확인해 주세요</h3>
-            <p className="text-xs text-gray-500 mb-5">
-              입력한 계좌로 선물 금액이 전달돼요.<br />계좌 정보가 맞는지 다시 확인해 주세요
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowConfirm(false)}
-                className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-600"
-              >
-                다시 확인할게요
-              </button>
-              <button
-                onClick={confirmAdd}
-                className="flex-1 py-3 rounded-xl bg-gray-900 text-white text-sm font-medium"
-              >
-                네, 확인했어요
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AccountConfirmModal open={showConfirm} onCancel={() => setShowConfirm(false)} onConfirm={confirmAdd} />
     </div>
   );
 }

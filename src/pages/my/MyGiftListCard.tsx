@@ -8,11 +8,18 @@ interface MyGiftListCardProps {
   funding: MyFunding
   onOpen: () => void
   onShareInvite: () => void
+  onWriteReview: () => void
   onViewReview: () => void
 }
 
-/** 마이페이지 '내 선물 페이지' 목록 카드 (홈 MyFundingCard 마크업 기반 — D-day 배지 대신 상태 배지, 종료 시 후기 보기 진입) */
-export default function MyGiftListCard({ funding, onOpen, onShareInvite, onViewReview }: MyGiftListCardProps) {
+/** 마이페이지 '내 선물 페이지' 목록 카드 (홈 MyFundingCard 마크업 기반 — D-day 배지 대신 상태 배지, 종료 시 후기 작성/보기 진입) */
+export default function MyGiftListCard({
+  funding,
+  onOpen,
+  onShareInvite,
+  onWriteReview,
+  onViewReview,
+}: MyGiftListCardProps) {
   const isEnded = funding.status === 'ENDED'
   const gaugePercent = Math.min(funding.progressRate, 100)
   const dimClass = isEnded ? 'opacity-60' : ''
@@ -30,8 +37,8 @@ export default function MyGiftListCard({ funding, onOpen, onShareInvite, onViewR
           />
         </span>
         <div className="flex w-[246px] flex-col gap-[18px]">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex min-w-0 items-start gap-2">
               <div className={`flex min-w-0 flex-col gap-1 ${dimClass}`}>
                 <p className="truncate text-b2-m text-black">{funding.title}</p>
                 <p className="truncate text-caption1-r text-gray-700">
@@ -57,11 +64,13 @@ export default function MyGiftListCard({ funding, onOpen, onShareInvite, onViewR
       </button>
       <button
         type="button"
-        onClick={isEnded ? onViewReview : onShareInvite}
+        onClick={isEnded ? (funding.hasReview ? onViewReview : onWriteReview) : onShareInvite}
         className="flex w-full items-center justify-center gap-3 rounded-lg bg-gray-100 px-2.5 py-2"
       >
         <LinkIcon className="size-5 text-black" />
-        <span className="text-caption1-m text-black">{isEnded ? '작성한 후기 보기' : '초대장 공유'}</span>
+        <span className="text-caption1-m text-black">
+          {isEnded ? (funding.hasReview ? '작성한 후기 보기' : '후기 작성하기') : '초대장 공유'}
+        </span>
       </button>
     </div>
   )

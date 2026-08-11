@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { X, Expand, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTogetherCreateStore } from '../../store/togetherCreateStore';
-import { getInvitationAccent, useInvitationMeta } from './Mascot';
+import { getCharacterImageSrc, getInvitationAccent, useInvitationMeta } from './Mascot';
 import { TogetLogoMark, InviteSparkles } from './Step5Invite';
 import { useMyProfile } from '../../hooks/useMyProfile';
 
 interface Props {
   onNext: () => void;
+  submitLabel?: string;
+  disabled?: boolean;
 }
 
 type Tab = 'message' | 'color' | 'character';
@@ -14,7 +16,7 @@ type Tab = 'message' | 'color' | 'character';
 const TITLE_MAX = 15;
 const CONTENT_MAX = 60;
 
-export default function TogetherStep3Invite({ onNext }: Props) {
+export default function TogetherStep3Invite({ onNext, submitLabel = '저장', disabled = false }: Props) {
   const { inviteTitle, inviteContent, inviteBackgroundId, inviteColor, inviteCharacter, setInvite } = useTogetherCreateStore();
   const [tab, setTab] = useState<Tab>('message');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
@@ -41,6 +43,7 @@ export default function TogetherStep3Invite({ onNext }: Props) {
   const displayTitle = inviteTitle || '초대장 제목';
   const displayContent = inviteContent || '초대장 내용';
   const isFormValid = inviteTitle.trim().length > 0 && inviteContent.trim().length > 0;
+  const isSubmitDisabled = !isFormValid || disabled;
 
   const changeCharacter = (delta: number) => {
     if (!characters.length) return;
@@ -52,7 +55,7 @@ export default function TogetherStep3Invite({ onNext }: Props) {
   const currentCharacter = characters.find((item) => item.id === inviteCharacter) ?? characters[0];
   const currentCharacterIndex = Math.max(0, characters.findIndex((item) => item.id === currentCharacter?.id));
   const currentCharacterNumber = String(currentCharacterIndex + 1).padStart(2, '0');
-  const currentCharacterImage = currentCharacter?.imageUrl;
+  const currentCharacterImage = getCharacterImageSrc(currentCharacter);
   const isWhite = inviteColor === '#FFFFFF';
   const accentColor = isWhite ? getInvitationAccent(inviteColor) : inviteColor;
   const glowColor = isWhite ? '#D1D5DB' : inviteColor;
@@ -212,12 +215,12 @@ export default function TogetherStep3Invite({ onNext }: Props) {
 
       <button
         onClick={onNext}
-        disabled={!isFormValid}
+        disabled={isSubmitDisabled}
         className={`w-full py-4 font-semibold rounded-xl mt-4 transition-colors ${
-          isFormValid ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-gray-300 text-white cursor-not-allowed'
+          !isSubmitDisabled ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-gray-300 text-white cursor-not-allowed'
         }`}
       >
-        저장
+        {submitLabel}
       </button>
 
       {/* 확대 미리보기 모달 */}

@@ -19,7 +19,7 @@ import { REVIEW_WRITE_TYPES, REVIEW_TITLE_MAX_LENGTH, REVIEW_CONTENT_MAX_LENGTH 
 import type { ReviewWriteType, ReviewPreviewData } from './reviewTypes'
 import { useContributionBackgrounds, useCharacters, colorIdToBackgroundId } from './useDecorations'
 import { useCreateReview, useCreateNews, useCreateHeartfelt, getReviewSubmitErrorMessage } from './useReviews'
-import { MOCK_USER } from '../my/mockUser'
+import { useMyProfile } from '../../hooks/useMyProfile'
 
 const REVIEW_IMAGE_PREFIX = 'reviews'
 const TOAST_DURATION_MS = 2000
@@ -119,6 +119,7 @@ function TogetLogoMark({ accentHex, isWhite, className }: { accentHex: string; i
 /** J파트 작성물 3종 공용 작성 화면 (/gift/review/write/:type, 피그마 "J01-1) 후기: 초대장 만들기" 외) */
 export default function ReviewWritePage() {
   useRequireAuth()
+  const { data: profile } = useMyProfile()
 
   const { type, fundingId } = useParams<{ type: string; fundingId?: string }>()
   const resolvedFundingId = fundingId ?? FALLBACK_FUNDING_ID
@@ -215,7 +216,7 @@ export default function ReviewWritePage() {
       }
 
       const previewData: ReviewPreviewData = {
-        senderName: MOCK_USER.name,
+        authorName: config.showFrom ? profile?.nickname ?? '' : null,
         title,
         content,
         colorId,
@@ -266,7 +267,7 @@ export default function ReviewWritePage() {
             <p className={`mt-1 line-clamp-2 text-caption1-r ${content ? 'text-gray-600' : 'text-gray-400'}`}>{displayContent}</p>
             {config.showFrom && (
               <span className="mt-2 block text-right text-[10px] font-medium" style={{ color: accentHex }}>
-                from. {MOCK_USER.name}
+                from. {profile?.nickname ?? ''}
               </span>
             )}
           </div>
@@ -447,7 +448,7 @@ export default function ReviewWritePage() {
                   </p>
                   {config.showFrom && (
                     <p className="mt-3 text-right text-b2-m" style={{ color: accentHex }}>
-                      from. {MOCK_USER.name}
+                      from. {profile?.nickname ?? ''}
                     </p>
                   )}
                 </div>

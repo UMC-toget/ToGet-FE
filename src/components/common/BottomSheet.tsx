@@ -113,7 +113,7 @@ export default function BottomSheet({
         type="button"
         aria-label="닫기"
         onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-black/60 backdrop-blur-[4px]"
       />
       <SheetPanel radius={radius} size={size} heightClassName={heightClassName} drag={drag}>
         {children}

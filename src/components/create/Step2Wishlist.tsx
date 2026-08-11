@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ChevronDown, Search, Trash2, Gift } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, Search, X, Gift } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
-import { MOCK_WISH_ITEMS } from '../../utils/wishData';
-import type { WishCategory } from '../../utils/wishData';
+import { useWishedProducts } from '../../pages/wish/hooks/useWishedProducts';
+import type { WishType } from '../../store/wishStore';
 import PhotoActionSheet from '../common/PhotoActionSheet';
 
 interface Props {
@@ -32,7 +32,7 @@ const NAME_MAX = 20;
 
 export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled = false }: Props) {
   const navigate = useNavigate();
-  const { wishlist, addWishlistItem, removeWishlistItem } = useFundingCreateStore();
+  const { wishlist, addWishlistItem, updateWishlistItem, removeWishlistItem } = useFundingCreateStore();
   const [view, setView] = useState<View>('list');
 
   // 새 선물 등록 폼
@@ -45,10 +45,11 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
   // 위시 불러오기 바텀시트
   const [showWishSheet, setShowWishSheet] = useState(false);
   const [wishQuery, setWishQuery] = useState('');
-  const [wishTab, setWishTab] = useState<'all' | WishCategory>('all');
-  const [selectedWishIds, setSelectedWishIds] = useState<Set<string>>(new Set());
+  const [wishTab, setWishTab] = useState<'all' | WishType>('all');
+  const [selectedWishIds, setSelectedWishIds] = useState<Set<number>>(new Set());
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const { wishedProducts, isLoading: isWishLoading } = useWishedProducts(wishTab, 'latest');
 
   const totalAmount = wishlist.reduce((sum, item) => sum + item.price, 0);
   const isFormValid = Boolean(form.name.trim() && Number(form.price) > 0);
@@ -75,19 +76,18 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
     setView('list');
   };
 
-  const filteredWishItems = MOCK_WISH_ITEMS.filter((item) => {
-    if (wishTab !== 'all' && item.category !== wishTab) return false;
+  const filteredWishItems = wishedProducts.filter((item) => {
     if (wishQuery && !item.name.includes(wishQuery) && !item.brand.includes(wishQuery)) return false;
     return true;
   }).sort((a, b) => {
     if (sortOrder === 'priceAsc') return a.price - b.price;
     if (sortOrder === 'priceDesc') return b.price - a.price;
-    return 0; // 최신순: 목 데이터 기본 순서(등록 최신순)를 그대로 사용
+    return 0; // 최신순: 서버가 이미 LATEST 정렬로 내려준 순서를 그대로 사용
   });
 
   const currentSortLabel = SORT_OPTIONS.find((o) => o.key === sortOrder)?.label ?? '최신순';
 
-  const toggleWishSelect = (id: string) => {
+  const toggleWishSelect = (id: number) => {
     setSelectedWishIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -112,7 +112,7 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
 
   const confirmWishImport = () => {
     selectedWishIds.forEach((id) => {
-      const item = MOCK_WISH_ITEMS.find((w) => w.id === id);
+      const item = wishedProducts.find((w) => w.id === id);
       if (!item) return;
       addWishlistItem({
         id: crypto.randomUUID(),
@@ -167,7 +167,7 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
                 inputMode="numeric"
                 placeholder="선물 가격을 입력해 주세요"
                 value={form.price ? Number(form.price).toLocaleString() : ''}
-                onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^0-9]/g, '') })}
+                onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^0-9]/g, '').slice(0, 15) })}
                 className={`w-full rounded-xl px-4 py-3 pr-12 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none border transition-colors
                   ${priceError ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-100/70 focus:border-gray-800 focus:bg-white'}`}
               />
@@ -238,58 +238,96 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
   // ── 목록 화면 ──────────────────────────────────────────────
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <div className="flex-1 overflow-y-auto space-y-5">
-        <div>
-          <h2 className="text-lg font-bold text-gray-900">받고 싶은 선물을 등록해 주세요</h2>
-          <p className="text-xs text-gray-400 mt-1">여러 선물을 담을 수 있고, 입력한 금액으로 총액이 계산돼요</p>
+      <div className="flex-1 overflow-y-auto flex flex-col">
+        <div className="space-y-5 pb-5">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">받고 싶은 선물을 등록해 주세요</h2>
+            <p className="text-xs text-gray-400 mt-1">여러 선물을 담을 수 있고, 입력한 금액으로 총액이 계산돼요</p>
+          </div>
+
+          <button
+            onClick={() => setView('add')}
+            className="w-full flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-lg text-gray-500 shrink-0">
+              +
+            </span>
+            <span className="flex-1 text-left">새로운 선물 등록하기</span>
+            <ChevronRight size={16} className="text-gray-400 shrink-0" />
+          </button>
+
+          <button
+            onClick={() => setShowWishSheet(true)}
+            className="w-full flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+              <Gift size={16} />
+            </span>
+            <span className="flex-1 text-left">위시 불러오기</span>
+            <ChevronRight size={16} className="text-gray-400 shrink-0" />
+          </button>
         </div>
 
-        <button
-          onClick={() => setView('add')}
-          className="w-full flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-lg text-gray-500 shrink-0">
-            +
-          </span>
-          <span className="flex-1 text-left">새로운 선물 등록하기</span>
-          <ChevronRight size={16} className="text-gray-400 shrink-0" />
-        </button>
-
-        <button
-          onClick={() => setShowWishSheet(true)}
-          className="w-full flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
-            <Gift size={16} />
-          </span>
-          <span className="flex-1 text-left">위시 불러오기</span>
-          <ChevronRight size={16} className="text-gray-400 shrink-0" />
-        </button>
-
         {wishlist.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-gray-400">등록된 {wishlist.length}개 상품</p>
-              <p className="text-xs font-semibold text-gray-700">총 {totalAmount.toLocaleString()}원</p>
-            </div>
-            {wishlist.map((item) => (
-              <div key={item.id} className="flex items-center gap-3 border border-gray-100 rounded-xl p-3 bg-gray-50">
-                {item.imageUrl ? (
-                  <img src={item.imageUrl} alt={item.name} className="w-12 h-12 rounded-lg object-cover" />
-                ) : (
-                  <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center text-gray-400 text-xs">
-                    상품
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">{item.name}</p>
-                  <p className="text-xs text-gray-500">{item.price.toLocaleString()}원</p>
-                </div>
-                <button onClick={() => removeWishlistItem(item.id)} className="text-gray-400 hover:text-red-400 transition-colors">
-                  <Trash2 size={16} />
-                </button>
+          <div className="flex-1 -mx-4.5 bg-gray-100 px-4.5 pb-6">
+            <div className="px-3">
+              <div className="sticky top-0 z-10 flex items-center justify-between bg-gray-100 pb-5 pt-5">
+                <p className="text-sm font-medium text-black">등록된 {wishlist.length}개 상품</p>
+                <p className="text-sm font-semibold text-pink-500">총 {totalAmount.toLocaleString()}원</p>
               </div>
-            ))}
+              <div className="space-y-2">
+                {wishlist.map((item) => (
+                  <div key={item.id} className="flex items-center gap-3 rounded-xl bg-white p-3">
+                    <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-[#F5F4F5]/50">
+                      {item.imageUrl ? (
+                        <>
+                          <img
+                            src={item.imageUrl}
+                            alt=""
+                            className="size-full object-cover"
+                            onError={() => updateWishlistItem(item.id, { imageUrl: undefined, imageFile: undefined })}
+                          />
+                          <button
+                            type="button"
+                            aria-label={`${item.name} 이미지 삭제`}
+                            onClick={() => updateWishlistItem(item.id, { imageUrl: undefined, imageFile: undefined })}
+                            className="absolute inset-0 flex items-center justify-center bg-black/60 text-white"
+                          >
+                            <X size={16} className="rounded-full bg-white/80 p-0.5 text-gray-600" />
+                          </button>
+                        </>
+                      ) : (
+                        <label className="flex size-full cursor-pointer items-center justify-center text-gray-400">
+                          <span className="flex size-5 items-center justify-center rounded-full bg-gray-200 text-sm">+</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={(event) => {
+                              const file = event.target.files?.[0];
+                              if (!file) return;
+                              updateWishlistItem(item.id, { imageUrl: URL.createObjectURL(file), imageFile: file });
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-gray-800">{item.name}</p>
+                      <p className="text-xs text-gray-500">{item.price.toLocaleString()}원</p>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label={`${item.name} 선물 삭제`}
+                      onClick={() => removeWishlistItem(item.id)}
+                      className="text-gray-400 transition-colors hover:text-gray-600"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -327,9 +365,9 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
               {(
                 [
                   { key: 'all', label: '전체' },
-                  { key: 'received', label: '받고 싶은' },
-                  { key: 'given', label: '주고 싶은' },
-                ] as { key: 'all' | WishCategory; label: string }[]
+                  { key: 'receive', label: '받고 싶은' },
+                  { key: 'give', label: '주고 싶은' },
+                ] as { key: 'all' | WishType; label: string }[]
               ).map((t) => (
                 <button
                   key={t.key}
@@ -386,12 +424,20 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
             </div>
 
             <div className="flex-1 overflow-y-auto grid grid-cols-2 gap-3 pb-2">
-              {filteredWishItems.map((item) => {
+              {!isWishLoading && filteredWishItems.map((item) => {
                 const selected = selectedWishIds.has(item.id);
                 return (
                   <button key={item.id} onClick={() => toggleWishSelect(item.id)} className="text-left">
-                    <div className="relative">
-                      <img src={item.image} alt={item.name} className="w-full aspect-square rounded-xl object-cover" />
+                    <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-100">
+                      <Gift className="absolute left-1/2 top-1/2 size-10 -translate-x-1/2 -translate-y-1/2 text-gray-300" />
+                      {item.image && (
+                        <img
+                          src={item.image}
+                          alt=""
+                          className="absolute inset-0 size-full object-contain p-3"
+                          onError={(event) => { event.currentTarget.style.display = 'none'; }}
+                        />
+                      )}
                       <span
                         className={`absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs
                           ${selected ? 'bg-gray-900 text-white' : 'bg-white/80 text-gray-500'}`}
@@ -405,8 +451,13 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
                   </button>
                 );
               })}
-              {filteredWishItems.length === 0 && (
-                <p className="col-span-2 text-xs text-gray-400 text-center py-8">검색 결과가 없어요</p>
+              {isWishLoading && (
+                <p className="col-span-2 text-xs text-gray-400 text-center py-8">위시를 불러오는 중이에요</p>
+              )}
+              {!isWishLoading && filteredWishItems.length === 0 && (
+                <p className="col-span-2 text-xs text-gray-400 text-center py-8">
+                  {wishQuery || wishTab !== 'all' ? '검색 결과가 없어요' : '등록된 위시가 없어요'}
+                </p>
               )}
             </div>
 

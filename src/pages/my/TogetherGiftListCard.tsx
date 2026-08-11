@@ -10,11 +10,11 @@ interface TogetherGiftListCardProps {
   onShareInvite: () => void
 }
 
-/** 마이페이지 '함께 선물 페이지' 목록 카드 (MyGiftListCard와 동일 규격, 버튼은 상태와 무관하게 항상 초대장 공유) */
+/** 마이페이지 '함께 선물 페이지' 목록 카드 (Figma node 2929:138171 — 목표금액/게이지 대신 받는 사람·참여 인원 표시, 버튼은 상태와 무관하게 항상 초대장 공유) */
 export default function TogetherGiftListCard({ funding, onOpen, onShareInvite }: TogetherGiftListCardProps) {
   const isEnded = funding.status === 'ENDED'
-  const gaugePercent = Math.min(funding.progressRate, 100)
   const dimClass = isEnded ? 'opacity-60' : ''
+  const participantLabel = `${funding.participantCount}명이 함께 준비 중`
 
   return (
     <div className="flex w-full shrink-0 flex-col gap-5 rounded-xl border border-gray-100 bg-white px-3.5 py-3">
@@ -28,30 +28,18 @@ export default function TogetherGiftListCard({ funding, onOpen, onShareInvite }:
             className={funding.thumbnailImageUrl ? 'size-full object-cover' : 'h-[52px] w-[48px] object-contain'}
           />
         </span>
-        <div className="flex w-[246px] flex-col gap-[18px]">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-2">
-              <div className={`flex min-w-0 flex-col gap-1 ${dimClass}`}>
-                <p className="truncate text-b2-m text-black">{funding.title}</p>
-                <p className="truncate text-caption1-r text-gray-700">
-                  목표 {funding.targetAmount.toLocaleString()}원
-                </p>
-              </div>
-              <FundingStatusBadge isEnded={isEnded} />
+        <div className="flex w-[246px] items-center justify-between gap-2">
+          <div className="flex items-start gap-2">
+            <div className={`flex w-[113px] shrink-0 flex-col gap-1 ${dimClass}`}>
+              <p className="truncate text-b2-m text-black">{funding.title}</p>
+              <p className="truncate text-caption1-r text-gray-700">
+                선물 받는 사람 : <span className="text-caption1-m">{funding.recipientName}</span>
+              </p>
+              <p className="truncate text-caption1-r text-gray-700">{participantLabel}</p>
             </div>
-            <ChevronRightIcon className="size-6 shrink-0 text-black" />
+            <FundingStatusBadge isEnded={isEnded} />
           </div>
-          <div className={`flex flex-col gap-1 ${dimClass}`}>
-            <div className="h-[5px] w-full rounded-full bg-gray-100">
-              <div className="h-full rounded-full bg-pink-500" style={{ width: `${gaugePercent}%` }} />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-caption2-r text-gray-700">{gaugePercent}% 달성</span>
-              <span className="text-caption2-r text-gray-700">
-                <span className="font-semibold">{funding.collectedAmount.toLocaleString()}</span>원 모였어요
-              </span>
-            </div>
-          </div>
+          <ChevronRightIcon className="size-6 shrink-0 text-black" />
         </div>
       </button>
       <button

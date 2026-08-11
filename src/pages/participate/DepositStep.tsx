@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { LetterColor } from '../../components/common/letterPalette'
 import LetterCard from '../../components/common/LetterCard'
+import Toast from '../../components/common/Toast'
 import { getFundingAccount } from '../../api/fundings'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
 
@@ -23,10 +24,10 @@ interface DepositStepProps {
 export default function DepositStep({ hostName, letter, letterColor, amount, fundingId }: DepositStepProps) {
   const [letterOpen, setLetterOpen] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [account, setAccount] = useState(MOCK_ACCOUNT)
-  const [accountLoaded, setAccountLoaded] = useState(false)
+  const [account, setAccount] = useState<typeof MOCK_ACCOUNT | null>(null)
+  const [accountError, setAccountError] = useState(false)
 
-  useEffect(() => {
+  const loadAccount = useCallback(() => {
     if (!fundingId) return
     getFundingAccount(fundingId)
       .then((acc) => {
@@ -35,12 +36,22 @@ export default function DepositStep({ hostName, letter, letterColor, amount, fun
           accountNumber: acc.account,
           holderName: acc.accountOwner,
         })
-        setAccountLoaded(true)
+        setAccountError(false)
       })
-      .catch(console.error)
+      .catch(() => {
+        // 결제 흐름이라 실패 시 mock 계좌를 노출하면 엉뚱한 곳으로 송금될 수 있어
+        // 운영에서는 에러 안내만 띄우고, BE 없는 DEV에서만 mock으로 화면 확인
+        if (import.meta.env.DEV) setAccount(MOCK_ACCOUNT)
+        else setAccountError(true)
+      })
   }, [fundingId])
 
+  useEffect(() => {
+    loadAccount()
+  }, [loadAccount])
+
   const copyAccountNumber = async () => {
+    if (!account) return
     // 은행 앱 계좌 입력란에 바로 붙여넣을 수 있게 하이픈 없이 숫자만 복사
     const digits = account.accountNumber.replace(/-/g, '')
     let ok = true
@@ -84,39 +95,59 @@ export default function DepositStep({ hostName, letter, letterColor, amount, fun
         </div>
       </div>
 
-      {amount > 0 && accountLoaded && (
+      {amount > 0 && (
         <div className="flex flex-col gap-2">
           <p className="text-b1-m leading-normal text-black">입금계좌</p>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3">
-              {[
-                ['은행', account.bankName],
-                ['계좌번호', account.accountNumber],
-                ['예금주', account.holderName],
-              ].map(([label, value], index) => (
-                <div
-                  key={label}
-                  className={`flex items-center justify-between ${index < 2 ? 'border-b border-gray-200 pb-2' : ''}`}
-                >
-                  <span className="text-b2-m font-semibold leading-normal text-gray-500">{label}</span>
-                  <span className="text-b2-m font-semibold leading-normal text-gray-700">{value}</span>
-                </div>
-              ))}
+          {account ? (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3">
+                {[
+                  ['은행', account.bankName],
+                  ['계좌번호', account.accountNumber],
+                  ['예금주', account.holderName],
+                ].map(([label, value], index) => (
+                  <div
+                    key={label}
+                    className={`flex items-center justify-between ${index < 2 ? 'border-b border-gray-200 pb-2' : ''}`}
+                  >
+                    <span className="text-b2-m font-semibold leading-normal text-gray-500">{label}</span>
+                    <span className="text-b2-m font-semibold leading-normal text-gray-700">{value}</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={copyAccountNumber}
+                className="flex h-[50px] items-center justify-center rounded-lg bg-gray-700 text-b1-m text-white"
+              >
+                계좌번호 복사
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={copyAccountNumber}
-              className="flex h-[50px] items-center justify-center rounded-lg bg-gray-700 text-b1-m text-white"
-            >
-              계좌번호 복사
-            </button>
-            {copied && (
-              <p className="text-caption1-m leading-normal text-pink-500">계좌번호가 복사되었습니다.</p>
-            )}
-          </div>
+          ) : accountError ? (
+            <div className="flex flex-col items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-6">
+              <p className="text-b2-r leading-normal text-gray-700">계좌 정보를 불러오지 못했어요.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setAccountError(false)
+                  loadAccount()
+                }}
+                className="flex h-10 items-center justify-center rounded-lg bg-gray-700 px-6 text-b2-m text-white"
+              >
+                다시 시도
+              </button>
+            </div>
+          ) : (
+            <div className="flex h-[92px] items-center justify-center rounded-xl border border-gray-200 bg-white">
+              <p className="text-b2-r leading-normal text-gray-500">계좌 정보를 불러오는 중...</p>
+            </div>
+          )}
         </div>
       )}
       </div>
+
+      {/* '마음 보내기' CTA 버튼 top(하단에서 86px)보다 20px 위 = bottom 106px */}
+      <Toast open={copied} message="계좌번호가 복사되었습니다" bottomClass="bottom-[106px]" />
     </div>
   )
 }

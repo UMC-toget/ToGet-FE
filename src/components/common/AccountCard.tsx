@@ -21,6 +21,8 @@ interface AccountCardProps {
   account: string
   /** 계좌를 골라 쓰는 화면(선택형)에서 강조 표시. 기본 false */
   selected?: boolean
+  /** 선택형 화면에서 우측 라디오 버튼을 표시 */
+  selectable?: boolean
   /** 카드 하단 액션 영역(버튼 등) - 화면마다 배치·문구가 달라 각자 렌더링 */
   children?: ReactNode
 }
@@ -39,6 +41,7 @@ export default function AccountCard({
   accountOwner,
   account,
   selected = false,
+  selectable = false,
   children,
 }: AccountCardProps) {
   const { data: banks } = useBanks()
@@ -49,8 +52,8 @@ export default function AccountCard({
 
   return (
     <div
-      className={`flex flex-col gap-3 rounded-xl border bg-white px-3.5 py-3 ${
-        selected ? 'border-gray-900' : 'border-gray-100'
+      className={`flex flex-col gap-3 rounded-xl border bg-white px-3.5 py-3 transition-colors ${
+        selected ? 'border-[#FEAAC9]' : 'border-gray-100'
       }`}
     >
       <div className="flex gap-3">
@@ -70,13 +73,23 @@ export default function AccountCard({
             <BankIcon className="size-6 text-gray-400" />
           )}
         </span>
-        <div className="flex flex-col gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-3">
           <p className="text-caption1-r text-gray-700">{BANK_NAME_LABELS[bankCode]}</p>
           <div className="flex flex-col gap-1.5">
             <p className="text-b2-m text-black">{accountOwner}</p>
             <p className="text-b2-m text-black">{formatAccountNumber(account)}</p>
           </div>
         </div>
+        {selectable && (
+          <span
+            aria-hidden
+            className={`flex size-6 shrink-0 items-center justify-center rounded-full border ${
+              selected ? 'border-pink-500 bg-background' : 'border-gray-300 bg-white'
+            }`}
+          >
+            {selected && <span className="size-3 rounded-full bg-pink-500" />}
+          </span>
+        )}
       </div>
       {children}
     </div>

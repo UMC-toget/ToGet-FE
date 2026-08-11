@@ -1,36 +1,49 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
 import StickyBottomBar from '../../components/common/StickyBottomBar'
 import Toast from '../../components/common/Toast'
+import DefaultAvatar from '../../components/common/DefaultAvatar'
+import avatarCat from '../../assets/avatar-cat.svg'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import LinkIcon from '../../components/icons/LinkIcon'
 import CandidateCard from './CandidateCard'
 import GroupSegmentTabs from './GroupSegmentTabs'
 import { STATUS_LABELS, ROLE_LABELS } from './groupConstants'
 import { getTogetherGiftDashboard, updateGroupFundingStatus, leaveGroupFunding } from '../../api/groupFundings'
-import type { TogetherGiftDashboard, GroupFundingStatus } from '../../api/groupFundings'
+import type { TogetherGiftDashboard, GroupFundingStatus, FundingMemberRole, MemberSummary } from '../../api/groupFundings'
 import { getContributions } from '../../api/contributions'
 import type { ContributionItem } from '../../api/contributions'
+import { MOCK_DASHBOARD, MOCK_CONTRIBUTIONS } from './groupMock'
 import EnvelopeButton from '../funding/EnvelopeButton'
 import LetterModal from '../funding/LetterModal'
-import { useMyProfile } from '../../hooks/useMyProfile'
 import { useAuth } from '../../hooks/useAuth'
-import { MOCK_DASHBOARD, MOCK_CONTRIBUTIONS } from './groupMock'
-import ribbonHost from '../../assets/ribbon-host.svg'
-import ribbonCoHost from '../../assets/ribbon-co-host.svg'
+import { useMyProfile } from '../../hooks/useMyProfile'
 import EmojiPopup from '../../components/common/EmojiPopup'
-import { formatDateDots } from '../../utils/formatDate'
+import { formatDateDots, getDdayLabel } from '../../utils/formatDate'
 import { copyToClipboard } from '../../utils/clipboard'
 import { setReturnUrl } from '../../utils/returnUrl'
 
-// 접근: 전체 (비로그인 조회 OK, 투표·편지 등 액션은 로그인 필요) | H01 함께 선물 메인 — 역할(HOST·CO_HOST·MEMBER)·상태(SELECTING→ENDED)별 분기
+// 접근: 전체 (비로그인 조회 OK, 투표·편지 등 액션은 로그인 필요) | H01 함께 선물 메인 — 역할(CREATOR·ADMIN·PARTICIPANT)·상태(SELECTING→ENDED)별 분기
 export default function GroupPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { data: profile } = useMyProfile()
   const { isLoggedIn } = useAuth()
+  const { data: profile } = useMyProfile()
+
+  // ── DEV 전용 UI 미리보기 오버라이드 ──────────────────────────
+  // /group/1?role=CREATOR|ADMIN|PARTICIPANT&status=SELECTING|SETTLING|PURCHASING|DELIVERING|ENDED
+  // 구 별칭(HOST/CO_HOST/MEMBER)도 허용. API/토큰 없이 mock으로 역할×상태 조합을 바로 확인 (프로덕션 빌드엔 영향 없음)
+  const [searchParams] = useSearchParams()
+  const ROLE_ALIAS: Record<string, FundingMemberRole> = {
+    HOST: 'CREATOR', CO_HOST: 'ADMIN', MEMBER: 'PARTICIPANT',
+    CREATOR: 'CREATOR', ADMIN: 'ADMIN', PARTICIPANT: 'PARTICIPANT',
+  }
+  const rawRole = import.meta.env.DEV ? searchParams.get('role') : null
+  const devRole: FundingMemberRole | null = rawRole ? (ROLE_ALIAS[rawRole] ?? null) : null
+  const devStatus = import.meta.env.DEV ? (searchParams.get('status') as GroupFundingStatus | null) : null
+  const devPreview = devRole !== null || devStatus !== null
 
   const [group, setGroup] = useState<TogetherGiftDashboard | null>(null)
   const [contributions, setContributions] = useState<ContributionItem[]>([])
@@ -42,25 +55,35 @@ export default function GroupPage() {
 
   useEffect(() => {
     if (!id) return
+    // DEV 미리보기: API 기다리지 않고 mock 즉시 세팅 (status만 쿼리로 덮어씀)
+    if (devPreview) {
+      setGroup({ ...MOCK_DASHBOARD, status: devStatus ?? MOCK_DASHBOARD.status })
+      setContributions(MOCK_CONTRIBUTIONS)
+      setLoading(false)
+      return
+    }
     Promise.allSettled([
       getTogetherGiftDashboard(id),
       getContributions(id),
     ]).then(([dashboardRes, contribsRes]) => {
-      if (import.meta.env.DEV) setGroup(MOCK_DASHBOARD)
-      else if (dashboardRes.status === 'fulfilled') setGroup(dashboardRes.value)
+      if (dashboardRes.status === 'fulfilled') {
+        setGroup(dashboardRes.value)
+      } else {
+        console.error('함께 선물 대시보드 조회 실패:', dashboardRes.reason)
+      }
       if (contribsRes.status === 'fulfilled') {
         setContributions(contribsRes.value.contributions.filter(c => !!c.content))
-      } else if (import.meta.env.DEV) {
-        setContributions(MOCK_CONTRIBUTIONS)
+      } else {
+        console.error('함께 선물 메시지 조회 실패:', contribsRes.reason)
       }
     }).catch(console.error)
       .finally(() => setLoading(false))
-  }, [id])
+  }, [id, devPreview, devStatus])
 
   if (loading) {
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
-        <Header title="함께 선물 페이지" />
+        <Header title="함께 선물 페이지" onBack={() => navigate('/home', { replace: true })} />
         <div className="flex flex-1 items-center justify-center">
           <p className="text-b2-r text-gray-400">불러오는 중...</p>
         </div>
@@ -71,7 +94,7 @@ export default function GroupPage() {
   if (!group) {
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
-        <Header title="함께 선물 페이지" />
+        <Header title="함께 선물 페이지" onBack={() => navigate('/home', { replace: true })} />
         <div className="flex flex-1 items-center justify-center">
           <p className="text-b2-r text-gray-400">펀딩 정보를 불러올 수 없어요</p>
         </div>
@@ -81,19 +104,22 @@ export default function GroupPage() {
 
   const visibleMembers = group.members.slice(0, 3)
   const extraCount = Math.max(0, group.members.length - visibleMembers.length)
+  const getMemberProfileImageUrl = (member: MemberSummary) => {
+    const isMe = Boolean(profile) && (
+      String(member.userId) === String(profile?.userId) ||
+      member.name === profile?.nickname ||
+      member.name === profile?.name
+    )
+    return isMe ? (profile?.profileImageUrl ?? member.profileImageUrl) : member.profileImageUrl
+  }
 
-  // D-day 계산
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const anniversary = new Date(group.anniversaryDate)
-  anniversary.setHours(0, 0, 0, 0)
-  const diffDays = Math.round((anniversary.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-  const dDayLabel = diffDays > 0 ? `D-${diffDays}` : diffDays === 0 ? 'D-Day' : `D+${Math.abs(diffDays)}`
+  const dDayLabel = getDdayLabel(group.anniversaryDate)
 
-  // 내 역할 = 대시보드 members[]에서 내 userId 매칭. 판별 불가(비로그인/미참여)면 최소 권한 MEMBER로 취급
-  const myRole: 'HOST' | 'CO_HOST' | 'MEMBER' =
-    group.members.find(m => m.userId === profile?.userId)?.role ?? 'MEMBER'
-  const isHost = myRole === 'HOST'
+  // 내 역할 = BE가 대시보드 응답의 myRole로 직접 판별해 내려줌. 비로그인/미참여(null)면 최소 권한 PARTICIPANT로 취급
+  const myRole: FundingMemberRole = devRole ?? group.myRole ?? 'PARTICIPANT'
+  const isHost = myRole === 'CREATOR'
+  // 미리보기 땐 역할별 CTA를 봐야 하므로 로그인된 것으로 취급 (게스트 뷰 회피)
+  const effectiveLoggedIn = devPreview ? true : isLoggedIn
   const isSettlingOrLater = group.status === 'SETTLING' || group.status === 'PURCHASING' || group.status === 'DELIVERING' || group.status === 'ENDED'
   const settleRoute = isHost ? `/group/${id}/settle/host` : `/group/${id}/settle`
 
@@ -139,9 +165,9 @@ export default function GroupPage() {
 
   return (
     <div className="mx-auto flex h-dvh w-full max-w-[402px] flex-col bg-white">
-      <Header title="함께 선물 페이지" />
+      <Header title="함께 선물 페이지" onBack={() => navigate('/home', { replace: true })} />
 
-      {/* 세그먼트 탭: 개설자(HOST)일 때만 노출. 공동관리자·참여자에겐 탭 없음 */}
+      {/* 세그먼트 탭: 개설자(CREATOR)일 때만 노출. 공동관리자·참여자에겐 탭 없음 */}
       {isHost && (
         <GroupSegmentTabs
           tabs={[
@@ -159,8 +185,12 @@ export default function GroupPage() {
       <div className="flex-1 overflow-y-auto pb-[140px] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {/* 대표 이미지 + 상태 칩 */}
         <div className="relative h-[190px] bg-background">
-          {group.thumbnailImageUrl && (
+          {group.thumbnailImageUrl ? (
             <img src={group.thumbnailImageUrl} alt="" className="absolute inset-0 size-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <img src={avatarCat} alt="" className="size-16 opacity-30" />
+            </div>
           )}
           <div className="absolute inset-x-[18px] top-[18px] flex items-center justify-between">
             <span className={`rounded-full border px-4 py-2 text-b2-m ${statusChipClass}`}>
@@ -182,7 +212,7 @@ export default function GroupPage() {
                 <h2 className="text-h3-sb text-[#000]">{group.title}</h2>
               )}
               {/* 함께선물 나가기: 선물 고르는 중 상태의 로그인한 비개설자(공동관리자·참여자)만. 비로그인은 아직 미참여라 미노출 */}
-              {group.status === 'SELECTING' && !isHost && isLoggedIn && (
+              {group.status === 'SELECTING' && !isHost && effectiveLoggedIn && (
                 <button
                   type="button"
                   onClick={() => setLeaveOpen(true)}
@@ -343,23 +373,22 @@ export default function GroupPage() {
                 <div className="flex items-center gap-[30px]">
                   {visibleMembers.map(m => (
                     <div key={m.fundingMemberId} className="flex items-center gap-2">
-                      <div className="relative mt-[5px] shrink-0">
-                        {m.profileImageUrl ? (
-                          <img src={m.profileImageUrl} alt={m.name} className="size-[26px] rounded-full object-cover" />
-                        ) : (
-                          <div className="size-[26px] rounded-full bg-[#E4E4E4]" />
-                        )}
-                        {(m.role === 'HOST' || m.role === 'CO_HOST') && (
+                      <div className="mt-[5px] shrink-0">
+                        {getMemberProfileImageUrl(m) ? (
                           <img
-                            src={m.role === 'HOST' ? ribbonHost : ribbonCoHost}
-                            alt=""
-                            className="absolute left-[5px] -top-[5px] w-[17px]"
+                            src={getMemberProfileImageUrl(m) ?? undefined}
+                            alt={m.name}
+                            className="size-[26px] rounded-full object-cover"
                           />
+                        ) : (
+                          <DefaultAvatar className="size-[26px] shrink-0" />
                         )}
                       </div>
                       <div className="flex flex-col gap-1">
                         <span className="text-[8px] font-normal leading-[10px] text-[#797378]">{ROLE_LABELS[m.role]}</span>
-                        <span className="max-w-[34px] truncate text-caption1-m text-[#111111]">{m.name}</span>
+                        <span className="max-w-[34px] truncate text-caption1-m text-[#111111]">
+                          {m.name || (m.userId === profile?.userId ? profile?.nickname : '')}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -432,7 +461,7 @@ export default function GroupPage() {
                   >
                     더보기
                   </button>
-                ) : isLoggedIn ? (
+                ) : effectiveLoggedIn ? (
                   // 편지 남기기는 로그인 필요 액션 — 비로그인 게스트에겐 미노출
                   <button
                     type="button"
@@ -462,7 +491,7 @@ export default function GroupPage() {
 
       {/* 하단 고정 CTA */}
       <StickyBottomBar>
-        {!isLoggedIn ? (
+        {!effectiveLoggedIn ? (
           // 비로그인 참여자: H는 조회만 비로그인 OK → 참여하려면 로그인. 로그인 후 이 펀딩으로 복귀
           <Button
             className="pointer-events-auto"
@@ -481,7 +510,7 @@ export default function GroupPage() {
             <div className="pointer-events-auto flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => navigate(`/group/${id}/confirm-gift`)}
+                onClick={() => navigate(`/group/${id}/confirm`)}
                 className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-[#797378] bg-white text-b2-sb text-black"
               >
                 선물 확정하기

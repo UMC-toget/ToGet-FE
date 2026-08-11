@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
+import DefaultAvatar from '../../components/common/DefaultAvatar'
 import GroupSegmentTabs from './GroupSegmentTabs'
 import {
   getFundingSettlements,
@@ -180,7 +181,7 @@ function SettlementCard({ member, menuOpen, onToggleMenu, onCloseMenu, onAction 
         <div className="shrink-0">
           {member.profileImageUrl
             ? <img src={member.profileImageUrl} alt={member.name} className="size-10 rounded-full object-cover" />
-            : <div className="size-10 rounded-full bg-[#F7F5F8]" />
+            : <DefaultAvatar className="size-10 shrink-0" />
           }
         </div>
         <div className="flex flex-col gap-1">

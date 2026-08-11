@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Check, Heart, X } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
-import { getInvitationAccent, useInvitationMeta } from './Mascot';
+import { getCharacterImageSrc, getInvitationAccent, useInvitationMeta } from './Mascot';
 
 interface Props {
   fundingId: number;
@@ -13,18 +13,19 @@ export default function StepComplete({ fundingId, onViewFunding, onGoHome }: Pro
   const { inviteCharacter, inviteBackgroundId, inviteColor } = useFundingCreateStore();
   const [copied, setCopied] = useState(false);
   const { backgrounds, characters } = useInvitationMeta();
-  const characterImageUrl = characters.find((item) => item.id === inviteCharacter)?.imageUrl;
+  const characterImageUrl = getCharacterImageSrc(characters.find((item) => item.id === inviteCharacter));
   const selectedColor = backgrounds.find((item) => item.id === inviteBackgroundId)?.hexCode ?? inviteColor;
   const glowColor = selectedColor === '#FFFFFF' ? '#D1D5DB' : selectedColor;
   const accentColor = getInvitationAccent(selectedColor);
   const decorationColor = selectedColor === '#FFFFFF' ? accentColor : selectedColor;
 
-  const invitationPath = `/funding/${fundingId}/invitation`;
-  const shareLink = `${window.location.origin}${invitationPath}`;
+  const sharePath = `/funding/${fundingId}/invitation`;
+  const shareLink = `toget.kr${sharePath}`;
+  const shareUrl = `${window.location.origin}${sharePath}`;
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(shareLink);
+      await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {

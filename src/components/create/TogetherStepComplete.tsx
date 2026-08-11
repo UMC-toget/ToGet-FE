@@ -1,33 +1,32 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Check, Link, X } from 'lucide-react';
 import { useTogetherCreateStore } from '../../store/togetherCreateStore';
-import { getInvitationAccent, useInvitationMeta } from './Mascot';
+import { getCharacterImageSrc, getInvitationAccent, useInvitationMeta } from './Mascot';
 import heroStars from '../../assets/hero-stars.svg';
 
-// 아직 "함께 선물" 준비방 상세 페이지가 없어서, 우선 홈으로 이동합니다.
-export default function TogetherStepComplete() {
-  const navigate = useNavigate();
+interface Props {
+  fundingId: number;
+  onViewFunding: () => void;
+  onGoHome: () => void;
+}
+
+export default function TogetherStepComplete({ fundingId, onViewFunding, onGoHome }: Props) {
   const { roomName, inviteCharacter, inviteBackgroundId, inviteColor } = useTogetherCreateStore();
   const [copied, setCopied] = useState(false);
   const { backgrounds, characters } = useInvitationMeta();
-  const characterImageUrl = characters.find((item) => item.id === inviteCharacter)?.imageUrl;
+  const characterImageUrl = getCharacterImageSrc(characters.find((item) => item.id === inviteCharacter));
   const selectedColor = backgrounds.find((item) => item.id === inviteBackgroundId)?.hexCode ?? inviteColor;
   const glowColor = selectedColor === '#FFFFFF' ? '#D1D5DB' : selectedColor;
   const accentColor = getInvitationAccent(selectedColor);
   const decorationColor = selectedColor === '#FFFFFF' ? accentColor : selectedColor;
 
-  // 한글 등 비-ASCII 문자는 slug에서 전부 제거되므로, 로마자/숫자가 없는 이름이면 하이픈만 남습니다.
-  const rawSlug = roomName
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w-]/g, '');
-  const slug = /[a-z0-9]/.test(rawSlug) ? rawSlug : 'together-gift';
-  const shareLink = `toget.kr/p/${slug}`;
+  const sharePath = `/funding/${fundingId}/invitation`;
+  const shareLink = `toget.kr${sharePath}`;
+  const shareUrl = `${window.location.origin}${sharePath}`;
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(shareLink);
+      await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -38,7 +37,7 @@ export default function TogetherStepComplete() {
   const handleShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: roomName, url: `https://${shareLink}` });
+        await navigator.share({ title: roomName, url: shareUrl });
       } catch {
         // 사용자가 공유 시트를 취소한 경우 등
       }
@@ -47,17 +46,15 @@ export default function TogetherStepComplete() {
     }
   };
 
-  const handleGoHome = () => navigate('/home');
-
   return (
-    <div className="flex-1 min-h-0 w-full max-w-[350px] mx-auto flex flex-col items-center relative">
+    <div className="flex-1 min-h-0 w-full max-w-87.5 mx-auto flex flex-col items-center relative">
       {/* 페이지 전체 배경 그라데이션 - 캐릭터를 중심으로 진하게 시작해서 아래로 갈수록 옅어짐 */}
       <div
         className="absolute inset-x-0 top-0 h-96 pointer-events-none"
         style={{ background: `radial-gradient(circle at 50% 38%, color-mix(in srgb, ${glowColor} 26%, transparent) 0%, color-mix(in srgb, ${glowColor} 14%, transparent) 38%, transparent 68%)` }}
       />
       <button
-        onClick={handleGoHome}
+        onClick={onGoHome}
         aria-label="닫기"
         className="absolute top-0 right-0 p-2 text-gray-600 hover:text-gray-900 transition-colors z-10"
       >
@@ -75,9 +72,9 @@ export default function TogetherStepComplete() {
             src={heroStars}
             alt=""
             aria-hidden
-            className="pointer-events-none absolute left-1/2 top-1/2 w-[430px] max-w-none -translate-x-1/2 -translate-y-1/2 z-10"
+            className="pointer-events-none absolute left-1/2 top-1/2 w-107.5 max-w-none -translate-x-1/2 -translate-y-1/2 z-10"
           />
-          {characterImageUrl && <img src={characterImageUrl} alt="" className="w-[210px] h-[210px] object-contain relative z-10" />}
+          {characterImageUrl && <img src={characterImageUrl} alt="" className="w-52.5 h-52.5 object-contain relative z-10" />}
           <div
             className="absolute bottom-7 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full flex items-center justify-center border-2 border-white z-20"
             style={{ backgroundColor: decorationColor }}
@@ -119,7 +116,7 @@ export default function TogetherStepComplete() {
 
       <div className="w-full mt-8 pb-2">
         <button
-          onClick={handleGoHome}
+          onClick={onViewFunding}
           className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-colors"
         >
           준비방 상세 보기

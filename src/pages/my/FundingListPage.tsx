@@ -61,6 +61,10 @@ export default function FundingListPage({ title, fundingType, renderCard }: Fund
   })
 
   const sorted = [...filtered].sort((a, b) => {
+    // endDate가 없는 펀딩(선물 확정 전 함께 선물 준비방)은 정렬 방향과 무관하게 항상 뒤로 보냅니다
+    if (!a.endDate && !b.endDate) return 0
+    if (!a.endDate) return 1
+    if (!b.endDate) return -1
     const diff = new Date(a.endDate).getTime() - new Date(b.endDate).getTime()
     return sortOrder === 'endDateAsc' ? diff : -diff
   })
@@ -79,7 +83,7 @@ export default function FundingListPage({ title, fundingType, renderCard }: Fund
         }))}
       />
 
-      <div className="flex flex-1 flex-col gap-4 bg-background px-[18px] pb-8 pt-3">
+      <div className="flex flex-1 flex-col gap-4 bg-white px-[18px] pb-8 pt-3">
         <div className="flex items-center justify-between">
           <p className="text-caption1-r text-gray-500">
             {COUNT_LABELS[tab]} {sorted.length}개

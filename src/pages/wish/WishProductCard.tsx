@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import PlusIcon from '../../components/icons/PlusIcon'
 import MoreVerticalIcon from '../../components/icons/MoreVerticalIcon'
 import CheckIcon from '../../components/icons/CheckIcon'
+import GiftIcon from '../../components/icons/GiftIcon'
 import WishEditModeSheet from './WishEditModeSheet'
 import type { Product } from '../home/products'
 
@@ -52,6 +53,7 @@ const WishProductCard = memo(function WishProductCard({
 }: WishProductCardProps) {
   const navigate = useNavigate()
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [imageBroken, setImageBroken] = useState(false)
 
   const handleCardClick = useCallback(() => {
     if (isEditMode) {
@@ -93,7 +95,16 @@ const WishProductCard = memo(function WishProductCard({
     <div className="relative flex flex-col gap-2">
       <button type="button" onClick={handleCardClick} className="flex flex-col text-left">
         <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-background p-3">
-          <img src={product.image} alt={product.name} className="max-h-[85%] max-w-[85%] object-contain" />
+          {product.image && !imageBroken ? (
+            <img
+              src={product.image}
+              alt={product.name}
+              className="max-h-[85%] max-w-[85%] object-contain"
+              onError={() => setImageBroken(true)}
+            />
+          ) : (
+            <GiftIcon className="size-10 text-gray-300" />
+          )}
 
           {/* 선택된 카드만 이미지 박스 전체에 어두운 레이어를 씌웁니다 (피그마 1746:51289 기준) */}
           {isEditMode && isSelected && <div className="absolute inset-0 rounded-xl bg-[rgba(30,29,30,0.1)]" />}

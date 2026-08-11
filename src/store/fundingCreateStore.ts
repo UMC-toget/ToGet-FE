@@ -80,9 +80,11 @@ export interface FundingCreateState {
   // actions
   setStep1: (data: Partial<Pick<FundingCreateState, 'title' | 'anniversaryDate' | 'preparationStartDate' | 'preparationEndDate' | 'greeting' | 'thumbnailImage'>>) => void;
   addWishlistItem: (item: WishlistItem) => void;
+  updateWishlistItem: (id: string, data: Partial<Omit<WishlistItem, 'id'>>) => void;
   removeWishlistItem: (id: string) => void;
   setVisibility: (data: Partial<Pick<FundingCreateState, 'showProgress' | 'showAmount' | 'showParticipantCount' | 'showParticipantNames' | 'showMessages'>>) => void;
   addAccount: (data: Omit<SavedAccount, 'id'>) => void;
+  hydrateAccounts: (accounts: SavedAccount[]) => void;
   updateAccount: (id: string, data: Partial<Omit<SavedAccount, 'id'>>) => void;
   removeAccount: (id: string) => void;
   selectAccount: (id: string) => void;
@@ -155,6 +157,10 @@ export const useFundingCreateStore = create<FundingCreateState>((set) => ({
   setStep1: (data) => set((state) => ({ ...state, ...data })),
 
   addWishlistItem: (item) => set((state) => ({ wishlist: [...state.wishlist, item] })),
+  updateWishlistItem: (id, data) =>
+    set((state) => ({
+      wishlist: state.wishlist.map((item) => item.id === id ? { ...item, ...data } : item),
+    })),
   removeWishlistItem: (id) => set((state) => ({ wishlist: state.wishlist.filter((i) => i.id !== id) })),
 
   setVisibility: (data) => set((state) => ({ ...state, ...data })),
@@ -166,6 +172,12 @@ export const useFundingCreateStore = create<FundingCreateState>((set) => ({
         accounts: [...state.accounts, { id, ...data }],
         selectedAccountId: id,
       };
+    }),
+  hydrateAccounts: (accounts) =>
+    set((state) => {
+      const apiIds = new Set(accounts.map((account) => account.id));
+      const localAccounts = state.accounts.filter((account) => !apiIds.has(account.id));
+      return { accounts: [...accounts, ...localAccounts] };
     }),
   updateAccount: (id, data) =>
     set((state) => ({

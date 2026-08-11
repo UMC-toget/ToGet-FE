@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { apiClient, unwrap } from '../lib/apiClient'
 
 // ─── 공통 ─────────────────────────────────────────────────────
@@ -6,12 +7,15 @@ export type GroupFundingStatus = 'SELECTING' | 'SETTLING' | 'PURCHASING' | 'DELI
 
 // ─── H01: 함께 선물 대시보드 ──────────────────────────────────
 
+/** 함께 선물 멤버 역할 (BE enum). CREATOR=방장, ADMIN=공동관리자, PARTICIPANT=참여자 */
+export type FundingMemberRole = 'CREATOR' | 'ADMIN' | 'PARTICIPANT'
+
 export interface MemberSummary {
   fundingMemberId: number
   userId: number
   name: string
   profileImageUrl: string | null
-  role: 'HOST' | 'CO_HOST' | 'MEMBER'
+  role: FundingMemberRole
 }
 
 export interface TopGift {
@@ -38,6 +42,8 @@ export interface TogetherGiftDashboard {
   recipientName: string
   introduction: string
   thumbnailImageUrl: string | null
+  /** 조회자의 역할 (BE가 직접 판별해 내려줌). 비회원·미합류 회원이면 null */
+  myRole: FundingMemberRole | null
   members: MemberSummary[]
   /** SELECTING 단계에서 상위 투표 선물 목록 */
   topGifts: TopGift[] | null
@@ -49,7 +55,7 @@ export interface TogetherGiftDashboard {
   messageIds: number[] | null
 }
 
-/** H01) 함께 선물 대시보드 조회 (로그인 필요) */
+/** H01) 함께 선물 대시보드 조회 (공개 — 로그인 불필요, 초대장 링크를 아는 누구나 조회 가능) */
 export function getTogetherGiftDashboard(fundingId: number | string) {
   return unwrap<TogetherGiftDashboard>(
     apiClient.get(`/api/v1/fundings/${fundingId}/dashboards/together-gift`),
@@ -219,7 +225,7 @@ export function updateSettlementStatus(
 export function updateMemberRole(
   fundingId: number | string,
   memberId: number | string,
-  role: 'CO_HOST' | 'MEMBER',
+  role: 'ADMIN' | 'PARTICIPANT',
 ) {
   return unwrap<MemberSummary>(
     apiClient.patch(`/api/v1/fundings/${fundingId}/members/${memberId}/role`, { role }),
@@ -269,9 +275,21 @@ export function updateGroupFundingStatus(
   )
 }
 
+/** 함께 선물하기 참여(합류, POST /api/v1/fundings/{fundingId}/members)
+ *  로그인한 사용자를 이 펀딩의 멤버로 등록한다. 합류는 자동이 아니라 이 호출이 있어야 하고,
+ *  투표·편지 같은 첫 참여 액션 직전에 부른다. 이미 멤버면 BE가 409(FUNDING409_12)를 주는데
+ *  "첫 액션 때 합류" 흐름에선 정상 상황이라 조용히 넘긴다. */
+export async function joinGroupFunding(fundingId: number | string): Promise<void> {
+  try {
+    await unwrap<void>(apiClient.post(`/api/v1/fundings/${fundingId}/members`, {}))
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response?.status === 409) return
+    throw err
+  }
+}
+
 /** 함께 선물 나가기 (참여자·공동관리자, DELETE /api/v1/fundings/{fundingId}/members/me)
- *  나가면 투표 내역이 사라지고 참여자에서 제외됨. HOST는 사용 불가.
- *  TODO: BE 엔드포인트 확정 후 경로 확인 */
+ *  나가면 투표 내역이 사라지고 참여자에서 제외됨. HOST는 사용 불가. */
 export function leaveGroupFunding(fundingId: number | string) {
   return unwrap<void>(apiClient.delete(`/api/v1/fundings/${fundingId}/members/me`))
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ChevronDown, Landmark } from 'lucide-react'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
 import StickyBottomBar from '../../components/common/StickyBottomBar'
@@ -7,18 +8,11 @@ import BottomSheet from '../../components/common/BottomSheet'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import PlusIcon from '../../components/icons/PlusIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
-import SearchIcon from '../../components/icons/SearchIcon'
 import { useTogetherCreateStore } from '../../store/togetherCreateStore'
 import type { SavedAccount } from '../../store/fundingCreateStore'
-import { searchBanks } from '../../utils/bankData'
-import bankShinhan from '../../assets/bank-shinhan.png'
-import bankKakao from '../../assets/bank-kakao.png'
+import { useBanks } from '../../hooks/useUserAccounts'
 
 // 접근: 개설자 전용 | 선물 페이지 수정 2단계 — 계좌 정보 (G섹션 store 재사용)
-const BANK_LOGOS: Partial<Record<string, string>> = {
-  '신한은행': bankShinhan,
-  '카카오뱅크': bankKakao,
-}
 
 type View = 'list' | 'add' | 'edit'
 interface AccountForm {
@@ -31,12 +25,12 @@ const emptyForm: AccountForm = { bankName: '', accountNumber: '', accountHolder:
 export default function GroupEditAccountPage() {
   const navigate = useNavigate()
   const { accounts, selectedAccountId, addAccount, updateAccount, selectAccount } = useTogetherCreateStore()
+  const { data: banks = [] } = useBanks()
 
   const [view, setView] = useState<View>('list')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<AccountForm>(emptyForm)
   const [showBankSheet, setShowBankSheet] = useState(false)
-  const [bankQuery, setBankQuery] = useState('')
   const [showConfirm, setShowConfirm] = useState(false)
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
 
@@ -109,7 +103,7 @@ export default function GroupEditAccountPage() {
                   return (
                     <div
                       key={acc.id}
-                      className="rounded-xl border border-gray-100 bg-white px-[14px] py-3"
+                      className={`rounded-xl border bg-white px-[14px] py-3 ${selected ? 'border-[#FEAAC9]' : 'border-gray-100'}`}
                     >
                       <button
                         type="button"
@@ -117,11 +111,14 @@ export default function GroupEditAccountPage() {
                         className="flex w-full items-start gap-3 text-left"
                       >
                         <div className="flex size-[63px] shrink-0 items-center justify-center overflow-hidden rounded-[6px] bg-background">
-                          {BANK_LOGOS[acc.bankName] ? (
-                            <img src={BANK_LOGOS[acc.bankName]} alt="" className="size-[50px] object-contain" />
-                          ) : (
-                            <span className="text-2xl">🏦</span>
-                          )}
+                          {(() => {
+                            const iconUrl = banks.find((b) => b.displayName === acc.bankName)?.iconUrl
+                            return iconUrl ? (
+                              <img src={iconUrl} alt="" className="size-[50px] object-contain" />
+                            ) : (
+                              <Landmark className="size-6 text-gray-400" />
+                            )
+                          })()}
                         </div>
                         <div className="flex min-w-0 flex-1 flex-col gap-3">
                           <p className="text-caption1-r text-[#5B565A] mt-1">{acc.bankName}</p>
@@ -173,8 +170,6 @@ export default function GroupEditAccountPage() {
   }
 
   // ── 계좌 등록 / 수정 화면 ────────────────────────────────────
-  const bankResults = searchBanks(bankQuery)
-
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
       <Header title={isEdit ? '계좌 수정하기' : '새로운 계좌 등록하기'} onBack={() => setView('list')} />
@@ -198,7 +193,7 @@ export default function GroupEditAccountPage() {
             <span className={form.bankName ? 'text-b1-r text-black' : 'text-b1-r text-gray-400'}>
               {form.bankName || '은행명을 정확히 선택해주세요'}
             </span>
-            <SearchIcon className="size-6 shrink-0 text-gray-400" />
+            <ChevronDown className="size-5 shrink-0 text-gray-400" />
           </button>
         </div>
 
@@ -212,7 +207,7 @@ export default function GroupEditAccountPage() {
               type="text"
               inputMode="numeric"
               value={form.accountNumber}
-              onChange={e => setForm({ ...form, accountNumber: e.target.value.replace(/[^0-9]/g, '') })}
+              onChange={e => setForm({ ...form, accountNumber: e.target.value.replace(/[^0-9]/g, '').slice(0, 15) })}
               placeholder="본인의 계좌번호를 정확히 입력해주세요"
               className="flex-1 bg-transparent text-b1-r text-black placeholder:text-gray-400 focus:outline-none"
             />
@@ -247,40 +242,32 @@ export default function GroupEditAccountPage() {
       </StickyBottomBar>
 
       {/* 은행 선택 시트 */}
-      <BottomSheet open={showBankSheet} size="half" onClose={() => { setShowBankSheet(false); setBankQuery('') }}>
+      <BottomSheet open={showBankSheet} size="half" onClose={() => setShowBankSheet(false)}>
         <div className="flex h-full flex-col gap-3 pt-2">
           <p className="text-h3-sb text-black">은행명</p>
-          <div className="flex h-12 items-center gap-4 rounded-lg bg-background px-4">
-            <input
-              autoFocus
-              type="text"
-              value={bankQuery}
-              onChange={e => setBankQuery(e.target.value)}
-              placeholder="은행명을 검색 후 선택해주세요"
-              className="flex-1 bg-transparent text-b1-r text-black placeholder:text-gray-400 focus:outline-none"
-            />
-            <SearchIcon className="size-6 shrink-0 text-gray-400" />
-          </div>
           <div className="min-h-0 flex-1 overflow-y-auto">
-            {bankResults.length === 0 ? (
-              <p className="py-6 text-center text-caption1-r text-gray-400">일치하는 은행이 없어요</p>
-            ) : (
-              bankResults.map(bank => (
+            <div className="grid grid-cols-3 gap-3">
+              {banks.map(bank => (
                 <button
-                  key={bank.name}
+                  key={bank.bankId}
                   type="button"
                   onClick={() => {
-                    setForm({ ...form, bankName: bank.name })
+                    setForm({ ...form, bankName: bank.displayName })
                     setShowBankSheet(false)
-                    setBankQuery('')
                   }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2 py-3 text-left text-b1-r text-black"
+                  className="flex flex-col items-center gap-2 rounded-xl py-2 text-center hover:bg-gray-50 transition-colors"
                 >
-                  <span>{bank.emoji}</span>
-                  <span>{bank.name}</span>
+                  <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-background">
+                    {bank.iconUrl ? (
+                      <img src={bank.iconUrl} alt="" className="size-full object-contain" />
+                    ) : (
+                      <Landmark size={20} className="text-gray-400" />
+                    )}
+                  </span>
+                  <span className="text-caption1-r text-black">{bank.displayName}</span>
                 </button>
-              ))
-            )}
+              ))}
+            </div>
           </div>
         </div>
       </BottomSheet>

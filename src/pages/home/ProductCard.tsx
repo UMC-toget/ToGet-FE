@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import GiftIcon from '../../components/icons/GiftIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import type { Product } from './products'
@@ -17,6 +18,8 @@ interface ProductCardProps {
 
 /** 선물 둘러보기 상품 카드. 좌상단에 순위 번호, 우상단 버튼으로 위시 등록을 토글합니다. */
 export default function ProductCard({ product, rank, isLoggedIn, wished, onLoginRequired, onWishClick }: ProductCardProps) {
+  const [imageBroken, setImageBroken] = useState(false)
+
   const handleCardClick = () => {
     if (!isLoggedIn) {
       onLoginRequired()
@@ -37,8 +40,15 @@ export default function ProductCard({ product, rank, isLoggedIn, wished, onLogin
   return (
     <button type="button" onClick={handleCardClick} className="flex flex-col text-left">
       <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-background p-3">
-        {product.image && (
-          <img src={product.image} alt={product.name} className="max-h-[75%] max-w-[80%] object-contain" />
+        {product.image && !imageBroken ? (
+          <img
+            src={product.image}
+            alt={product.name}
+            className="max-h-[75%] max-w-[80%] object-contain"
+            onError={() => setImageBroken(true)}
+          />
+        ) : (
+          <GiftIcon className="size-10 text-gray-300" />
         )}
         {rank != null && (
           <span className="absolute left-3 top-3 flex size-6 items-center justify-center rounded-full bg-gray-700 text-caption1-m text-white">

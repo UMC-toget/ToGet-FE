@@ -1,15 +1,7 @@
-import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Button from '../../components/common/Button'
-import InvitationHero from './InvitationHero'
-import { getInvitationCard } from '../../api/fundings'
-import { fetchInvitationBackgrounds, fetchCharacters } from '../../api/metaApi'
-
-const DEFAULT_INVITATION = {
-  title: '따뜻한 선물 초대장이 도착했어요',
-  content: '',
-  creatorName: null as string | null,
-}
+import InvitationHero from '../../components/invitation/InvitationHero'
+import { useInvitationCard } from '../../components/invitation/useInvitationCard'
 
 /**
  * E01) 내 선물 참여: 초대장 팝업
@@ -20,54 +12,21 @@ export default function InvitationPage() {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  const [invitation, setInvitation] = useState(DEFAULT_INVITATION)
-  const [glowColor, setGlowColor] = useState<string>('#FE71A5')
-  const [characterImageUrl, setCharacterImageUrl] = useState<string | undefined>(undefined)
-
-  useEffect(() => {
-    if (!id) return
-
-    const load = async () => {
-      try {
-        const [card, backgrounds, characters] = await Promise.all([
-          getInvitationCard(id),
-          fetchInvitationBackgrounds().catch(() => []),
-          fetchCharacters().catch(() => []),
-        ])
-
-        setInvitation({
-          title: card.title,
-          content: card.content,
-          creatorName: card.creatorName,
-        })
-
-        const bg = backgrounds.find((b) => b.id === card.backgroundId)
-        if (bg) setGlowColor(bg.hexCode)
-
-        const character = characters.find((c) => c.id === card.characterId)
-        if (character) setCharacterImageUrl(character.imageUrl)
-      } catch {
-        // API 실패 시 기본값 유지
-      }
-    }
-
-    load()
-  }, [id])
+  const invitation = useInvitationCard(id)
 
   return (
     <div className="relative mx-auto flex min-h-dvh w-full max-w-[402px] flex-col overflow-hidden bg-white">
-      {/* 글로우 배경 — backgroundId에서 받은 색상 적용 (피그마: x58 y292 286×286, blur 100px) */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-[92px] h-[286px] w-[286px] -translate-x-1/2 rounded-full blur-[100px]"
-        style={{ backgroundColor: glowColor + '80' }}
+      {/* 글로우·로고·별·캐릭터는 InvitationHero가 한 덩어리로 그린다(J 등 타 섹션과 공용) */}
+      <InvitationHero
+        characterImageUrl={invitation.characterImageUrl}
+        characterId={invitation.characterId}
+        logoColor={invitation.themeColor}
+        whiteLogo={invitation.whiteLogo}
       />
-
-      <InvitationHero characterImageUrl={characterImageUrl} />
 
       <div className="relative flex flex-1 flex-col items-center gap-5 px-[18px]">
         {/* 초대장 카드 (피그마: w366, padding 20, radius 20, shadow 0 4px 20px 15%) */}
-        <article className="flex w-full flex-col gap-2.5 rounded-[20px] bg-white p-5 shadow-[0px_4px_20px_0px_rgba(0,0,0,0.15)]">
+        <article className="flex w-full flex-col items-start gap-2.5 rounded-[20px] bg-white p-5 shadow-[0px_4px_20px_0px_rgba(0,0,0,0.15)]">
           <h2 className="text-h3-sb text-black">{invitation.title}</h2>
           {invitation.content && (
             <p className="whitespace-pre-line text-b2-r leading-relaxed text-gray-700">
@@ -75,7 +34,7 @@ export default function InvitationPage() {
             </p>
           )}
           {invitation.creatorName && (
-            <p className="text-right text-b2-m text-pink-500">from. {invitation.creatorName}</p>
+            <p className="self-end text-b2-m text-pink-500">from. {invitation.creatorName}</p>
           )}
         </article>
 
