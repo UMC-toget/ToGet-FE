@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
@@ -11,6 +11,7 @@ import ImageCropper from '../../components/common/ImageCropper'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import { useTogetherCreateStore } from '../../store/togetherCreateStore'
 import { updateFundingBasicInfo } from '../../api/fundings'
+import { getTogetherGiftDashboard } from '../../api/groupFundings'
 import { uploadImage } from '../../utils/uploadImage'
 
 // 접근: 개설자 전용 | 선물 페이지 수정 1단계 — 기본 정보 (G섹션 store 재사용)
@@ -29,6 +30,7 @@ export default function GroupEditBasicPage() {
   const { id } = useParams()
   const { roomName, recipientName, giftDate, memo, thumbnailImage, setStep1 } = useTogetherCreateStore()
 
+  const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [openDateSheet, setOpenDateSheet] = useState(false)
@@ -39,6 +41,35 @@ export default function GroupEditBasicPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
   const [pendingCropFile, setPendingCropFile] = useState<File | null>(null)
+
+  // 수정 화면 진입 시 현재 펀딩 값으로 폼 prefill (store가 비어 있으면 빈칸으로 뜨는 문제 해결)
+  useEffect(() => {
+    if (!id) return
+    let alive = true
+    getTogetherGiftDashboard(id)
+      .then(data => {
+        if (!alive) return
+        setStep1({
+          roomName: data.fundingTitle ?? '',
+          recipientName: data.recipientName ?? '',
+          giftDate: data.anniversaryDate ?? '',
+          memo: data.introduction ?? '',
+          thumbnailImage: data.thumbnailImageUrl ?? null,
+        })
+        // 준비 기간(startDate/endDate)은 대시보드 응답에 없어 prefill 불가 → 사용자가 다시 선택해야 함 (BE 필드 추가 요청 중)
+      })
+      .catch(() => {
+        // 조회 실패 시 빈 폼 유지 (mock/네트워크 방어)
+      })
+      .finally(() => {
+        if (alive) setIsLoading(false)
+      })
+    return () => {
+      alive = false
+    }
+    // id 변경 시에만 재조회. setStep1은 store의 안정된 액션이라 의존성 제외
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
 
   const isValid = Boolean(roomName.trim() && recipientName.trim() && giftDate && startDate && endDate)
 
@@ -66,6 +97,17 @@ export default function GroupEditBasicPage() {
     } finally {
       setIsSaving(false)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
+        <Header title="1단계 : 기본 정보" />
+        <div className="flex flex-1 items-center justify-center">
+          <p className="text-b2-r text-gray-400">불러오는 중...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
