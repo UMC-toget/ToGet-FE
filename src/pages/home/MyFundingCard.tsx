@@ -30,6 +30,7 @@ export default function MyFundingCard({ funding, onOpen, onShareInvite }: MyFund
               src={funding.thumbnailImage}
               alt=""
               draggable={false}
+              crossOrigin="anonymous"
               className={hasBackground ? 'size-full object-cover' : 'h-[52px] w-[48px] object-cover'}
             />
           ) : (
