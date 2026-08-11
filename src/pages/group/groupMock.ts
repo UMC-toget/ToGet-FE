@@ -26,7 +26,7 @@ export const MOCK_DASHBOARD: TogetherGiftDashboard = {
   fundingId: 1,
   // 'SELECTING' | 'SETTLING' | 'PURCHASING' | 'DELIVERING' | 'ENDED' 바꿔가며 상태별 UI 확인
   status: 'SETTLING',
-  title: '예원이 졸업 선물',
+  fundingTitle: '예원이 졸업 선물',
   anniversaryDate: '2026-08-15',
   recipientName: '이예원',
   introduction: '예원이 7년 만에 졸업하는데\n선물이라도 주자 우리',

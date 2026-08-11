@@ -37,7 +37,7 @@ export interface ConfirmedGift {
 export interface TogetherGiftDashboard {
   fundingId: number
   status: GroupFundingStatus
-  title?: string
+  fundingTitle?: string
   anniversaryDate: string
   recipientName: string
   introduction: string

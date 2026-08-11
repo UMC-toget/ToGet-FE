@@ -102,7 +102,7 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
 }
 
 /** 제목 글자수 제한 */
-export const REVIEW_TITLE_MAX_LENGTH = 20
+export const REVIEW_TITLE_MAX_LENGTH = 15
 /** 내용 글자수 제한 */
 export const REVIEW_CONTENT_MAX_LENGTH = 60
 
