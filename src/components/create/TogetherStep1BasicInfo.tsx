@@ -5,6 +5,7 @@ import DateSheet, { formatDisplay } from './DateSheet';
 import PhotoActionSheet from '../common/PhotoActionSheet';
 import ImageCropper from '../common/ImageCropper';
 import ConfirmModal from '../common/ConfirmModal';
+import { FUNDING_INTRODUCTION_MAX_LENGTH, FUNDING_TITLE_MAX_LENGTH } from '../../constants/fundingFieldLimits';
 
 // 준비방 대표 이미지는 정사각형으로 자름
 const THUMBNAIL_ASPECT_RATIO = 1;
@@ -33,14 +34,18 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
 
         {/* 준비방 이름 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-2 block">
-            준비방 이름 <span className="text-red-400">*</span>
-          </label>
+          <div className="mb-2 flex items-center justify-between">
+            <label className="text-sm font-medium text-gray-700">
+              준비방 이름 <span className="text-red-400">*</span>
+            </label>
+            <span className="text-[11px] text-gray-400">{roomName.length}/{FUNDING_TITLE_MAX_LENGTH}</span>
+          </div>
           <input
             type="text"
+            maxLength={FUNDING_TITLE_MAX_LENGTH}
             placeholder="준비방 이름을 입력해주세요"
             value={roomName}
-            onChange={(e) => setStep1({ roomName: e.target.value })}
+            onChange={(e) => setStep1({ roomName: e.target.value.slice(0, FUNDING_TITLE_MAX_LENGTH) })}
             className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
           />
         </div>
@@ -80,12 +85,16 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
 
         {/* 준비방 소개글 또는 메모 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-2 block">준비방 소개글 또는 메모</label>
+          <div className="mb-2 flex items-center justify-between">
+            <label className="text-sm font-medium text-gray-700">준비방 소개글 또는 메모</label>
+            <span className="text-[11px] text-gray-400">{memo.length}/{FUNDING_INTRODUCTION_MAX_LENGTH}</span>
+          </div>
           <input
             type="text"
+            maxLength={FUNDING_INTRODUCTION_MAX_LENGTH}
             placeholder="선물 준비에 대해 간단히 소개 해주세요"
             value={memo}
-            onChange={(e) => setStep1({ memo: e.target.value })}
+            onChange={(e) => setStep1({ memo: e.target.value.slice(0, FUNDING_INTRODUCTION_MAX_LENGTH) })}
             className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
           />
         </div>

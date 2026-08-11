@@ -16,7 +16,7 @@ import LetterModal from './LetterModal'
 import ParticipantList from './ParticipantList'
 import { getMyGiftDashboard, dashboardToFundingDetail, updateFundingStatus, getSharedFunding, sharedFundingToFundingDetail } from '../../api/fundings'
 import { getContributions, getContribution } from '../../api/contributions'
-import avatarCat from '../../assets/avatar-cat.svg'
+import individualFundingFallback from '../../assets/individual-funding-empty.svg'
 
 type OwnerTab = 'mine' | 'participants'
 
@@ -189,12 +189,12 @@ export default function FundingDetailPage() {
         </div>
       ) : (
         <>
-          {/* D 섹션: 대표 이미지가 있으면 실제 이미지, 없으면 placeholder */}
+          {/* D 섹션: 대표 이미지가 있으면 실제 이미지, 없으면 내 선물 기본 이미지 */}
           <section className={`relative flex h-[190px] w-full items-center justify-center overflow-hidden bg-black/40 ${funding.isOwner ? 'mt-3' : ''}`}>
             {thumbnailSrc ? (
               <img src={thumbnailSrc} alt="" className="absolute inset-0 h-full w-full object-cover" />
             ) : (
-              <img src={avatarCat} alt="" className="size-16 opacity-30" />
+              <img src={individualFundingFallback} alt="" className="absolute inset-0 size-full object-cover" />
             )}
             <div className="absolute inset-x-[18px] top-6 flex items-start">
               {isEnded ? (

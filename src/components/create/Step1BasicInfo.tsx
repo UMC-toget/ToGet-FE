@@ -4,6 +4,7 @@ import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import DateSheet, { formatDisplay } from './DateSheet';
 import PhotoActionSheet from '../common/PhotoActionSheet';
 import ConfirmModal from '../common/ConfirmModal';
+import { FUNDING_INTRODUCTION_MAX_LENGTH, FUNDING_TITLE_MAX_LENGTH } from '../../constants/fundingFieldLimits';
 
 // 대표 이미지(페이지 썸네일) 자르기 비율 - 목록/카드에서 쓰이는 와이드 배너 형태
 const THUMBNAIL_ASPECT_RATIO = 364 / 173;
@@ -58,14 +59,18 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
 
         {/* 제목 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-2 block">
-            선물 페이지 제목 <span className="text-red-400">*</span>
-          </label>
+          <div className="mb-2 flex items-center justify-between">
+            <label className="text-sm font-medium text-gray-700">
+              선물 페이지 제목 <span className="text-red-400">*</span>
+            </label>
+            <span className="text-[11px] text-gray-400">{title.length}/{FUNDING_TITLE_MAX_LENGTH}</span>
+          </div>
           <input
             type="text"
+            maxLength={FUNDING_TITLE_MAX_LENGTH}
             placeholder="선물 페이지 제목을 입력해주세요"
             value={title}
-            onChange={(e) => setStep1({ title: e.target.value })}
+            onChange={(e) => setStep1({ title: e.target.value.slice(0, FUNDING_TITLE_MAX_LENGTH) })}
             className={`w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none transition-colors border
               ${errors.title ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-100/70 focus:border-gray-800 focus:bg-white'}`}
           />
@@ -120,11 +125,15 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
 
         {/* 페이지 소개글 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-2 block">페이지 소개글</label>
+          <div className="mb-2 flex items-center justify-between">
+            <label className="text-sm font-medium text-gray-700">페이지 소개글</label>
+            <span className="text-[11px] text-gray-400">{greeting.length}/{FUNDING_INTRODUCTION_MAX_LENGTH}</span>
+          </div>
           <textarea
+            maxLength={FUNDING_INTRODUCTION_MAX_LENGTH}
             placeholder="친구들에게 전하고 싶은 말을 적어주세요"
             value={greeting}
-            onChange={(e) => setStep1({ greeting: e.target.value })}
+            onChange={(e) => setStep1({ greeting: e.target.value.slice(0, FUNDING_INTRODUCTION_MAX_LENGTH) })}
             rows={3}
             className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white resize-none transition-colors"
           />

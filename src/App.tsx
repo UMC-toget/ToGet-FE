@@ -11,6 +11,9 @@ import MyPage from './pages/my/MyPage'
 import ProfileEditPage from './pages/my/ProfileEditPage'
 import AccountListPage from './pages/my/AccountListPage'
 import AccountFormPage from './pages/my/AccountFormPage'
+import AdminProductsPage from './pages/my/AdminProductsPage'
+import AdminProductFormPage from './pages/my/AdminProductFormPage'
+import AdminInvitationThemesPage from './pages/my/AdminInvitationThemesPage'
 import MyGiftListPage from './pages/my/MyGiftListPage'
 import TogetherGiftListPage from './pages/my/TogetherGiftListPage'
 import FundingCreatePage from './pages/FundingCreatePage'
@@ -65,6 +68,12 @@ function App() {
       <Route path="/my/accounts" element={<AccountListPage />} />
       <Route path="/my/accounts/new" element={<AccountFormPage />} />
       <Route path="/my/accounts/:id/edit" element={<AccountFormPage />} />
+      {/* 관리자 전용: 상품 등록/수정/삭제 */}
+      <Route path="/admin/products" element={<AdminProductsPage />} />
+      <Route path="/admin/products/new" element={<AdminProductFormPage />} />
+      <Route path="/admin/products/:productId/edit" element={<AdminProductFormPage />} />
+      {/* 관리자 전용: 초대장 배경 색상/캐릭터 관리 */}
+      <Route path="/admin/invitation-themes" element={<AdminInvitationThemesPage />} />
       <Route path="/my/fundings/my" element={<MyGiftListPage />} />
       <Route path="/my/fundings/together" element={<TogetherGiftListPage />} />
       <Route path="/gift/about" element={<GiftAboutPage />} />

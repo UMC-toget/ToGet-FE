@@ -66,8 +66,8 @@ export default function GiftBrowseSection() {
                 key={c}
                 type="button"
                 onClick={() => handleCategoryChange(c)}
-                className={`rounded-full px-4 py-3 text-b2-m ${
-                  c === category ? 'bg-gray-900 text-white' : 'border border-gray-300 bg-white text-gray-700'
+                className={`rounded-full border px-4 py-3 text-b2-m ${
+                  c === category ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-300 bg-white text-gray-700'
                 }`}
               >
                 {c}
