@@ -17,6 +17,37 @@ export interface SavedAccount {
   accountHolder: string;
 }
 
+function getAccountIdentity(account: SavedAccount): string {
+  return [
+    account.bankName.trim(),
+    account.accountHolder.trim(),
+    account.accountNumber.replace(/\D/g, ''),
+  ].join('|');
+}
+
+export function mergeSavedAccounts(
+  apiAccounts: SavedAccount[],
+  currentAccounts: SavedAccount[],
+  selectedAccountId: string | null,
+) {
+  const selectedAccount = currentAccounts.find((account) => account.id === selectedAccountId);
+  const selectedIdentity = selectedAccount ? getAccountIdentity(selectedAccount) : null;
+  const seen = new Set<string>();
+  const accounts = [...apiAccounts, ...currentAccounts].filter((account) => {
+    const identity = getAccountIdentity(account);
+    if (seen.has(identity)) return false;
+    seen.add(identity);
+    return true;
+  });
+  const remappedSelection = selectedIdentity
+    ? accounts.find((account) => getAccountIdentity(account) === selectedIdentity)?.id ?? null
+    : selectedAccountId && accounts.some((account) => account.id === selectedAccountId)
+      ? selectedAccountId
+      : null;
+
+  return { accounts, selectedAccountId: remappedSelection };
+}
+
 // 수정 플로우에서 "무엇이 바뀌었는지" 비교할 때 쓰는 스냅샷. thumbnailImage는 기존 이미지가
 // 서버에 저장된 URL(string)로 내려오는 걸 가정해서 File 대신 string으로 고정합니다.
 export interface EditableSnapshot {
@@ -174,11 +205,7 @@ export const useFundingCreateStore = create<FundingCreateState>((set) => ({
       };
     }),
   hydrateAccounts: (accounts) =>
-    set((state) => {
-      const apiIds = new Set(accounts.map((account) => account.id));
-      const localAccounts = state.accounts.filter((account) => !apiIds.has(account.id));
-      return { accounts: [...accounts, ...localAccounts] };
-    }),
+    set((state) => mergeSavedAccounts(accounts, state.accounts, state.selectedAccountId)),
   updateAccount: (id, data) =>
     set((state) => ({
       accounts: state.accounts.map((acc) => (acc.id === id ? { ...acc, ...data } : acc)),
