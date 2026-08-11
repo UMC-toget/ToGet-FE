@@ -1,0 +1,117 @@
+name: Dev to Main Release PR
+
+# dev에 병합됐지만 아직 main에는 반영되지 않은 PR이 5개 이상 쌓이면
+# release PR(dev → main)을 자동으로 열고 PR 템플릿에 대상 PR 목록을 채워 넣습니다.
+# main은 브랜치 보호 규칙상 HongYeonLee 계정만 push할 수 있어(main-merge-guard.yml 참고),
+# 실제 병합 버튼은 자동화하지 않고 사람이 직접 누릅니다.
+#
+# "5개 쌓임" 여부는 별도 카운터 파일 없이, 매번 git ancestry(merge-base --is-ancestor)로
+# main에 아직 없는 dev 병합 PR을 다시 계산합니다 — 항상 정확하고 상태 파일이 어긋날 일이 없습니다.
+on:
+  pull_request:
+    types: [closed]
+    branches: [dev]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  release-pr:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: main 브랜치 히스토리 확보
+        run: git fetch origin main:refs/remotes/origin/main
+
+      - name: main에 아직 없는 dev 병합 PR 계산
+        id: diff
+        run: |
+          gh pr list --repo "${{ github.repository }}" --base dev --state merged --limit 200 \
+            --json number,title,mergedAt,mergeCommit,author \
+            -q '.[] | [.number, .mergedAt, .mergeCommit.oid, .author.login, .title] | @tsv' > prs.tsv
+
+          : > pending.tsv
+          while IFS=$'\t' read -r num merged sha author title; do
+            if ! git merge-base --is-ancestor "$sha" origin/main 2>/dev/null; then
+              printf '%s\t%s\t%s\t%s\n' "$num" "$merged" "$author" "$title" >> pending.tsv
+            fi
+          done < prs.tsv
+
+          sort -t $'\t' -k2 pending.tsv -o pending.tsv
+          count=$(wc -l < pending.tsv | tr -d ' ')
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "main에 아직 반영되지 않은 dev PR: ${count}개"
+
+      - name: 이미 열려 있는 release PR 확인
+        id: existing
+        run: |
+          number=$(gh pr list --repo "${{ github.repository }}" --base main --head dev --state open --json number -q '.[0].number // empty')
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+
+      - name: PR 본문 생성
+        if: steps.existing.outputs.number != '' || fromJSON(steps.diff.outputs.count) >= 5
+        run: |
+          count=$(wc -l < pending.tsv | tr -d ' ')
+          {
+            echo '## 🔗 관련 이슈'
+            echo '이 PR 자체는 특정 단일 이슈에 종속된 신규 기능이 아니라, dev→main 릴리즈 동기화입니다. (자동 생성됨)'
+            echo
+            echo '---'
+            echo
+            echo '## 📌 작업 개요'
+            echo "dev에 머지된 아래 ${count}개 PR을 main에 반영합니다."
+            echo
+            echo '## 🛠️ 작업 내용'
+            while IFS=$'\t' read -r num merged author title; do
+              echo "- [x] #${num} ${title} — @${author}"
+            done < pending.tsv
+            echo
+            echo '## 🧪 테스트 방법'
+            echo '- `npx tsc -b` 통과 확인'
+            echo '- 머지 후 배포된 사이트에서 위 목록의 주요 변경 흐름이 정상 동작하는지 확인'
+            echo
+            echo '## 📷 스크린샷 (선택)'
+            echo
+            echo '## 💬 리뷰어에게'
+            echo 'dev에 병합된 PR이 5개 이상 쌓여 자동으로 생성/갱신된 release PR입니다. main 브랜치 보호 정책상 병합은 사람이 직접 진행해야 합니다.'
+            echo
+            echo '---'
+            echo
+            echo '## ✅ PR 체크리스트'
+            echo '- [x] 이슈 번호가 연결되어 있다 (포함된 각 PR에 연결됨)'
+            echo '- [x] 브랜치 대상이 `main`으로 설정되어 있다 (이 PR은 dev → main 릴리즈 병합)'
+            echo '- [ ] Assignee가 본인으로 설정되어 있다'
+            echo '- [ ] Reviewer가 타 파트원으로 설정되어 있다'
+            echo '- [x] prefix / status / priority 라벨이 각각 설정되어 있다'
+            echo '- [x] 코드 컨벤션을 준수하였다'
+            echo '- [x] 하나의 커밋에 하나의 논리적 변경만 포함되어 있다 (릴리즈 병합 특성상 다수 커밋 포함)'
+          } > body.md
+
+      - name: release PR 생성 또는 갱신
+        if: steps.existing.outputs.number != '' || fromJSON(steps.diff.outputs.count) >= 5
+        run: |
+          count=$(wc -l < pending.tsv | tr -d ' ')
+          first=$(head -n 1 pending.tsv | cut -f1)
+          last=$(tail -n 1 pending.tsv | cut -f1)
+          title="release: dev → main 동기화 (${count}건, #${first}~#${last})"
+
+          if [ -n "${{ steps.existing.outputs.number }}" ]; then
+            pr_number="${{ steps.existing.outputs.number }}"
+            gh pr edit "$pr_number" --repo "${{ github.repository }}" --title "$title" --body-file body.md
+            echo "기존 release PR #${pr_number} 본문을 갱신했습니다."
+          else
+            gh pr create --repo "${{ github.repository }}" --base main --head dev \
+              --title "$title" --body-file body.md \
+              --label "🔄ci" --label "status:review" --label "priority:high" \
+              --assignee "HongYeonLee"
+            echo "release PR을 새로 생성했습니다."
+          fi
