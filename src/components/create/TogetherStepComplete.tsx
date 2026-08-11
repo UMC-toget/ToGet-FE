@@ -20,7 +20,7 @@ export default function TogetherStepComplete({ fundingId, onViewFunding, onGoHom
   const accentColor = getInvitationAccent(selectedColor);
   const decorationColor = selectedColor === '#FFFFFF' ? accentColor : selectedColor;
 
-  const sharePath = `/funding/${fundingId}/invitation`;
+  const sharePath = `/group/${fundingId}`;
   const shareLink = `toget.kr${sharePath}`;
   const shareUrl = `${window.location.origin}${sharePath}`;
 
