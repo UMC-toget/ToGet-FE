@@ -10,13 +10,13 @@ const WISH_TYPE_OPTIONS: { type: WishType; label: string }[] = [
   { type: 'give', label: '주고 싶은' },
 ]
 
-const NAME_MAX_LENGTH = 30
+const NAME_MAX_LENGTH = 20
 const PRICE_MAX_LENGTH = 15
 
 interface WishFormProps {
   title: string
   submitText: string
-  wishType: WishType
+  wishType: WishType | ''
   onWishTypeChange: (type: WishType) => void
   name: string
   onNameChange: (name: string) => void
@@ -91,12 +91,9 @@ export function WishForm({
           }
           value={name}
           maxLength={NAME_MAX_LENGTH}
-          hideCounter
           onChange={(e) => onNameChange(e.target.value)}
           placeholder={
-            wishType === 'receive'
-              ? '받고 싶은 선물 이름을 입력해 주세요'
-              : '주고 싶은 선물 이름을 입력해 주세요'
+            wishType === 'give' ? '주고 싶은 선물 이름을 입력해 주세요' : '받고 싶은 선물 이름을 입력해 주세요'
           }
         />
 
