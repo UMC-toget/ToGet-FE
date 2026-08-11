@@ -1,11 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Header from '../../components/common/Header'
 import TextField from '../../components/common/TextField'
 import Button from '../../components/common/Button'
 import Toast from '../../components/common/Toast'
+import CategoryChips from '../../components/common/CategoryChips'
+import PhotoActionSheet from '../../components/common/PhotoActionSheet'
 import PlusIcon from '../../components/icons/PlusIcon'
+import CloseIcon from '../../components/icons/CloseIcon'
 import { getProduct, createProduct, updateProduct } from '../../api/products'
 import { GIFT_CATEGORIES } from '../home/products'
 import { uploadImage } from '../../utils/uploadImage'
@@ -43,7 +46,7 @@ export default function AdminProductFormPage() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [selectSheetOpen, setSelectSheetOpen] = useState(false)
 
   const { data: existingProduct } = useQuery({
     queryKey: ['adminProduct', productId],
@@ -67,6 +70,14 @@ export default function AdminProductFormPage() {
   const handleImageSelect = (file: File) => {
     setImageFile(file)
     setImagePreviewUrl(URL.createObjectURL(file))
+  }
+
+  const handleImageRemove = () => {
+    setImagePreviewUrl((prev) => {
+      if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev)
+      return null
+    })
+    setImageFile(null)
   }
 
   const saveMutation = useMutation({
@@ -109,27 +120,18 @@ export default function AdminProductFormPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-12">
-      <Header title={isEditMode ? '선물 수정' : '선물 등록'} />
+      <Header title="선물 관리" />
 
       <div className="flex flex-col gap-4 px-[18px] py-6">
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <label className="text-b1-m text-black">
             선물 유형 <span className="text-pink-500">*</span>
           </label>
-          <div className="flex items-center gap-2">
-            {GIFT_CATEGORIES.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setForm({ ...form, category: c })}
-                className={`rounded-full px-4 py-2 text-b2-m ${
-                  form.category === c ? 'bg-gray-900 text-white' : 'border border-gray-300 bg-white text-gray-700'
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
+          <CategoryChips
+            categories={GIFT_CATEGORIES}
+            selected={form.category}
+            onSelect={(c) => setForm({ ...form, category: c as (typeof GIFT_CATEGORIES)[number] })}
+          />
         </div>
 
         <TextField
@@ -180,41 +182,60 @@ export default function AdminProductFormPage() {
           onChange={(e) => setForm({ ...form, purchaseUrl: e.target.value.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, '') })}
         />
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3 mb-3">
           <label className="text-b1-m text-black">
             선물 이미지 <span className="text-pink-500">*</span>
           </label>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="relative flex size-[123px] items-center justify-center overflow-hidden rounded-2xl bg-background"
-          >
-            {imagePreviewUrl && (
-              <img src={imagePreviewUrl} alt="" className="size-full object-cover" />
-            )}
-            <span className="absolute flex size-8 items-center justify-center rounded-2xl bg-gray-100 text-gray-700 shadow-sm">
-              <PlusIcon className="size-5" />
-            </span>
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) handleImageSelect(file)
-            }}
-          />
+          {imagePreviewUrl ? (
+            <div className="relative size-[123px] overflow-hidden rounded-2xl bg-background">
+              <img
+                src={imagePreviewUrl}
+                alt=""
+                onClick={() => setSelectSheetOpen(true)}
+                className="size-full cursor-pointer object-cover"
+              />
+              <div
+                onClick={() => setSelectSheetOpen(true)}
+                className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/60"
+              >
+                <button
+                  type="button"
+                  aria-label="이미지 삭제"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleImageRemove()
+                  }}
+                  className="flex size-8 items-center justify-center rounded-2xl bg-gray-100 text-gray-600 shadow-[0px_11px_71px_0px_rgba(0,0,0,0.04)]"
+                >
+                  <CloseIcon className="size-5" strokeLinecap="butt" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setSelectSheetOpen(true)}
+              className="relative flex size-[123px] items-center justify-center overflow-hidden rounded-2xl"
+            >
+              <span className="absolute inset-0 rounded-2xl bg-background opacity-50" aria-hidden />
+              <span className="relative flex size-8 items-center justify-center rounded-2xl bg-gray-100 text-gray-600 shadow-[0px_11px_71px_0px_rgba(0,0,0,0.04)]">
+                <PlusIcon className="size-5" />
+              </span>
+            </button>
+          )}
         </div>
 
         <Button
-          disabled={!isFormValid || saveMutation.isPending}
+          disabled={(!isEditMode && !isFormValid) || saveMutation.isPending}
           onClick={() => saveMutation.mutate()}
         >
           {isEditMode ? '수정 완료' : '추가 완료'}
         </Button>
       </div>
+
+      {selectSheetOpen && (
+        <PhotoActionSheet onClose={() => setSelectSheetOpen(false)} onSelect={handleImageSelect} aspectRatio={1} />
+      )}
 
       <Toast open={errorMessage !== null} message={errorMessage ?? ''} standalone />
     </div>
