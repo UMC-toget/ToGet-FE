@@ -23,7 +23,7 @@ export default function SelectModeBar({ count, label, onDelete }: SelectModeBarP
   return (
     <div className="fixed bottom-0 left-1/2 z-30 flex h-14 w-full max-w-[402px] -translate-x-1/2 items-center justify-between border-t border-gray-200 bg-gray-100/80 px-[18px] backdrop-blur-[30px]">
       <span className="size-6" aria-hidden />
-      <p className="text-b1-m text-black">{count}개의 {label}{subjectParticle(label)} 선택됨</p>
+      <p className="text-b1-m text-black -translate-y-1">{count}개의 {label}{subjectParticle(label)} 선택됨</p>
       <button
         type="button"
         onClick={onDelete}
