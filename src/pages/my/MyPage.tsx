@@ -9,7 +9,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import { OAUTH_PROVIDER_LABELS } from '../../api/users'
 
-const TOAST_DURATION_MS = 2500
+const TOAST_DURATION_MS = 2000
 const IN_DEVELOPMENT_MESSAGE = '아직 개발 중인 기능이에요'
 
 const MENU_SECTIONS: { title: string; items: { label: string; path?: string }[] }[] = [
