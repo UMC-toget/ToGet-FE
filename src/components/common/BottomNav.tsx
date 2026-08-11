@@ -32,6 +32,8 @@ export default function BottomNav({ active }: BottomNavProps) {
 
   return (
     <>
+      {/* 네비바 뒤 배경이 아래로 갈수록 흰색으로 페이드되는 그라디언트 (피그마 1746:51319 기준) */}
+      <div className="pointer-events-none fixed bottom-0 left-1/2 z-30 h-[125px] w-full max-w-[402px] -translate-x-1/2 bg-gradient-to-b from-white/0 to-white/80" />
       <nav className="fixed bottom-8 left-1/2 z-40 flex w-full max-w-[402px] -translate-x-1/2 items-center justify-between px-[18px]">
         <div
           className={`flex items-center gap-5 rounded-full border border-gray-200 bg-gray-100/80 py-1 shadow-[0px_20px_250px_0px_rgba(0,0,0,0.04)] backdrop-blur-[30px] ${pillPadding}`}
@@ -59,7 +61,7 @@ export default function BottomNav({ active }: BottomNavProps) {
           type="button"
           aria-label="선물 페이지 만들기"
           onClick={() => setWishSheetOpen(true)}
-          className="flex size-14 items-center justify-center rounded-full bg-gray-900 text-white shadow-[0px_4px_20px_0px_rgba(0,0,0,0.25)]"
+          className="flex size-14 items-center justify-center rounded-full bg-gray-900 text-white shadow-[0px_20px_250px_0px_rgba(0,0,0,0.04)]"
         >
           <PlusIcon className="size-6" />
         </button>

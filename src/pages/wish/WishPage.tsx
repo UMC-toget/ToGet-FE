@@ -186,7 +186,7 @@ export default function WishPage() {
 
         {/* Product Cards Grid */}
         {wishedProducts.length > 0 ? (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-8">
             {wishedProducts.map((product) => (
               <WishProductCard
                 key={product.id}
