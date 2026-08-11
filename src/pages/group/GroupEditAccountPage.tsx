@@ -31,22 +31,17 @@ export default function GroupEditAccountPage() {
   const [saveError, setSaveError] = useState('')
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
 
-  // 현재 펀딩 계좌를 등록 계좌 목록에서 계좌번호로 매칭해 초기 선택값을 정합니다.
-  // getFundingAccount는 userAccountId를 안 주므로 은행/계좌번호로 찾아야 합니다.
+  // 현재 펀딩 계좌의 userAccountId를 초기 선택값으로 씁니다.
   useEffect(() => {
     if (!id) return
     let cancelled = false
-    Promise.all([getFundingAccount(id), getUserAccounts()])
-      .then(([fundingAccount, registeredAccounts]) => {
-        if (cancelled) return
-        const normalized = fundingAccount.account.replace(/\D/g, '')
-        const matched = registeredAccounts.find(
-          (account) => account.bankName === fundingAccount.bankName && account.account === normalized,
-        )
-        if (matched) setInitialSelectedAccountId(matched.userAccountId)
+    getFundingAccount(id)
+      .then((fundingAccount) => {
+        if (cancelled || fundingAccount.userAccountId == null) return
+        setInitialSelectedAccountId(fundingAccount.userAccountId)
       })
       .catch(() => {
-        // 등록 계좌 조회 실패 시엔 새 계좌 등록 흐름으로 진행합니다.
+        // 계좌 미등록 등으로 조회 실패 시엔 새 계좌 등록 흐름으로 진행합니다.
       })
     return () => { cancelled = true }
   }, [id])
