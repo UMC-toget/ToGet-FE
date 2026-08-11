@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Header from '../../components/common/Header'
 import Toast from '../../components/common/Toast'
 import BottomSheet from '../../components/common/BottomSheet'
-import CheckIcon from '../../components/icons/CheckIcon'
+import SelectModeBar from '../../components/common/SelectModeBar'
+import SelectCheckBadge from '../../components/common/SelectCheckBadge'
 import { fetchInvitationBackgrounds, fetchCharacters } from '../../api/metaApi'
 import {
   createInvitationBackground,
@@ -178,39 +179,36 @@ export default function AdminInvitationThemesPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-12">
-      <Header
-        title="초대장 관리"
-        right={
-          selectMode ? (
-            <button type="button" onClick={exitSelectMode} className="text-b2-m text-gray-600">
-              취소
-            </button>
-          ) : undefined
-        }
-      />
+      <Header title="초대장 관리" />
 
       <div className="flex flex-col gap-4 px-[18px] py-5">
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => changeTab('color')}
-            className={`rounded-full px-4 py-2 text-b2-m ${tab === 'color' ? 'bg-gray-900 text-white' : 'border border-gray-300 bg-white text-gray-700'}`}
+            className={`rounded-full px-4 text-b2-m ${tab === 'color' ? 'bg-gray-900 py-[11px] text-white' : 'border border-gray-300 bg-white py-[10px] text-gray-700'}`}
           >
             초대장 색상
           </button>
           <button
             type="button"
             onClick={() => changeTab('character')}
-            className={`rounded-full px-4 py-2 text-b2-m ${tab === 'character' ? 'bg-gray-900 text-white' : 'border border-gray-300 bg-white text-gray-700'}`}
+            className={`rounded-full px-4 text-b2-m ${tab === 'character' ? 'bg-gray-900 py-[11px] text-white' : 'border border-gray-300 bg-white py-[10px] text-gray-700'}`}
           >
             캐릭터
           </button>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-5">
           <div className="flex items-center justify-between">
             <h2 className="text-b1-m text-black">{tab === 'color' ? '초대장 색상' : '캐릭터'}</h2>
-            <span className="text-b2-r text-gray-400">총 {itemCount}개</span>
+            {selectMode ? (
+              <button type="button" onClick={exitSelectMode} className="text-b2-r text-gray-400">
+                취소
+              </button>
+            ) : (
+              <span className="text-b2-r text-gray-400">총 {itemCount}개</span>
+            )}
           </div>
 
           {tab === 'color' ? (
@@ -220,48 +218,31 @@ export default function AdminInvitationThemesPage() {
                   key={color.id}
                   type="button"
                   onClick={() => handleColorSwatchClick(color)}
-                  // 삭제 선택된 항목만 원색, 그 외(평소 포함)에는 opacity 0.6로 흐리게 (LetterColorPicker와 동일한 피그마 규칙)
-                  // 흰색은 배경(흰 화면)과 구분되도록 진한 테두리, 나머지는 옅은 테두리 (피그마 기준)
-                  className={`relative size-[35px] shrink-0 rounded-[4px] border ${
-                    color.hexCode.toLowerCase() === '#ffffff' ? 'border-gray-400' : 'border-gray-100'
-                  } ${selectMode && selectedIds.has(color.id) ? '' : 'opacity-60'}`}
+                  // 흰색만 배경(흰 화면)과 구분되는 테두리가 있고, 나머지 색상은 테두리 없음 (피그마 기준)
+                  className={`relative size-[35px] shrink-0 rounded-[4px] ${
+                    color.hexCode.toLowerCase() === '#ffffff' ? 'border border-[#D9D9D9]' : ''
+                  }`}
                   style={{ backgroundColor: color.hexCode }}
                   aria-label={color.name}
                 >
-                  {selectMode && (
-                    <span
-                      className={`absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full border border-gray-200 ${
-                        selectedIds.has(color.id) ? 'bg-gray-900 text-white' : 'bg-white text-transparent'
-                      }`}
-                    >
-                      <CheckIcon className="size-3" />
-                    </span>
-                  )}
+                  {selectMode && <SelectCheckBadge selected={selectedIds.has(color.id)} position="inset-0 m-auto" />}
                 </button>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {characters.map((character, index) => (
                 <button
                   key={character.id}
                   type="button"
                   onClick={() => selectMode && toggleSelected(character.id)}
-                  className="relative flex flex-col items-center gap-2 rounded-xl bg-background p-4"
+                  className="relative flex flex-col items-center gap-1.5 rounded-xl bg-background p-4"
                 >
-                  <img src={character.imageUrl} alt={character.name} className="size-24 object-contain" />
-                  <span className="rounded-full bg-pink-500 px-2 py-0.5 text-caption2-r text-white">
+                  <img src={character.imageUrl} alt={character.name} className="size-30 object-contain" />
+                  <span className="rounded-[3.46px] bg-pink-500 px-1.5 py-[4.73px] text-caption2-r text-white">
                     No.{String(index + 1).padStart(2, '0')}
                   </span>
-                  {selectMode && (
-                    <span
-                      className={`absolute right-2 top-2 flex size-5 items-center justify-center rounded-full border border-gray-200 ${
-                        selectedIds.has(character.id) ? 'bg-gray-900 text-white' : 'bg-white text-transparent'
-                      }`}
-                    >
-                      <CheckIcon className="size-3" />
-                    </span>
-                  )}
+                  {selectMode && <SelectCheckBadge selected={selectedIds.has(character.id)} position="right-3 top-3" />}
                 </button>
               ))}
             </div>
@@ -282,18 +263,7 @@ export default function AdminInvitationThemesPage() {
       />
 
       {selectMode ? (
-        <div className="fixed inset-x-0 bottom-0 mx-auto flex w-full max-w-[402px] items-center justify-between border-t border-gray-100 bg-white px-[18px] py-4">
-          <p className="text-b2-m text-black">{selectedIds.size}개의 {selectedLabel}이 선택됨</p>
-          <button
-            type="button"
-            onClick={handleDeleteClick}
-            disabled={selectedIds.size === 0}
-            className="text-pink-500 disabled:text-gray-300"
-            aria-label="삭제"
-          >
-            삭제
-          </button>
-        </div>
+        <SelectModeBar count={selectedIds.size} label={selectedLabel} onDelete={handleDeleteClick} />
       ) : (
         <div className="fixed inset-x-0 bottom-0 mx-auto flex w-full max-w-[402px] gap-3 bg-white px-[18px] py-4">
           <button
