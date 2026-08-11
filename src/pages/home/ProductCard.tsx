@@ -2,6 +2,7 @@ import { useState } from 'react'
 import GiftIcon from '../../components/icons/GiftIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import ConfirmModal from '../../components/common/ConfirmModal'
+import { useImageHasBackground } from '../../hooks/useImageHasBackground'
 import type { Product } from './products'
 
 interface ProductCardProps {
@@ -21,6 +22,7 @@ interface ProductCardProps {
 export default function ProductCard({ product, rank, isLoggedIn, wished, onLoginRequired, onWishClick }: ProductCardProps) {
   const [imageBroken, setImageBroken] = useState(false)
   const [linkConfirmOpen, setLinkConfirmOpen] = useState(false)
+  const hasBackground = useImageHasBackground(product.image || null)
 
   const handleCardClick = () => {
     if (product.link) setLinkConfirmOpen(true)
@@ -38,12 +40,15 @@ export default function ProductCard({ product, rank, isLoggedIn, wished, onLogin
   return (
     <>
       <button type="button" onClick={handleCardClick} className="flex flex-col text-left">
-        <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-background p-3">
+        <div
+          className={`relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-background ${hasBackground ? '' : 'p-3'}`}
+        >
           {product.image && !imageBroken ? (
             <img
               src={product.image}
               alt={product.name}
-              className="max-h-[75%] max-w-[80%] object-contain"
+              crossOrigin="anonymous"
+              className={hasBackground ? 'size-full object-cover' : 'max-h-[75%] max-w-[80%] object-contain'}
               onError={() => setImageBroken(true)}
             />
           ) : (
