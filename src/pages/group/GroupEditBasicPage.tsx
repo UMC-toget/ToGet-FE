@@ -57,7 +57,9 @@ export default function GroupEditBasicPage() {
           memo: data.introduction ?? '',
           thumbnailImage: data.thumbnailImageUrl ?? null,
         })
-        // 준비 기간(startDate/endDate)은 대시보드 응답에 없어 prefill 불가 → 사용자가 다시 선택해야 함 (BE 필드 추가 요청 중)
+        // 준비 기간도 prefill. 아직 안 내려오는 서버면 undefined라 빈칸 유지 → 사용자가 다시 선택
+        if (data.startDate) setStartDate(data.startDate)
+        if (data.endDate) setEndDate(data.endDate)
       })
       .catch(() => {
         // 조회 실패 시 빈 폼 유지 (mock/네트워크 방어)
