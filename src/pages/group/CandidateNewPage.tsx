@@ -15,6 +15,7 @@ import { postGiftCandidate } from '../../api/groupFundings'
 import { useWishedProducts } from '../wish/hooks/useWishedProducts'
 import type { WishType } from '../../store/wishStore'
 import type { Product } from '../home/products'
+import { sanitizePurchaseUrl } from '../../utils/sanitizePurchaseUrl'
 
 // 접근: 공동관리자 · 개설자 (CO_HOST 이상) | H06 선물 후보 등록하기
 const MEMO_MAX_LENGTH = 60
@@ -318,7 +319,7 @@ export default function CandidateNewPage() {
                   <input
                     type="url"
                     value={inputLink}
-                    onChange={e => setInputLink(e.target.value)}
+                    onChange={e => setInputLink(sanitizePurchaseUrl(e.target.value))}
                     placeholder="등록할 상품의 구매 링크를 입력하세요."
                     className="flex-1 bg-transparent text-b1-r text-black placeholder:text-gray-400 focus:outline-none"
                   />

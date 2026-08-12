@@ -56,7 +56,9 @@ export default function GroupPage() {
   useEffect(() => {
     if (!id) return
     // DEV 미리보기: API 기다리지 않고 mock 즉시 세팅 (status만 쿼리로 덮어씀)
+    // 쿼리(status/role)로 상태를 바꿔가며 확인하는 개발 전용 경로라 effect에서 바로 세팅한다.
     if (devPreview) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setGroup({ ...MOCK_DASHBOARD, status: devStatus ?? MOCK_DASHBOARD.status })
       setContributions(MOCK_CONTRIBUTIONS)
       setLoading(false)
