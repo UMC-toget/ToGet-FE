@@ -5,6 +5,7 @@ import Button from '../../components/common/Button'
 import StickyBottomBar from '../../components/common/StickyBottomBar'
 import Toast from '../../components/common/Toast'
 import DefaultAvatar from '../../components/common/DefaultAvatar'
+import RoleRibbon from './RoleRibbon'
 import togetherFundingFallback from '../../assets/together-funding-empty.svg'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import LinkIcon from '../../components/icons/LinkIcon'
@@ -373,7 +374,7 @@ export default function GroupPage() {
                 <div className="flex items-center gap-[30px]">
                   {visibleMembers.map(m => (
                     <div key={m.fundingMemberId} className="flex items-center gap-2">
-                      <div className="mt-[5px] shrink-0">
+                      <div className="relative mt-[5px] flex shrink-0">
                         {getMemberProfileImageUrl(m) ? (
                           <img
                             src={getMemberProfileImageUrl(m) ?? undefined}
@@ -383,10 +384,14 @@ export default function GroupPage() {
                         ) : (
                           <DefaultAvatar className="size-[26px] shrink-0" />
                         )}
+                        <RoleRibbon
+                          role={m.role}
+                          className="absolute bottom-[21px] left-1/2 h-[10.24px] w-[17px] -translate-x-1/2"
+                        />
                       </div>
                       <div className="flex flex-col gap-1">
                         <span className="text-[8px] font-normal leading-[10px] text-[#797378]">{ROLE_LABELS[m.role]}</span>
-                        <span className="max-w-[34px] truncate text-caption1-m text-[#111111]">
+                        <span className="max-w-[34px] truncate text-caption1-m leading-[17px] text-[#111111]">
                           {m.name || (m.userId === profile?.userId ? profile?.nickname : '')}
                         </span>
                       </div>

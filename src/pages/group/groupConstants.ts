@@ -9,8 +9,8 @@ export const STATUS_LABELS: Record<GroupFundingStatus, string> = {
 }
 
 export const ROLE_LABELS: Record<MemberSummary['role'], string> = {
-  CREATOR: '개설자',
-  ADMIN: '참여자',
+  CREATOR: '방장',
+  ADMIN: '부방장',
   PARTICIPANT: '참여자',
 }
 
