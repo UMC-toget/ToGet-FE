@@ -112,8 +112,10 @@ export default function FundingDetailPage() {
     try {
       await updateFundingStatus(id, 'ENDED')
       setRealFunding(prev => prev ? { ...prev, status: 'ENDED' } : null)
+      setToastState({ message: '펀딩이 마감되었어요.' })
     } catch (e) {
       console.error('마감 처리 실패', e)
+      setToastState({ message: '펀딩 마감에 실패했어요. 잠시 후 다시 시도해 주세요.' })
     }
     setShowEndConfirm(false)
   }
