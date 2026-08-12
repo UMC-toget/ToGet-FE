@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import BottomSheet from '../../components/common/BottomSheet'
 import Toast from '../../components/common/Toast'
@@ -16,6 +16,7 @@ import { postGiftCandidate } from '../../api/groupFundings'
 import { useWishedProducts, type SortOrder } from '../wish/hooks/useWishedProducts'
 import type { WishType } from '../../store/wishStore'
 import type { Product } from '../home/products'
+import type { ConfirmedGift } from './ConfirmPage'
 import { sanitizePurchaseUrl } from '../../utils/sanitizePurchaseUrl'
 
 // 접근: 공동관리자 · 개설자 (CO_HOST 이상) | H06 선물 후보 등록하기
@@ -45,13 +46,34 @@ function readCandidateDraft(fundingId: string | undefined): CandidateDraft | nul
 export default function CandidateNewPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // 다른 화면(선물 목록 수정 등)에서 넘어온 진입 정보
+  const navState = location.state as { openWish?: boolean; giftMode?: boolean; returnTo?: string; returnState?: unknown } | null
+  // '위시 불러오기'로 진입하면 도착 즉시 위시 시트를 연다
+  const openWishOnEnter = navState?.openWish ?? false
+  // 확정 선물 추가 진입(선물 목록 수정)이면 문구를 '후보' 대신 '선물' 버전으로 표시한다
+  const isGiftMode = navState?.giftMode ?? false
+  // 등록/나가기 후 이동할 곳. 진입 출처(returnTo)가 있으면 그 화면으로 상태 복원하며 복귀, 없으면 후보 목록으로.
+  // newGift가 있으면(등록 성공) 복귀 화면의 확정 선물 목록에 추가해서 넘긴다.
+  const goAfterDone = (newGift?: ConfirmedGift) => {
+    if (!navState?.returnTo) {
+      navigate(`/group/${id}/candidates`)
+      return
+    }
+    const prev = navState.returnState as { confirmedGifts?: ConfirmedGift[] } | null
+    const state = newGift
+      ? { ...prev, confirmedGifts: [...(prev?.confirmedGifts ?? []), newGift] }
+      : navState.returnState
+    navigate(navState.returnTo, { state })
+  }
 
   // 임시저장된 내용이 있으면 그 값으로 폼을 복원한다 (없으면 기본값)
   const [initialDraft] = useState(() => readCandidateDraft(id))
   const [pageStep, setPageStep] = useState<PageStep>(initialDraft?.pageStep ?? 'select')
   const [selectedWishItem, setSelectedWishItem] = useState<Product | null>(initialDraft?.selectedWishItem ?? null)
 
-  const [showWishSheet, setShowWishSheet] = useState(false)
+  const [showWishSheet, setShowWishSheet] = useState(openWishOnEnter)
   const [wishSearch, setWishSearch] = useState('')
   const [wishFilter, setWishFilter] = useState<'all' | WishType>('all')
   const [selectedWishId, setSelectedWishId] = useState<number | null>(null)
@@ -72,6 +94,8 @@ export default function CandidateNewPage() {
   const [showLeavePopup, setShowLeavePopup] = useState(false)
   const [showConfirmPopup, setShowConfirmPopup] = useState(false)
   const [showCompletePopup, setShowCompletePopup] = useState(false)
+  // 위시 등록 성공 시 방금 등록한 선물을 담아두고, 완료 팝업 버튼에서 복귀할 때 확정 목록에 추가한다
+  const [registeredGift, setRegisteredGift] = useState<ConfirmedGift | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [errorToast, setErrorToast] = useState<string | null>(null)
 
@@ -161,7 +185,7 @@ export default function CandidateNewPage() {
       // 저장 실패해도 이동은 막지 않는다
     }
     setShowLeavePopup(false)
-    navigate(`/group/${id}/candidates`)
+    goAfterDone()
   }
 
   // 등록이 끝나면 임시저장을 비운다
@@ -178,12 +202,18 @@ export default function CandidateNewPage() {
     setSubmitting(true)
     setShowConfirmPopup(false)
     try {
-      await postGiftCandidate(id!, {
+      const res = await postGiftCandidate(id!, {
         giftName: selectedWishItem.name,
         giftPrice: selectedWishItem.price,
         note: memo.trim(),
       })
       clearDraft()
+      setRegisteredGift({
+        id: res.fundingGiftId,
+        name: selectedWishItem.name,
+        price: selectedWishItem.price,
+        imageUrl: selectedWishItem.image || null,
+      })
       setShowCompletePopup(true)
     } catch (e: unknown) {
       const status = (e as { response?: { status?: number } })?.response?.status
@@ -199,13 +229,18 @@ export default function CandidateNewPage() {
     if (!directCanSubmit || submitting) return
     setSubmitting(true)
     try {
-      await postGiftCandidate(id!, {
+      const res = await postGiftCandidate(id!, {
         giftName: inputName.trim(),
         giftPrice: parsedPrice,
         note: memo.trim(),
       })
       clearDraft()
-      navigate(`/group/${id}/candidates`)
+      goAfterDone({
+        id: res.fundingGiftId,
+        name: inputName.trim(),
+        price: parsedPrice,
+        imageUrl: directImagePreview,
+      })
     } catch (e: unknown) {
       const status = (e as { response?: { status?: number } })?.response?.status
       if (status === 401) showError('로그인이 필요해요')
@@ -220,10 +255,10 @@ export default function CandidateNewPage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
       {/* 헤더 — direct 단계는 나가기 없이 뒤로가기만 */}
       {pageStep === 'direct' ? (
-        <Header title="선물 후보 등록하기" onBack={() => setPageStep('select')} />
+        <Header title={isGiftMode ? '선물 등록하기' : '선물 후보 등록하기'} onBack={() => setPageStep('select')} />
       ) : (
         <Header
-          title="선물 후보 등록하기"
+          title={isGiftMode ? '선물 등록하기' : '선물 후보 등록하기'}
           right={
             <button type="button" onClick={() => setShowLeavePopup(true)} className="text-b2-m text-[#797378]">
               나가기
@@ -236,7 +271,7 @@ export default function CandidateNewPage() {
       {pageStep === 'select' && (
         <div className="flex flex-col gap-6 px-[18px] pt-7">
           <div className="flex flex-col gap-2">
-            <h2 className="text-h3-sb text-black">후보 선물을 등록해주세요</h2>
+            <h2 className="text-h3-sb text-black">{isGiftMode ? '추가할 선물을 등록해주세요' : '후보 선물을 등록해주세요'}</h2>
             <p className="text-caption1-r text-gray-600">
               새로운 선물로 등록할 수 있고, 위시를 불러올 수도 있어요.
             </p>
@@ -275,7 +310,7 @@ export default function CandidateNewPage() {
         <div className="flex flex-1 flex-col overflow-y-auto px-[18px] pb-8 pt-7">
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-2.5">
-              <h2 className="text-h3-sb text-black">후보 선물을 등록해주세요</h2>
+              <h2 className="text-h3-sb text-black">{isGiftMode ? '추가할 선물을 등록해주세요' : '후보 선물을 등록해주세요'}</h2>
               <p className="text-caption1-r text-[#797378]">등록자 이름이 함께 표시돼요</p>
             </div>
 
@@ -304,7 +339,7 @@ export default function CandidateNewPage() {
                     value={inputName}
                     maxLength={30}
                     onChange={e => setInputName(e.target.value.slice(0, 30))}
-                    placeholder="등록할 선물 후보 이름을 입력하세요."
+                    placeholder={isGiftMode ? '등록할 선물 이름을 입력하세요.' : '등록할 선물 후보 이름을 입력하세요.'}
                     className="flex-1 bg-transparent text-b1-r text-black placeholder:text-gray-400 focus:outline-none"
                   />
                 </div>
@@ -394,7 +429,7 @@ export default function CandidateNewPage() {
               directCanSubmit ? 'bg-gray-900' : 'bg-[#C1BCC0]'
             }`}
           >
-            후보 등록하기
+            {isGiftMode ? '선물 등록하기' : '후보 등록하기'}
           </button>
         </div>
       )}
@@ -404,7 +439,7 @@ export default function CandidateNewPage() {
         <div className="flex flex-1 flex-col px-[18px] pb-8 pt-7">
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-2">
-              <h2 className="text-h3-sb text-black">후보 선물을 등록해주세요</h2>
+              <h2 className="text-h3-sb text-black">{isGiftMode ? '추가할 선물을 등록해주세요' : '후보 선물을 등록해주세요'}</h2>
               <p className="text-caption1-r text-[#797378]">등록자 이름이 함께 표시돼요</p>
             </div>
 
@@ -466,7 +501,7 @@ export default function CandidateNewPage() {
               formCanSubmit ? 'bg-gray-900' : 'bg-[#C1BCC0]'
             }`}
           >
-            후보 등록하기
+            {isGiftMode ? '선물 등록하기' : '후보 등록하기'}
           </button>
         </div>
       )}
@@ -474,7 +509,7 @@ export default function CandidateNewPage() {
       {/* 나가기 확인 팝업 */}
       <EmojiPopup
         open={showLeavePopup}
-        title={'작성 중인 후보 등록 페이지를\n나가시겠어요?'}
+        title={isGiftMode ? '작성 중인 선물 등록 페이지를\n나가시겠어요?' : '작성 중인 후보 등록 페이지를\n나가시겠어요?'}
         titleClassName="whitespace-pre-line text-center text-h3-sb leading-[1.4]"
         description={'지금 나가면 현재까지 입력한 내용이 저장되고,\n다음에 다시 이어서 작성할 수 있어요'}
         buttons={[
@@ -487,7 +522,7 @@ export default function CandidateNewPage() {
       {/* 후보 등록 확인 팝업 */}
       <EmojiPopup
         open={showConfirmPopup}
-        title="후보 등록을 완료하시겠어요?"
+        title={isGiftMode ? '등록을 완료하시겠어요?' : '후보 등록을 완료하시겠어요?'}
         description="등록 버튼을 누르면, 수정이 불가해요."
         buttons={[
           { label: '수정하기', variant: 'secondary', onClick: () => setShowConfirmPopup(false) },
@@ -508,11 +543,11 @@ export default function CandidateNewPage() {
                     <path d="M5 12L10 17L19 8" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <p className="text-center text-[18px] font-semibold text-black">선물 후보 등록이 완료되었습니다</p>
+                <p className="text-center text-[18px] font-semibold text-black">{isGiftMode ? '선물 등록이 완료되었습니다' : '선물 후보 등록이 완료되었습니다'}</p>
               </div>
               <button
                 type="button"
-                onClick={() => navigate(`/group/${id}/candidates`)}
+                onClick={() => goAfterDone(registeredGift ?? undefined)}
                 className="flex h-[42px] w-full items-center justify-center rounded-lg bg-gray-900 text-[14px] font-semibold text-white"
               >
                 홈으로 돌아가기
