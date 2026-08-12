@@ -203,7 +203,10 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
                         : 'border border-transparent'
                   }`}
                   style={{
-                    background: `color-mix(in srgb, ${background.hexCode} 30%, white)`,
+                    background:
+                      inviteBackgroundId === background.id
+                        ? background.hexCode
+                        : `color-mix(in srgb, ${background.hexCode} 50%, white)`,
                     ...(inviteBackgroundId === background.id && { borderColor: background.hexCode }),
                   }}
                   aria-label={`${background.name} 색상 선택`}
