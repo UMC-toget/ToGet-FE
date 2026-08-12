@@ -91,7 +91,9 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
   // 아직 입력 전이면(필수값) 안내 문구 대신 라벨 그대로 자리표시용으로 보여줍니다.
   const displayTitle = inviteTitle || '초대장 제목';
   const displayContent = inviteContent || '초대장 내용';
-  const isFormValid = inviteTitle.trim().length > 0 && inviteContent.trim().length > 0;
+  const currentCharacter = characters.find((item) => item.id === inviteCharacter) ?? characters[0];
+  const isMetaReady = !isLoading && !backgroundError && !characterError && Boolean(inviteBackgroundId) && Boolean(currentCharacter);
+  const isFormValid = inviteTitle.trim().length > 0 && inviteContent.trim().length > 0 && isMetaReady;
 
   const changeCharacter = (delta: number) => {
     if (!characters.length) return;
@@ -100,7 +102,6 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
     setInvite({ inviteCharacter: characters[nextIndex].id });
   };
 
-  const currentCharacter = characters.find((item) => item.id === inviteCharacter) ?? characters[0];
   const currentCharacterIndex = Math.max(0, characters.findIndex((item) => item.id === currentCharacter?.id));
   const currentCharacterNumber = String(currentCharacterIndex + 1).padStart(2, '0');
   const currentCharacterImage = getCharacterImageSrc(currentCharacter);
