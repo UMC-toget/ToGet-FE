@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import type { MyFundingSummary } from '../../types/funding'
 import { getDdayLabel } from '../../utils/formatDate'
 import { truncateText } from '../../utils/truncateText'
@@ -17,7 +18,8 @@ interface MyFundingCardProps {
 /** 홈 '진행 중인 내 선물 모으기' 카드 (피그마 #1706:62326) */
 export default function MyFundingCard({ funding, onOpen, onShareInvite }: MyFundingCardProps) {
   const dDayLabel = getDdayLabel(funding.anniversaryDate)
-  const hasBackground = useImageHasBackground(funding.thumbnailImage || null)
+  const imgRef = useRef<HTMLImageElement>(null)
+  const hasBackground = useImageHasBackground(imgRef, funding.thumbnailImage || null)
 
   return (
     <div className="flex w-full shrink-0 flex-col gap-5 rounded-xl border border-gray-100 bg-white px-3.5 py-3">
@@ -27,9 +29,11 @@ export default function MyFundingCard({ funding, onOpen, onShareInvite }: MyFund
         >
           {funding.thumbnailImage ? (
             <img
+              ref={imgRef}
               src={funding.thumbnailImage}
               alt=""
               draggable={false}
+              crossOrigin="anonymous"
               className={hasBackground ? 'size-full object-cover' : 'h-[52px] w-[48px] object-cover'}
             />
           ) : (
