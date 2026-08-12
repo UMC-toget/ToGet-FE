@@ -4,6 +4,7 @@ import Button from '../../../components/common/Button'
 import CloseIcon from '../../../components/icons/CloseIcon'
 import PhotoActionSheet from '../../../components/common/PhotoActionSheet'
 import type { WishType } from '../../../store/wishStore'
+import { sanitizePurchaseUrl } from '../../../utils/sanitizePurchaseUrl'
 
 const WISH_TYPE_OPTIONS: { type: WishType; label: string }[] = [
   { type: 'receive', label: '받고 싶은' },
@@ -121,7 +122,7 @@ export function WishForm({
             </>
           }
           value={purchaseUrl}
-          onChange={(e) => onPurchaseUrlChange(e.target.value.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, ''))}
+          onChange={(e) => onPurchaseUrlChange(sanitizePurchaseUrl(e.target.value))}
           placeholder="구매처 링크를 입력해 주세요"
         />
 

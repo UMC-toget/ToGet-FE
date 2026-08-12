@@ -13,6 +13,7 @@ import { getProduct, createProduct, updateProduct } from '../../api/products'
 import { GIFT_CATEGORIES } from '../home/products'
 import { uploadImage } from '../../utils/uploadImage'
 import { useRequireAdmin } from '../../hooks/useRequireAdmin'
+import { sanitizePurchaseUrl } from '../../utils/sanitizePurchaseUrl'
 
 const PRODUCT_IMAGE_PREFIX = 'products'
 const NAME_MAX_LENGTH = 20
@@ -179,7 +180,7 @@ export default function AdminProductFormPage() {
           }
           value={form.purchaseUrl}
           placeholder="구매 가능한 링크를 입력해 주세요"
-          onChange={(e) => setForm({ ...form, purchaseUrl: e.target.value.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, '') })}
+          onChange={(e) => setForm({ ...form, purchaseUrl: sanitizePurchaseUrl(e.target.value) })}
         />
 
         <div className="flex flex-col gap-3 mb-3">

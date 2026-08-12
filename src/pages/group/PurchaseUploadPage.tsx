@@ -6,6 +6,7 @@ import PlusIcon from '../../components/icons/PlusIcon'
 import PhotoActionSheet from '../../components/common/PhotoActionSheet'
 import { getTogetherGiftDashboard, postGiftPurchase } from '../../api/groupFundings'
 import { uploadImage } from '../../utils/uploadImage'
+import { sanitizePurchaseUrl } from '../../utils/sanitizePurchaseUrl'
 import { MOCK_DASHBOARD } from './groupMock'
 
 const PURCHASE_IMAGE_PREFIX = 'purchases'
@@ -75,7 +76,7 @@ export default function PurchaseUploadPage() {
             <input
               type="url"
               value={link}
-              onChange={e => setLink(e.target.value)}
+              onChange={e => setLink(sanitizePurchaseUrl(e.target.value))}
               placeholder="상품을 구매한 구매처의 링크를 적어주세요."
               className="flex-1 bg-transparent text-b1-r text-black placeholder:text-gray-400 focus:outline-none"
             />
