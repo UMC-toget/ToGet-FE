@@ -625,7 +625,7 @@ export default function GroupPage() {
           </>
         )}
       </StickyBottomBar>
-      <Toast open={toastOpen} message="초대장 링크가 복사되었습니다." variant="pink" bottomClass="bottom-[102px]" />
+      <Toast open={toastOpen} message="초대장 링크가 복사되었습니다." bottomClass="bottom-[102px]" />
       <LetterModal
         open={selectedLetter !== null}
         hostName={`${group.recipientName}님`}
