@@ -445,30 +445,19 @@ export default function GroupPage() {
         )}
 
         {/* 축하 메세지 섹션 — SELECTING 홈에선 숨김. SETTLING 이후 전 상태에서 봉투 아이콘으로 노출.
-            헤더 액션: ENDED는 '더보기'(전체 보기), 그 외(SETTLING~DELIVERING)는 '편지 남기기' */}
+            헤더 액션: 역할·상태 무관하게 항상 '더보기'(전체 축하 메세지 보기) */}
         {contributions.length > 0 && group.status !== 'SELECTING' && (
           <div className="flex flex-col gap-[9px]">
             <div className="flex flex-col gap-[9px]">
               <div className="flex items-center justify-between">
                 <span className="text-h3-sb text-black">축하 메세지</span>
-                {group.status === 'ENDED' ? (
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/group/${id}/messages`)}
-                    className="text-b1-m text-gray-600"
-                  >
-                    더보기
-                  </button>
-                ) : effectiveLoggedIn ? (
-                  // 편지 남기기는 로그인 필요 액션 — 비로그인 게스트에겐 미노출
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/group/${id}/letter`, { state: { recipientName: group.recipientName } })}
-                    className="text-b2-m text-pink-500"
-                  >
-                    편지 남기기
-                  </button>
-                ) : null}
+                <button
+                  type="button"
+                  onClick={() => navigate(`/group/${id}/messages`)}
+                  className="text-b1-m text-gray-600"
+                >
+                  더보기
+                </button>
               </div>
               <p className="text-caption1-r text-gray-600">봉투를 탭하면 메세지를 확인할 수 있어요</p>
             </div>

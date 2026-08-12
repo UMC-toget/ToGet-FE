@@ -18,7 +18,8 @@ export default function AmountStep({ funding, amount, onAmountChange }: AmountSt
 
   const handleInput = (value: string) => {
     // 앞자리 0 제거 (D 섹션 가격 입력의 '첫 숫자 1~9' 규칙과 동일) — '0'만 입력해도 미선택 유지
-    const digits = value.replace(/[^0-9]/g, '').replace(/^0+/, '')
+    // 최대 15자리까지만 받음 (오버플로우·비정상 큰 금액 입력 방지)
+    const digits = value.replace(/[^0-9]/g, '').replace(/^0+/, '').slice(0, 15)
     onAmountChange(digits === '' ? null : Number(digits))
   }
 
