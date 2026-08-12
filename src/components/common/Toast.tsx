@@ -10,6 +10,8 @@ interface ToastProps {
   variant?: 'default' | 'pink'
   /** bottom 위치 override (예: "bottom-[102px]"). 미지정 시 standalone 여부에 따라 자동 결정 */
   bottomClass?: string
+  /** z-index override (예: "z-[60]"). 바텀시트(z-50) 위에 띄워야 할 때처럼 기본값(z-40)으로 가려지는 경우에 사용 */
+  zIndexClass?: string
 }
 
 /**
@@ -21,14 +23,23 @@ interface ToastProps {
  * <Toast open={toastOpen} message="선물 페이지가 수정 완료되었습니다" actionLabel="실행취소" onAction={handleUndo} />
  * <Toast open={toastOpen} message="초대장 링크가 복사되었습니다." variant="pink" />
  */
-export default function Toast({ message, open, actionLabel, onAction, standalone, variant = 'default', bottomClass }: ToastProps) {
+export default function Toast({
+  message,
+  open,
+  actionLabel,
+  onAction,
+  standalone,
+  variant = 'default',
+  bottomClass,
+  zIndexClass = 'z-40',
+}: ToastProps) {
   if (!open) return null
 
   const bottom = bottomClass ?? (standalone ? 'bottom-16' : 'bottom-[88px]')
 
   if (variant === 'pink') {
     return (
-      <div className={`fixed left-1/2 z-40 w-full max-w-[402px] -translate-x-1/2 px-[18px] ${bottom}`}>
+      <div className={`fixed left-1/2 ${zIndexClass} w-full max-w-[402px] -translate-x-1/2 px-[18px] ${bottom}`}>
         <div style={{ display: 'flex', width: '367px', height: '44px', padding: '15px 140px 15px 18px', alignItems: 'center', gap: '10px', borderRadius: '8px', background: 'rgba(255, 227, 237, 0.90)' }}>
           <div style={{ display: 'flex', width: '25px', height: '25px', padding: '8.333px', justifyContent: 'center', alignItems: 'center', gap: '8.333px', flexShrink: 0, borderRadius: '999px', background: '#FE71A5' }}>
             <svg width="10.417" height="6.944" viewBox="0 0 12 9" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
@@ -43,7 +54,7 @@ export default function Toast({ message, open, actionLabel, onAction, standalone
 
   return (
     <div
-      className={`fixed left-1/2 z-40 w-full max-w-[402px] -translate-x-1/2 px-[18px] ${bottom}`}
+      className={`fixed left-1/2 ${zIndexClass} w-full max-w-[402px] -translate-x-1/2 px-[18px] ${bottom}`}
     >
       <div
         className={`flex h-11 items-center rounded-[5px] bg-[rgba(30,29,30,0.8)] px-[14px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.3)] backdrop-blur-[30px] ${

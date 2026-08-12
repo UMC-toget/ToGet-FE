@@ -39,6 +39,10 @@ export interface TogetherGiftDashboard {
   status: GroupFundingStatus
   fundingTitle?: string
   anniversaryDate: string
+  /** 준비 기간 시작일 "YYYY-MM-DD" (수정 화면 prefill용) */
+  startDate?: string | null
+  /** 준비 기간 종료일 "YYYY-MM-DD" (수정 화면 prefill용) */
+  endDate?: string | null
   recipientName: string
   introduction: string
   thumbnailImageUrl: string | null

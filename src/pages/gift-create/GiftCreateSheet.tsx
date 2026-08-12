@@ -6,8 +6,8 @@ import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import bannerCat from '../../assets/banner-cat.svg'
 import togetherCat from '../../assets/together-cat.svg'
 import type { GiftPageType } from './giftTypes'
-import { useIndividualDraft } from './useIndividualDraft'
-import { useTogetherDraft } from './useTogetherDraft'
+import { useDeleteIndividualDraft, useIndividualDraft } from './useIndividualDraft'
+import { useDeleteTogetherDraft, useTogetherDraft } from './useTogetherDraft'
 import { useAuth } from '../../hooks/useAuth'
 
 interface GiftCreateCardInfo {
@@ -54,6 +54,8 @@ export default function GiftCreateSheet({
   const individualDraftQuery = useIndividualDraft()
   // '함께 선물 페이지'(together)도 실제 임시저장 API로 draft 여부를 확인
   const togetherDraftQuery = useTogetherDraft()
+  const deleteIndividualDraft = useDeleteIndividualDraft()
+  const deleteTogetherDraft = useDeleteTogetherDraft()
 
   const handleSelectCard = useCallback(
     (type: GiftPageType) => {
@@ -79,12 +81,26 @@ export default function GiftCreateSheet({
     [individualDraftQuery.isLoading, individualDraftQuery.data, togetherDraftQuery.isLoading, togetherDraftQuery.data, isLoggedIn, onClose, navigate],
   )
 
-  const handleStartNew = useCallback(() => {
+  const handleStartNew = useCallback(async () => {
     const type = draftModalType
     setDraftModalType(null)
+    if (type === 'my') {
+      const draftId = individualDraftQuery.data?.id
+      if (draftId != null) {
+        await deleteIndividualDraft.mutateAsync(draftId).catch(() => undefined)
+      }
+      localStorage.removeItem('toget:individual-draft-meta')
+    }
+    if (type === 'together') {
+      const draftId = togetherDraftQuery.data?.togetherDraftsGiftId
+      if (draftId != null) {
+        await deleteTogetherDraft.mutateAsync(draftId).catch(() => undefined)
+      }
+      localStorage.removeItem('toget:together-draft-meta')
+    }
     onClose()
     if (type) navigate(isLoggedIn ? resolveCreatePath(type) : '/login')
-  }, [draftModalType, isLoggedIn, onClose, navigate])
+  }, [draftModalType, individualDraftQuery.data, togetherDraftQuery.data, deleteIndividualDraft, deleteTogetherDraft, isLoggedIn, onClose, navigate])
 
   const handleContinueDraft = useCallback(() => {
     const type = draftModalType

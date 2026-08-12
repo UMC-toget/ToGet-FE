@@ -6,6 +6,7 @@ import BankIcon from '../icons/BankIcon'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
 import type { BankName } from '../../api/userAccounts'
 import { useBankDetection } from '../../hooks/useUserAccounts'
+import { formatAccountNumber, normalizeAccountNumber } from '../../utils/accountNumber'
 
 /** "KB국민은행" -> "KB국민" 처럼 추천 칩에 쓸 짧은 은행명 (끝의 "은행"만 제거) */
 function shortBankLabel(displayName: string): string {
@@ -76,11 +77,11 @@ export default function AccountFormFields({
               계좌번호 <span className="text-pink-500">*</span>
             </>
           }
-          value={accountNumber}
-          onChange={(e) => onAccountNumberChange(e.target.value.replace(/\D/g, ''))}
+          value={formatAccountNumber(accountNumber, bankCode)}
+          onChange={(e) => onAccountNumberChange(normalizeAccountNumber(e.target.value).slice(0, 15))}
           placeholder="본인의 계좌번호를 정확히 입력해주세요"
           inputMode="numeric"
-          maxLength={15}
+          maxLength={19}
           hideCounter
         />
 

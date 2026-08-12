@@ -5,7 +5,7 @@ import Toast from '../../components/common/Toast'
 import PhotoCropOverlay from './PhotoCropOverlay'
 import plusIcon from '../../assets/icon-plus.svg'
 
-const ERROR_TOAST_DURATION_MS = 2500
+const ERROR_TOAST_DURATION_MS = 2000
 const LOAD_ERROR_MESSAGE = '사진을 불러오지 못했어요. 다시 시도해 주세요.'
 
 interface ProfileAvatarProps {

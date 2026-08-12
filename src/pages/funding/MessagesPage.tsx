@@ -18,6 +18,7 @@ export default function MessagesPage() {
   const [openedMessage, setOpenedMessage] = useState<FundingMessage | null>(null)
   const mockFunding = useMockFunding()
   const [realFunding, setRealFunding] = useState<FundingDetail | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     if (!id) return
@@ -45,7 +46,7 @@ export default function MessagesPage() {
           setRealFunding({ ...mockFunding, messages })
         }
       }
-    })
+    }).finally(() => setIsLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
@@ -55,7 +56,7 @@ export default function MessagesPage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
       <Header title="축하메세지 더보기" />
 
-      <div className="flex flex-col gap-4 px-[18px] pt-6">
+      <div className={`flex flex-col gap-4 px-[18px] pt-6 ${isLoading ? 'invisible' : ''}`}>
         <div className="flex flex-col gap-1">
           <h1 className="text-h3-sb leading-normal text-black">축하 메세지</h1>
           {canViewMessages(funding) && (
