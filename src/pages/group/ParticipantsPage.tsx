@@ -5,10 +5,12 @@ import DefaultAvatar from '../../components/common/DefaultAvatar'
 import { getTogetherGiftDashboard, updateMemberRole, type MemberSummary } from '../../api/groupFundings'
 import { MOCK_DASHBOARD } from './groupMock'
 import GroupSegmentTabs from './GroupSegmentTabs'
+import Toast from '../../components/common/Toast'
 import { ROLE_LABELS } from './groupConstants'
 import { useMyProfile } from '../../hooks/useMyProfile'
 
 // 접근: 로그인한 모든 역할 (역할 변경·권한 부여는 개설자·공동관리자) | 참여자 더보기
+const ADMIN_LIMIT = 10
 const BADGE: Record<MemberSummary['role'], { label: string; className: string }> = {
   CREATOR: { label: '방장', className: 'bg-pink-500 text-white' },
   ADMIN: { label: '부방장', className: 'bg-[#FFE3ED] text-pink-500' },
@@ -23,6 +25,7 @@ export default function ParticipantsPage() {
   const [members, setMembers] = useState<MemberSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [openMenuId, setOpenMenuId] = useState<number | null>(null)
+  const [limitToastOpen, setLimitToastOpen] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -34,6 +37,16 @@ export default function ParticipantsPage() {
 
   const handleRoleChange = async (memberId: number, newRole: 'ADMIN' | 'PARTICIPANT') => {
     setOpenMenuId(null)
+    const target = members.find(m => m.fundingMemberId === memberId)
+    // 부방장(공동관리자)은 최대 10명까지만. 이미 꽉 찼으면 승격 막고 안내
+    if (newRole === 'ADMIN' && target?.role !== 'ADMIN') {
+      const adminCount = members.filter(m => m.role === 'ADMIN').length
+      if (adminCount >= ADMIN_LIMIT) {
+        setLimitToastOpen(true)
+        setTimeout(() => setLimitToastOpen(false), 2000)
+        return
+      }
+    }
     setMembers(prev => prev.map(m => m.fundingMemberId === memberId ? { ...m, role: newRole } : m))
     try {
       await updateMemberRole(id!, memberId, newRole)
@@ -111,6 +124,8 @@ export default function ParticipantsPage() {
           </div>
         )}
       </div>
+
+      <Toast open={limitToastOpen} message="공동 관리자는 최대 10명까지 지정할 수 있어요" />
     </div>
   )
 }
