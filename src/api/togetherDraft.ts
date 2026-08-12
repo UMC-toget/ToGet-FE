@@ -47,6 +47,6 @@ export function saveTogetherDraft(payload: TogetherDraftSaveRequest) {
   return unwrap<TogetherDraftSaveResponse>(apiClient.post('/api/v1/together-drafts', payload))
 }
 
-export function deleteTogetherDraft() {
-  return unwrap<void>(apiClient.delete('/api/v1/together-drafts'))
+export function deleteTogetherDraft(draftId: number) {
+  return unwrap<void>(apiClient.delete(`/api/v1/together-drafts/${draftId}`))
 }

@@ -26,11 +26,11 @@ export function useSaveIndividualDraft() {
   })
 }
 
-/** 개인 펀딩 임시저장 삭제 (DELETE /api/v1/individual-drafts 연동) */
+/** 개인 펀딩 임시저장 삭제 (DELETE /api/v1/individual-drafts/{draftId} 연동) */
 export function useDeleteIndividualDraft() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: deleteIndividualDraft,
+    mutationFn: (draftId: number) => deleteIndividualDraft(draftId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: INDIVIDUAL_DRAFT_QUERY_KEY })
     },

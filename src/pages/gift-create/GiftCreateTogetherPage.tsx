@@ -90,6 +90,7 @@ export default function GiftCreateTogetherPage() {
   const [isCreating, setIsCreating] = useState(false)
   const [createError, setCreateError] = useState('')
   const [createdFundingId, setCreatedFundingId] = useState<number | null>(null)
+  const [draftId, setDraftId] = useState<number | null>(null)
   const [isSavingDraft, setIsSavingDraft] = useState(false)
   const [isRestoringDraft, setIsRestoringDraft] = useState(continueDraft)
   const isComplete = step > TOTAL_STEPS
@@ -107,6 +108,7 @@ export default function GiftCreateTogetherPage() {
           resetTogetherForm()
           return
         }
+        setDraftId(draft.togetherDraftsGiftId)
         const account = draft.account
         const restoredAccount = account
           ? {
@@ -177,7 +179,7 @@ export default function GiftCreateTogetherPage() {
           account: normalizedAccount,
         })).userAccountId
       }
-      await saveTogetherDraft({
+      const savedDraft = await saveTogetherDraft({
         step,
         title: togetherForm.roomName || undefined,
         receiver: togetherForm.recipientName || undefined,
@@ -190,6 +192,7 @@ export default function GiftCreateTogetherPage() {
           content: togetherForm.inviteContent,
         },
       })
+      setDraftId(savedDraft.togetherDraftsGiftId)
       try {
         localStorage.setItem(TOGETHER_DRAFT_META_KEY, JSON.stringify({
           inviteBackgroundId: togetherForm.inviteBackgroundId,
@@ -304,7 +307,7 @@ export default function GiftCreateTogetherPage() {
         throw new Error('준비방은 생성됐지만 생성된 페이지를 찾지 못했어요. 홈에서 확인해 주세요.')
       }
 
-      await deleteTogetherDraft().catch(() => undefined)
+      if (draftId != null) await deleteTogetherDraft(draftId).catch(() => undefined)
       localStorage.removeItem(TOGETHER_DRAFT_META_KEY)
       completeCreation(fundingId)
     } catch (error) {
