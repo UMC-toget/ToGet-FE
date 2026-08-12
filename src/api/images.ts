@@ -8,7 +8,7 @@ export interface PresignedUrlResult {
 }
 
 export function requestPresignedUrl(payload: { prefix?: string; fileName: string; contentType: string }) {
-  return unwrap<PresignedUrlResult>(apiClient.post('/api/v1/images/presigned-url', payload))
+  return unwrap<PresignedUrlResult>(apiClient.post('/api/v1/images/upload-requests', payload))
 }
 
 export interface ImportedImageResult {
