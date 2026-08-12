@@ -40,7 +40,8 @@ export default function ConfirmEditPage() {
   }
 
   const handleComplete = () => {
-    navigate(`/group/${id}/confirm`, {
+    // location.search 유지 → DEV 프리뷰(?preview)가 편집 왕복에서 끊기지 않게 함
+    navigate(`/group/${id}/confirm${location.search}`, {
       replace: true,
       state: { ...passedState, confirmedGifts: gifts },
     })
@@ -135,7 +136,7 @@ export default function ConfirmEditPage() {
         confirmText="나가기"
         cancelText="계속 수정하기"
         onCancel={() => setShowExitModal(false)}
-        onConfirm={() => navigate(`/group/${id}/confirm`, { replace: true, state: passedState })}
+        onConfirm={() => navigate(`/group/${id}/confirm${location.search}`, { replace: true, state: passedState })}
       />
     </div>
   )

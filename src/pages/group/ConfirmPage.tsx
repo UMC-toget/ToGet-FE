@@ -151,7 +151,8 @@ export default function ConfirmPage() {
   }
 
   const handleGoToEdit = () => {
-    navigate(`/group/${id}/confirm/edit`, {
+    // location.search를 유지해 DEV 프리뷰(?preview)가 편집 왕복에서 끊기지 않게 한다
+    navigate(`/group/${id}/confirm/edit${location.search}`, {
       replace: true,
       state: {
         confirmedGifts,
