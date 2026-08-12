@@ -455,9 +455,9 @@ export default function GroupPage() {
           </div>
         )}
 
-        {/* 축하 메세지 섹션 — SELECTING 홈에선 숨김. SETTLING 이후 전 상태에서 봉투 아이콘으로 노출.
-            헤더 액션: 역할·상태 무관하게 항상 '더보기'(전체 축하 메세지 보기) */}
-        {contributions.length > 0 && group.status !== 'SELECTING' && (
+        {/* 축하 메세지 섹션 — 함께 선물 홈에선 전달 완료(ENDED) 상태에서만 노출.
+            헤더 액션: '더보기'(전체 축하 메세지 보기) */}
+        {contributions.length > 0 && group.status === 'ENDED' && (
           <div className="flex flex-col gap-[9px]">
             <div className="flex flex-col gap-[9px]">
               <div className="flex items-center justify-between">
