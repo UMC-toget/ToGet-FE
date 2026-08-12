@@ -6,7 +6,6 @@ import ConfirmModal from '../../components/common/ConfirmModal'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import CloseIcon from '../../components/icons/CloseIcon'
 import PlusIcon from '../../components/icons/PlusIcon'
-import GiftIcon from '../../components/icons/GiftIcon'
 import type { ConfirmedGift } from './ConfirmPage'
 
 // 접근: 개설자 전용 | 선물 목록 수정하기 — ConfirmPage 3단계에서 "수정하기" 버튼으로 진입
@@ -24,8 +23,6 @@ export default function ConfirmEditPage() {
 
   const [gifts, setGifts] = useState<ConfirmedGift[]>(passedState?.confirmedGifts ?? [])
   const [showExitModal, setShowExitModal] = useState(false)
-  // 선물 추가하기 진입 선택 오버레이 (새로운 선물 등록 / 위시 불러오기 → CandidateNewPage로 이동)
-  const [showAddSheet, setShowAddSheet] = useState(false)
 
   // 후보 등록 화면(CandidateNewPage)으로 갔다가 등록/취소 후 이 편집 화면으로 상태 복원하며 복귀하기 위한 정보.
   // 등록에 성공하면 CandidateNewPage가 returnState.confirmedGifts 에 새 선물을 추가해서 넘겨준다.
@@ -65,7 +62,7 @@ export default function ConfirmEditPage() {
           <button
             type="button"
             className="flex w-full items-center gap-3 rounded-xl border border-gray-100 bg-white px-[14px] py-3"
-            onClick={() => setShowAddSheet(true)}
+            onClick={() => navigate(`/group/${id}/candidates/new`, { state: backToEdit })}
           >
             <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-gray-100">
               <PlusIcon className="size-5 text-black" />
@@ -130,48 +127,6 @@ export default function ConfirmEditPage() {
           수정 완료
         </Button>
       </div>
-
-      {/* 선물 추가하기 — 등록 방식 선택 오버레이 (두 버튼 모두 CandidateNewPage로 이동) */}
-      {showAddSheet && (
-        <div className="fixed inset-0 z-40 mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
-          <Header title="선물 추가하기" onBack={() => setShowAddSheet(false)} />
-
-          <div className="flex flex-col gap-6 px-[18px] pt-7">
-            <div className="flex flex-col gap-2">
-              <h2 className="text-h3-sb text-black">추가할 선물을 등록해주세요</h2>
-              <p className="text-caption1-r text-gray-600">
-                새로운 선물로 등록할 수 있고, 위시를 불러올 수도 있어요.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <button
-                type="button"
-                onClick={() => navigate(`/group/${id}/candidates/new`, { state: backToEdit })}
-                className="flex items-center gap-3 rounded-xl border border-gray-100 px-[14px] py-3"
-              >
-                <div className="flex size-12 shrink-0 items-center justify-center rounded-[6px] bg-background">
-                  <PlusIcon className="size-6 text-gray-900" />
-                </div>
-                <span className="flex-1 text-left text-b2-m text-black">새로운 선물 등록하기</span>
-                <ChevronRightIcon className="size-6 text-black" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate(`/group/${id}/candidates/new`, { state: { openWish: true, ...backToEdit } })}
-                className="flex items-center gap-3 rounded-xl border border-gray-100 px-[14px] py-3"
-              >
-                <div className="flex size-12 shrink-0 items-center justify-center rounded-[6px] bg-background">
-                  <GiftIcon className="size-6 text-gray-900" />
-                </div>
-                <span className="flex-1 text-left text-b2-m text-black">위시 불러오기</span>
-                <ChevronRightIcon className="size-6 text-black" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <ConfirmModal
         open={showExitModal}
