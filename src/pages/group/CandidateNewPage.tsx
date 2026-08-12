@@ -52,7 +52,6 @@ export default function CandidateNewPage() {
   const [selectedWishItem, setSelectedWishItem] = useState<Product | null>(initialDraft?.selectedWishItem ?? null)
 
   const [showWishSheet, setShowWishSheet] = useState(false)
-  const [wishCalledFrom, setWishCalledFrom] = useState<'select' | 'direct'>('select')
   const [wishSearch, setWishSearch] = useState('')
   const [wishFilter, setWishFilter] = useState<'all' | WishType>('all')
   const [selectedWishId, setSelectedWishId] = useState<number | null>(null)
@@ -110,14 +109,10 @@ export default function CandidateNewPage() {
     setSelectedWishId(null)
     setShowOverflowToast(false)
 
-    if (wishCalledFrom === 'direct') {
-      setInputName(item.name)
-      setInputPrice(String(item.price))
-    } else {
-      setSelectedWishItem(item)
-      setMemo('')
-      setPageStep('form')
-    }
+    // 어느 경로(메인/직접 등록)에서 불러왔든 위시를 불러오면 항상 같은 화면(form)으로 간다
+    setSelectedWishItem(item)
+    setMemo('')
+    setPageStep('form')
   }
 
   const closeWishSheet = () => {
@@ -129,7 +124,6 @@ export default function CandidateNewPage() {
   }
 
   const openWishFromDirect = () => {
-    setWishCalledFrom('direct')
     setShowWishSheet(true)
   }
 
@@ -263,7 +257,7 @@ export default function CandidateNewPage() {
 
             <button
               type="button"
-              onClick={() => { setWishCalledFrom('select'); setShowWishSheet(true) }}
+              onClick={() => setShowWishSheet(true)}
               className="flex items-center gap-3 rounded-xl border border-gray-100 px-[14px] py-3"
             >
               <div className="flex size-12 shrink-0 items-center justify-center rounded-[6px] bg-background">
@@ -308,7 +302,8 @@ export default function CandidateNewPage() {
                   <input
                     type="text"
                     value={inputName}
-                    onChange={e => setInputName(e.target.value)}
+                    maxLength={30}
+                    onChange={e => setInputName(e.target.value.slice(0, 30))}
                     placeholder="등록할 선물 후보 이름을 입력하세요."
                     className="flex-1 bg-transparent text-b1-r text-black placeholder:text-gray-400 focus:outline-none"
                   />
@@ -325,7 +320,8 @@ export default function CandidateNewPage() {
                     type="text"
                     inputMode="numeric"
                     value={inputPrice}
-                    onChange={e => setInputPrice(e.target.value.replace(/[^0-9]/g, ''))}
+                    maxLength={15}
+                    onChange={e => setInputPrice(e.target.value.replace(/[^0-9]/g, '').slice(0, 15))}
                     placeholder="직접입력하기(원)"
                     className="flex-1 bg-transparent text-b1-r text-black placeholder:text-gray-400 focus:outline-none"
                   />
@@ -479,7 +475,7 @@ export default function CandidateNewPage() {
       <EmojiPopup
         open={showLeavePopup}
         title={'작성 중인 후보 등록 페이지를\n나가시겠어요?'}
-        titleClassName="whitespace-pre-line text-h3-sb"
+        titleClassName="whitespace-pre-line text-center text-h3-sb leading-[1.4]"
         description={'지금 나가면 현재까지 입력한 내용이 저장되고,\n다음에 다시 이어서 작성할 수 있어요'}
         buttons={[
           { label: '계속 작성하기', variant: 'secondary', onClick: () => setShowLeavePopup(false) },
@@ -489,59 +485,16 @@ export default function CandidateNewPage() {
       />
 
       {/* 후보 등록 확인 팝업 */}
-      {showConfirmPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
-          <div className="relative w-[320px] rounded-[20px] bg-white px-6 py-7">
-            <div className="flex flex-col gap-5">
-              <div className="flex flex-col items-center gap-1">
-                <div className="flex flex-col items-center gap-5">
-                  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M0 24C0 10.7452 10.7452 0 24 0C37.2548 0 48 10.7452 48 24C48 37.2548 37.2548 48 24 48C10.7452 48 0 37.2548 0 24Z" fill="#FE71A5"/>
-                    <path d="M21.6211 15.1016L22.261 28.035H25.1912L25.7975 15.1016L25.9322 10.7568H21.4863L21.6211 15.1016Z" fill="white"/>
-                    <path d="M26.8164 31.2056C27.5784 31.1356 28.1437 31.3466 28.4727 31.7876C28.7757 32.1942 28.7877 32.6803 28.7266 32.9907L28.7236 33.0073L28.7188 33.0239C28.4911 33.8816 27.7671 34.3401 27.1055 34.5757C26.4881 34.7953 25.8213 34.8611 25.3496 34.8569C25.3726 34.8988 25.3985 34.9414 25.4277 34.9819C25.5642 35.1707 25.7816 35.3505 26.1436 35.4263L26.3076 35.4526L26.3213 35.4536C26.572 35.4873 26.972 35.4706 27.3174 35.3208C27.6382 35.1813 27.9098 34.9324 28.0049 34.4575L28.5137 34.5591L29.0225 34.6616C28.8504 35.5206 28.3127 36.0201 27.7305 36.2729C27.1792 36.5122 26.5881 36.5343 26.1963 36.4839V36.4849C26.1933 36.4844 26.1894 36.4832 26.1865 36.4829C26.1854 36.4829 26.1836 36.483 26.1826 36.4829V36.4819C25.4227 36.3957 24.905 36.031 24.5859 35.5893C24.4132 35.3501 24.3031 35.0934 24.2373 34.856H23.9883C24.0299 34.6626 24.0503 34.4908 24.0537 34.356C24.0584 34.1682 24.0484 33.9889 24.0273 33.8179H24.1846C24.2882 33.0327 24.6647 32.4421 25.125 32.0259C25.6676 31.5356 26.3203 31.2905 26.7744 31.2114L26.7949 31.2075L26.8164 31.2056ZM26.9297 32.2378C26.6353 32.2936 26.1854 32.4664 25.8203 32.7964C25.5532 33.0381 25.3267 33.3671 25.2363 33.8179H25.2695C25.648 33.8316 26.2396 33.782 26.7568 33.5981C27.2754 33.4136 27.6046 33.1383 27.709 32.7739C27.7296 32.6488 27.71 32.5009 27.6406 32.4077C27.594 32.3454 27.4418 32.1946 26.9297 32.2378Z" fill="white"/>
-                    <path d="M21.168 31.2051L21.1895 31.207L21.21 31.2109C21.6642 31.2899 22.3175 31.5348 22.8604 32.0254C23.4194 32.5307 23.8535 33.2932 23.8271 34.3496C23.8188 34.6775 23.6963 35.2747 23.373 35.8408C23.0423 36.4198 22.4738 37.0092 21.5635 37.2002C21.23 37.2701 20.7222 37.267 20.2295 37.0713C19.7157 36.8671 19.2185 36.4515 18.9775 35.7217L19.4707 35.5586L19.9639 35.3965C20.0972 35.8 20.3495 36.0016 20.6133 36.1064C20.898 36.2195 21.1962 36.2169 21.3506 36.1846C21.8912 36.0711 22.2428 35.7268 22.4717 35.3262C22.5628 35.1666 22.63 35.0041 22.6787 34.8564C22.2049 34.8653 21.5158 34.8019 20.8789 34.5752C20.2172 34.3396 19.4931 33.8814 19.2656 33.0234L19.2578 32.9902C19.1968 32.6798 19.2087 32.1936 19.5117 31.7871C19.8407 31.3462 20.4061 31.1351 21.168 31.2051ZM21.0547 32.2373C20.5429 32.1941 20.3904 32.3449 20.3438 32.4072C20.2749 32.4996 20.2556 32.646 20.2754 32.7705C20.3788 33.1364 20.7075 33.4125 21.2275 33.5976C21.7448 33.7817 22.3363 33.8311 22.7148 33.8174H22.748C22.6576 33.3664 22.4314 33.0376 22.1641 32.7959C21.7987 32.4657 21.349 32.293 21.0547 32.2373Z" fill="url(#paint0_linear_4400_29964)"/>
-                    <path d="M21.168 31.2051L21.1895 31.207L21.21 31.2109C21.6642 31.2899 22.3175 31.5348 22.8604 32.0254C23.4194 32.5307 23.8535 33.2932 23.8271 34.3496C23.8188 34.6775 23.6963 35.2747 23.373 35.8408C23.0423 36.4198 22.4738 37.0092 21.5635 37.2002C21.23 37.2701 20.7222 37.267 20.2295 37.0713C19.7157 36.8671 19.2185 36.4515 18.9775 35.7217L19.4707 35.5586L19.9639 35.3965C20.0972 35.8 20.3495 36.0016 20.6133 36.1064C20.898 36.2195 21.1962 36.2169 21.3506 36.1846C21.8912 36.0711 22.2428 35.7268 22.4717 35.3262C22.5628 35.1666 22.63 35.0041 22.6787 34.8564C22.2049 34.8653 21.5158 34.8019 20.8789 34.5752C20.2172 34.3396 19.4931 33.8814 19.2656 33.0234L19.2578 32.9902C19.1968 32.6798 19.2087 32.1936 19.5117 31.7871C19.8407 31.3462 20.4061 31.1351 21.168 31.2051ZM21.0547 32.2373C20.5429 32.1941 20.3904 32.3449 20.3438 32.4072C20.2749 32.4996 20.2556 32.646 20.2754 32.7705C20.3788 33.1364 20.7075 33.4125 21.2275 33.5976C21.7448 33.7817 22.3363 33.8311 22.7148 33.8174H22.748C22.6576 33.3664 22.4314 33.0376 22.1641 32.7959C21.7987 32.4657 21.349 32.293 21.0547 32.2373Z" fill="url(#paint1_linear_4400_29964)"/>
-                    <path d="M21.168 31.2051L21.1895 31.207L21.21 31.2109C21.6642 31.2899 22.3175 31.5348 22.8604 32.0254C23.4194 32.5307 23.8535 33.2932 23.8271 34.3496C23.8188 34.6775 23.6963 35.2747 23.373 35.8408C23.0423 36.4198 22.4738 37.0092 21.5635 37.2002C21.23 37.2701 20.7222 37.267 20.2295 37.0713C19.7157 36.8671 19.2185 36.4515 18.9775 35.7217L19.4707 35.5586L19.9639 35.3965C20.0972 35.8 20.3495 36.0016 20.6133 36.1064C20.898 36.2195 21.1962 36.2169 21.3506 36.1846C21.8912 36.0711 22.2428 35.7268 22.4717 35.3262C22.5628 35.1666 22.63 35.0041 22.6787 34.8564C22.2049 34.8653 21.5158 34.8019 20.8789 34.5752C20.2172 34.3396 19.4931 33.8814 19.2656 33.0234L19.2578 32.9902C19.1968 32.6798 19.2087 32.1936 19.5117 31.7871C19.8407 31.3462 20.4061 31.1351 21.168 31.2051ZM21.0547 32.2373C20.5429 32.1941 20.3904 32.3449 20.3438 32.4072C20.2749 32.4996 20.2556 32.646 20.2754 32.7705C20.3788 33.1364 20.7075 33.4125 21.2275 33.5976C21.7448 33.7817 22.3363 33.8311 22.7148 33.8174H22.748C22.6576 33.3664 22.4314 33.0376 22.1641 32.7959C21.7987 32.4657 21.349 32.293 21.0547 32.2373Z" fill="url(#paint2_linear_4400_29964)"/>
-                    <path d="M21.168 31.2051L21.1895 31.207L21.21 31.2109C21.6642 31.2899 22.3175 31.5348 22.8604 32.0254C23.4194 32.5307 23.8535 33.2932 23.8271 34.3496C23.8188 34.6775 23.6963 35.2747 23.373 35.8408C23.0423 36.4198 22.4738 37.0092 21.5635 37.2002C21.23 37.2701 20.7222 37.267 20.2295 37.0713C19.7157 36.8671 19.2185 36.4515 18.9775 35.7217L19.4707 35.5586L19.9639 35.3965C20.0972 35.8 20.3495 36.0016 20.6133 36.1064C20.898 36.2195 21.1962 36.2169 21.3506 36.1846C21.8912 36.0711 22.2428 35.7268 22.4717 35.3262C22.5628 35.1666 22.63 35.0041 22.6787 34.8564C22.2049 34.8653 21.5158 34.8019 20.8789 34.5752C20.2172 34.3396 19.4931 33.8814 19.2656 33.0234L19.2578 32.9902C19.1968 32.6798 19.2087 32.1936 19.5117 31.7871C19.8407 31.3462 20.4061 31.1351 21.168 31.2051ZM21.0547 32.2373C20.5429 32.1941 20.3904 32.3449 20.3438 32.4072C20.2749 32.4996 20.2556 32.646 20.2754 32.7705C20.3788 33.1364 20.7075 33.4125 21.2275 33.5976C21.7448 33.7817 22.3363 33.8311 22.7148 33.8174H22.748C22.6576 33.3664 22.4314 33.0376 22.1641 32.7959C21.7987 32.4657 21.349 32.293 21.0547 32.2373Z" fill="white"/>
-                    <defs>
-                      <linearGradient id="paint0_linear_4400_29964" x1="21.4029" y1="31.1919" x2="21.4029" y2="37.2417" gradientUnits="userSpaceOnUse">
-                        <stop stopColor="#FE8DB7"/><stop offset="1" stopColor="#FE8DB7"/>
-                      </linearGradient>
-                      <linearGradient id="paint1_linear_4400_29964" x1="21.4029" y1="31.1919" x2="21.4029" y2="37.2417" gradientUnits="userSpaceOnUse">
-                        <stop stopColor="#FE71A5"/><stop offset="1" stopColor="#FBFCEE"/>
-                      </linearGradient>
-                      <linearGradient id="paint2_linear_4400_29964" x1="21.4029" y1="31.1919" x2="21.4029" y2="40.3183" gradientUnits="userSpaceOnUse">
-                        <stop stopColor="#FE71A5"/><stop offset="1" stopColor="#FBFCEE"/>
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <p className="text-center text-[18px] font-semibold text-black">후보 등록을 완료하시겠어요?</p>
-                </div>
-                <p className="text-center text-[14px] font-normal text-[#797378]">
-                  등록 버튼을 누르면, 수정이 불가해요.
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={handleConfirmRegister}
-                  className="flex h-[42px] flex-1 items-center justify-center rounded-lg bg-gray-100 text-[14px] font-semibold text-[#797378]"
-                >
-                  등록하기
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPopup(false)}
-                  className="flex h-[42px] flex-1 items-center justify-center rounded-lg bg-gray-900 text-[14px] font-semibold text-white"
-                >
-                  수정하기
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <EmojiPopup
+        open={showConfirmPopup}
+        title="후보 등록을 완료하시겠어요?"
+        description="등록 버튼을 누르면, 수정이 불가해요."
+        buttons={[
+          { label: '수정하기', variant: 'secondary', onClick: () => setShowConfirmPopup(false) },
+          { label: '등록하기', variant: 'primary', onClick: handleConfirmRegister },
+        ]}
+        onDimClick={() => setShowConfirmPopup(false)}
+      />
 
       {/* 완료 팝업 */}
       {showCompletePopup && (
@@ -559,7 +512,7 @@ export default function CandidateNewPage() {
               </div>
               <button
                 type="button"
-                onClick={() => navigate('/home')}
+                onClick={() => navigate(`/group/${id}/candidates`)}
                 className="flex h-[42px] w-full items-center justify-center rounded-lg bg-gray-900 text-[14px] font-semibold text-white"
               >
                 홈으로 돌아가기
