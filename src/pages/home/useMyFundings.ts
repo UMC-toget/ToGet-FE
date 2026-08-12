@@ -14,15 +14,14 @@ const HOME_FUNDING_FETCH_SIZE = 10
 function toMyFundingSummary(
   funding: MyFunding,
   anniversaryDate: string,
-  giftImage: string | null,
 ): MyFundingSummary {
   return {
     id: String(funding.fundingId),
     fundingType: funding.fundingType as MyFundingSummary['fundingType'],
     title: funding.title,
-    // 카드에는 펀딩 페이지 커버(thumbnailImageUrl)가 아니라 실제 선물 사진을 보여줍니다.
-    // 아직 선물이 정해지지 않았으면(TOGETHER_GIFT 투표 전 등) 커버 이미지로 대체합니다.
-    thumbnailImage: giftImage ?? funding.thumbnailImageUrl,
+    // 홈 카드는 사용자가 등록한 대표 이미지만 사용합니다.
+    // 대표 이미지가 없으면 MyFundingCard에서 전용 기본 SVG를 표시합니다.
+    thumbnailImage: funding.thumbnailImageUrl,
     targetAmount: funding.targetAmount,
     currentAmount: funding.collectedAmount,
     gaugePercent: funding.progressRate,
@@ -30,19 +29,16 @@ function toMyFundingSummary(
   }
 }
 
-/** 펀딩 유형별 대시보드를 조회해 D-day 기준 기념일과 대표 선물 사진을 함께 가져옵니다. */
-async function getAnniversaryAndGiftImage(
+/** 펀딩 유형별 대시보드에서 D-day 기준 기념일을 가져옵니다. */
+async function getAnniversaryDate(
   funding: MyFunding,
-): Promise<{ anniversaryDate: string; giftImage: string | null }> {
+): Promise<string> {
   if (funding.fundingType === 'TOGETHER_GIFT') {
     const dashboard = await getTogetherGiftDashboard(funding.fundingId)
-    // 선물이 확정됐으면(confirmedGifts) 그 사진을, 아직 투표 중이면 최다 득표 후보(topGifts) 사진을 사용합니다.
-    const giftImage =
-      dashboard.confirmedGifts?.[0]?.giftImageUrl ?? dashboard.topGifts?.[0]?.giftImageUrl ?? null
-    return { anniversaryDate: dashboard.anniversaryDate, giftImage }
+    return dashboard.anniversaryDate
   }
   const dashboard = await getMyGiftDashboard(funding.fundingId)
-  return { anniversaryDate: dashboard.anniversaryDate, giftImage: dashboard.gifts[0]?.giftImageUrl ?? null }
+  return dashboard.anniversaryDate
 }
 
 async function getHomeFundings(): Promise<MyFundingSummary[]> {
@@ -55,11 +51,11 @@ async function getHomeFundings(): Promise<MyFundingSummary[]> {
       // 목록 API의 endDate는 모금 종료일이므로 기념일 D-day에 사용하면 안 됩니다.
       // 각 펀딩 유형의 대시보드에서 사용자가 설정한 실제 기념일과 대표 선물 사진을 조회합니다.
       try {
-        const { anniversaryDate, giftImage } = await getAnniversaryAndGiftImage(funding)
-        return toMyFundingSummary(funding, anniversaryDate, giftImage)
+        const anniversaryDate = await getAnniversaryDate(funding)
+        return toMyFundingSummary(funding, anniversaryDate)
       } catch {
         // 향후 목록 API에 기념일이 추가되면 상세 조회 실패 시에도 표시할 수 있습니다.
-        return toMyFundingSummary(funding, funding.anniversaryDate ?? '', null)
+        return toMyFundingSummary(funding, funding.anniversaryDate ?? '')
       }
     }),
   )
