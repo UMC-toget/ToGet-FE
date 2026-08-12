@@ -423,8 +423,8 @@ export default function GroupPage() {
           </div>
         </div>
 
-        {/* 선물 후보 섹션 (SELECTING 단계에서만 표시) */}
-        {group.status === 'SELECTING' && group.topGifts && group.topGifts.length > 0 && (
+        {/* 선물 후보 섹션 (SELECTING 단계에서만 표시). 후보가 없어도 헤더·더보기는 노출해 등록 진입점을 남긴다 */}
+        {group.status === 'SELECTING' && (
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
@@ -442,11 +442,15 @@ export default function GroupPage() {
 
             <div className="flex flex-col gap-4">
               <p className="text-b1-m text-[#000]">실시간 득표수가 높은 선물후보</p>
-              <div className="grid grid-cols-2 gap-3">
-                {group.topGifts.map((gift, idx) => (
-                  <CandidateCard key={gift.fundingGiftId} candidate={gift} rank={idx + 1} />
-                ))}
-              </div>
+              {group.topGifts && group.topGifts.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {group.topGifts.map((gift, idx) => (
+                    <CandidateCard key={gift.fundingGiftId} candidate={gift} rank={idx + 1} />
+                  ))}
+                </div>
+              ) : (
+                <p className="py-6 text-center text-b2-r text-gray-400">아직 등록된 선물 후보가 없어요</p>
+              )}
             </div>
           </div>
         )}
