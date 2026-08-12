@@ -177,7 +177,7 @@ export default function GroupPage() {
             {
               label: group.status === 'SELECTING' ? '참여자 관리' : '정산 내역',
               active: false,
-              onClick: () => navigate(group.status === 'SELECTING' ? `/group/${id}/participants` : settleRoute),
+              onClick: () => navigate(group.status === 'SELECTING' ? `/group/${id}/participants/manage` : settleRoute),
             },
           ]}
         />
