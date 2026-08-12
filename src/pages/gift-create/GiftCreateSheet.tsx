@@ -85,16 +85,22 @@ export default function GiftCreateSheet({
     const type = draftModalType
     setDraftModalType(null)
     if (type === 'my') {
-      await deleteIndividualDraft.mutateAsync().catch(() => undefined)
+      const draftId = individualDraftQuery.data?.id
+      if (draftId != null) {
+        await deleteIndividualDraft.mutateAsync(draftId).catch(() => undefined)
+      }
       localStorage.removeItem('toget:individual-draft-meta')
     }
     if (type === 'together') {
-      await deleteTogetherDraft.mutateAsync().catch(() => undefined)
+      const draftId = togetherDraftQuery.data?.togetherDraftsGiftId
+      if (draftId != null) {
+        await deleteTogetherDraft.mutateAsync(draftId).catch(() => undefined)
+      }
       localStorage.removeItem('toget:together-draft-meta')
     }
     onClose()
     if (type) navigate(isLoggedIn ? resolveCreatePath(type) : '/login')
-  }, [draftModalType, deleteIndividualDraft, deleteTogetherDraft, isLoggedIn, onClose, navigate])
+  }, [draftModalType, individualDraftQuery.data, togetherDraftQuery.data, deleteIndividualDraft, deleteTogetherDraft, isLoggedIn, onClose, navigate])
 
   const handleContinueDraft = useCallback(() => {
     const type = draftModalType

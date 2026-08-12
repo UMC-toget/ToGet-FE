@@ -86,6 +86,6 @@ export function saveIndividualDraft(payload: IndividualDraftSaveRequest) {
   return unwrap<IndividualDraftSaveResponse>(apiClient.post('/api/v1/individual-drafts', payload))
 }
 
-export function deleteIndividualDraft() {
-  return unwrap<void>(apiClient.delete('/api/v1/individual-drafts'))
+export function deleteIndividualDraft(draftId: number) {
+  return unwrap<void>(apiClient.delete(`/api/v1/individual-drafts/${draftId}`))
 }
