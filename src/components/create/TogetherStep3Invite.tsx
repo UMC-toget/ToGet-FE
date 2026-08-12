@@ -191,25 +191,28 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">초대장 색상</p>
             <div className="grid grid-cols-8 gap-2">
-              {backgrounds.map((background) => (
-                <button
-                  key={background.id}
-                  onClick={() => setInvite({ inviteBackgroundId: background.id, inviteColor: background.hexCode })}
-                  className={`relative aspect-square rounded-[3px] transition-colors ${
-                    inviteBackgroundId === background.id
-                      ? 'z-10 border-2'
-                      : background.hexCode.toUpperCase() === '#FFFFFF'
-                        ? 'border border-gray-200'
-                        : 'border border-transparent'
-                  }`}
-                  style={{
-                    background: `color-mix(in srgb, ${background.hexCode} ${inviteBackgroundId === background.id ? 50 : 25}%, white)`,
-                    ...(inviteBackgroundId === background.id && { borderColor: background.hexCode }),
-                  }}
-                  aria-label={`${background.name} 색상 선택`}
-                  aria-pressed={inviteBackgroundId === background.id}
-                />
-              ))}
+              {backgrounds.map((background) => {
+                // id8(화이트)는 BE가 #FFFFFF를 줘서 칩이 안 보이므로 그레이400으로 표시
+                const chipColor = background.hexCode.toUpperCase() === '#FFFFFF' ? '#ACA6AB' : background.hexCode
+                return (
+                  <button
+                    key={background.id}
+                    onClick={() => setInvite({ inviteBackgroundId: background.id, inviteColor: background.hexCode })}
+                    className={`relative aspect-square rounded-[3px] transition-colors ${
+                      inviteBackgroundId === background.id ? 'z-10 border-2' : 'border border-transparent'
+                    }`}
+                    style={{
+                      background:
+                        inviteBackgroundId === background.id
+                          ? chipColor
+                          : `color-mix(in srgb, ${chipColor} 50%, white)`,
+                      ...(inviteBackgroundId === background.id && { borderColor: chipColor }),
+                    }}
+                    aria-label={`${background.name} 색상 선택`}
+                    aria-pressed={inviteBackgroundId === background.id}
+                  />
+                )
+              })}
             </div>
             {!isLoading && backgroundError && <p className="mt-3 text-xs text-red-400">색상 목록을 불러오지 못했어요.</p>}
           </div>
