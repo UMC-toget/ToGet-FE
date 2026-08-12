@@ -1,4 +1,4 @@
-import { useState, memo, useCallback } from 'react'
+import { useState, useRef, memo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PlusIcon from '../../components/icons/PlusIcon'
 import MoreVerticalIcon from '../../components/icons/MoreVerticalIcon'
@@ -55,7 +55,8 @@ const WishProductCard = memo(function WishProductCard({
   const navigate = useNavigate()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [imageBroken, setImageBroken] = useState(false)
-  const hasBackground = useImageHasBackground(product.image || null)
+  const imgRef = useRef<HTMLImageElement>(null)
+  const hasBackground = useImageHasBackground(imgRef, product.image || null)
 
   const handleCardClick = useCallback(() => {
     if (isEditMode) {
@@ -101,6 +102,7 @@ const WishProductCard = memo(function WishProductCard({
         >
           {product.image && !imageBroken ? (
             <img
+              ref={imgRef}
               src={product.image}
               alt={product.name}
               crossOrigin="anonymous"
@@ -143,8 +145,17 @@ const WishProductCard = memo(function WishProductCard({
           )}
         </div>
 
-        <div className="mt-2 flex flex-col">
-          <div className="flex items-center justify-end">
+        <div className="mt-2 flex flex-col gap-3">
+          <div className="flex items-start justify-between gap-1">
+            <p className="min-h-[36px] flex-1 leading-[1.5] text-b2-m text-black">
+              {highlightKeyword
+                ? splitByKeyword(product.name, highlightKeyword).map((segment, i) => (
+                    <span key={i} className={segment.matched ? 'text-gray-300' : undefined}>
+                      {segment.text}
+                    </span>
+                  ))
+                : product.name}
+            </p>
             <span
               role="button"
               tabIndex={0}
@@ -155,25 +166,16 @@ const WishProductCard = memo(function WishProductCard({
                 e.preventDefault()
                 handleMoreClick(e)
               }}
-              className="flex size-5 items-center justify-center text-gray-700 hover:text-black"
+              className="flex size-5 shrink-0 items-center justify-center text-gray-700 hover:text-black"
             >
               <MoreVerticalIcon className="size-5" />
             </span>
           </div>
-          <p className="mt-3 min-h-[36px] leading-[1.5] text-b2-m text-black">
-            {highlightKeyword
-              ? splitByKeyword(product.name, highlightKeyword).map((segment, i) => (
-                  <span key={i} className={segment.matched ? 'text-gray-300' : undefined}>
-                    {segment.text}
-                  </span>
-                ))
-              : product.name}
+
+          <p className="text-b2-m text-black">
+            <span className="font-semibold">{product.price.toLocaleString()}</span>원
           </p>
         </div>
-
-        <p className="mt-6 text-b2-m text-black">
-          <span className="font-semibold">{product.price.toLocaleString()}</span>원
-        </p>
       </button>
 
       <WishEditModeSheet

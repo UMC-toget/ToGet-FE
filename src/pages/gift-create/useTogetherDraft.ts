@@ -26,11 +26,11 @@ export function useSaveTogetherDraft() {
   })
 }
 
-/** 함께 펀딩 임시저장 삭제 (DELETE /api/v1/together-drafts 연동) */
+/** 함께 펀딩 임시저장 삭제 (DELETE /api/v1/together-drafts/{draftId} 연동) */
 export function useDeleteTogetherDraft() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: deleteTogetherDraft,
+    mutationFn: (draftId: number) => deleteTogetherDraft(draftId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TOGETHER_DRAFT_QUERY_KEY })
     },

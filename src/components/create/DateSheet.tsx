@@ -169,7 +169,7 @@ export default function DateSheet(props: DateSheetProps) {
 
             return (
               <div key={idx} className={`relative flex flex-col items-center justify-center h-11 ${barClass}`}>
-                {isToday(day) && (
+                {isToday(day) && !isSelected(day) && (
                   <span className="absolute top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-pink-500" />
                 )}
                 <button

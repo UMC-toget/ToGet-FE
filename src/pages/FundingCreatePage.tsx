@@ -61,6 +61,7 @@ export default function FundingCreatePage() {
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState('');
   const [createdFundingId, setCreatedFundingId] = useState<number | null>(null);
+  const [draftId, setDraftId] = useState<number | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isRestoringDraft, setIsRestoringDraft] = useState(
     continueDraft,
@@ -88,6 +89,7 @@ export default function FundingCreatePage() {
           resetFundingForm();
           return;
         }
+        setDraftId(draft.id);
         const invitation = draft.invitationCard;
         const account = draft.account;
         const restoredAccount = account
@@ -192,7 +194,7 @@ export default function FundingCreatePage() {
         })).userAccountId;
       }
 
-      await saveIndividualDraft({
+      const savedDraft = await saveIndividualDraft({
         step,
         title: fundingForm.title || undefined,
         anniversaryDate: fundingForm.anniversaryDate || undefined,
@@ -214,6 +216,7 @@ export default function FundingCreatePage() {
           content: fundingForm.inviteContent,
         },
       });
+      setDraftId(savedDraft.myDraftsGiftId);
       try {
         localStorage.setItem(INDIVIDUAL_DRAFT_META_KEY, JSON.stringify({
           inviteBackgroundId: fundingForm.inviteBackgroundId,
@@ -267,7 +270,7 @@ export default function FundingCreatePage() {
       // 직전 시도에서 POST는 성공했지만 응답에 ID가 없었던 경우, 같은 펀딩을 중복 생성하지 않고
       // 목록에서 확인한 실제 ID로 완료 화면을 복구합니다.
       if (recentMatchingFunding) {
-        await deleteIndividualDraft().catch(() => undefined);
+        if (draftId != null) await deleteIndividualDraft(draftId).catch(() => undefined);
         localStorage.removeItem(INDIVIDUAL_DRAFT_META_KEY);
         commitAsFunding(String(recentMatchingFunding.fundingId));
         setCreatedFundingId(recentMatchingFunding.fundingId);
@@ -346,7 +349,7 @@ export default function FundingCreatePage() {
       }
 
       commitAsFunding(String(fundingId));
-      await deleteIndividualDraft().catch(() => undefined);
+      if (draftId != null) await deleteIndividualDraft(draftId).catch(() => undefined);
       localStorage.removeItem(INDIVIDUAL_DRAFT_META_KEY);
       setCreatedFundingId(fundingId);
       setStep(TOTAL_STEPS + 1);

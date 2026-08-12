@@ -4,20 +4,15 @@ import BankIcon from '../icons/BankIcon'
 import { useBanks } from '../../hooks/useUserAccounts'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
 import type { BankName } from '../../api/userAccounts'
+import { formatAccountNumber } from '../../utils/accountNumber'
 
 // 로고 자산 자체에 여백 없이 꽉 차 있어, 박스 안에 작게 띄우면(object-contain) 어색한 은행들
 const FULL_BLEED_ICON_BANKS = new Set<BankName>(['KAKAO_BANK', 'K_BANK', 'GWANGJU', 'JEONBUK'])
 
-/** 계좌번호(하이픈 제외 숫자)를 3-3-6 형태로 보기 좋게 표시합니다. 형식이 다르면 원문 그대로 둡니다. */
-function formatAccountNumber(account: string): string {
-  const match = account.match(/^(\d{3})(\d{3})(\d{4,})$/)
-  return match ? `${match[1]}-${match[2]}-${match[3]}` : account
-}
-
 interface AccountCardProps {
   bankCode: BankName
   accountOwner: string
-  /** 하이픈 제외 숫자만 (자동으로 3-3-6 형태로 표시) */
+  /** 하이픈 제외 숫자만 (은행별 대표 형식으로 표시) */
   account: string
   /** 계좌를 골라 쓰는 화면(선택형)에서 강조 표시. 기본 false */
   selected?: boolean
@@ -77,7 +72,7 @@ export default function AccountCard({
           <p className="text-caption1-r text-gray-700">{BANK_NAME_LABELS[bankCode]}</p>
           <div className="flex flex-col gap-1.5">
             <p className="text-b2-m text-black">{accountOwner}</p>
-            <p className="text-b2-m text-black">{formatAccountNumber(account)}</p>
+            <p className="text-b2-m text-black">{formatAccountNumber(account, bankCode)}</p>
           </div>
         </div>
         {selectable && (

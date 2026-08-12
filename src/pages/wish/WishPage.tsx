@@ -186,7 +186,7 @@ export default function WishPage() {
 
         {/* Product Cards Grid */}
         {wishedProducts.length > 0 ? (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-8">
             {wishedProducts.map((product) => (
               <WishProductCard
                 key={product.id}
@@ -210,10 +210,12 @@ export default function WishPage() {
         )}
       </div>
 
-      {/* Edit Mode Sticky Selection Bar (피그마 1716:99536 기준) */}
+      {/* Edit Mode Sticky Selection Bar (피그마 1746:51300 기준: 대칭용 빈 자리-왼쪽 / 텍스트-중앙 / 삭제 버튼-오른쪽) */}
       {isEditMode && (
         <div className="fixed bottom-0 left-1/2 z-30 flex h-14 w-full max-w-[402px] -translate-x-1/2 items-center justify-between border-t border-gray-200 bg-gray-100/80 px-[18px] backdrop-blur-[30px]">
-          <p className="text-b1-m text-black">{selectedIds.length}개의 선물이 선택됨</p>
+          {/* 중앙 텍스트를 대칭으로 맞추기 위한 빈 자리 (우측 삭제 버튼과 동일 크기) */}
+          <span className="size-6" aria-hidden />
+          <p className="text-b1-m text-black -translate-y-1">{selectedIds.length}개의 선물이 선택됨</p>
           <button
             type="button"
             aria-label="선택한 선물 삭제"
@@ -221,7 +223,7 @@ export default function WishPage() {
             onClick={() => setBulkDeleteConfirmOpen(true)}
             className="text-black disabled:text-gray-300"
           >
-            <TrashIcon className="size-6" />
+            <TrashIcon className="size-7" />
           </button>
         </div>
       )}
@@ -298,12 +300,14 @@ export default function WishPage() {
         onDimClick={() => setBulkDeleteConfirmOpen(false)}
       />
 
-      {/* Toast Snackbar (Figma 1716:107011) */}
+      {/* Toast Snackbar (Figma 1716:107011). 네비바 뒤 그라디언트 그림자(1746:51319, h-125px)가
+          끝나는 지점부터 보이도록 bottom을 그 높이에 맞춥니다. */}
       <Toast
         open={toastMessage !== null}
         message={toastMessage ?? ''}
         actionLabel={toastActionLabel}
         onAction={handleToastAction}
+        bottomClass="bottom-[125px]"
       />
     </div>
   )

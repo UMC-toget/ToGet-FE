@@ -10,6 +10,7 @@ import PhotoActionSheet from '../../components/common/PhotoActionSheet'
 import ImageCropper from '../../components/common/ImageCropper'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import { useTogetherCreateStore } from '../../store/togetherCreateStore'
+import { FUNDING_INTRODUCTION_MAX_LENGTH, FUNDING_TITLE_MAX_LENGTH } from '../../constants/fundingFieldLimits'
 import { updateFundingBasicInfo } from '../../api/fundings'
 import { getTogetherGiftDashboard } from '../../api/groupFundings'
 import { uploadImage } from '../../utils/uploadImage'
@@ -56,7 +57,9 @@ export default function GroupEditBasicPage() {
           memo: data.introduction ?? '',
           thumbnailImage: data.thumbnailImageUrl ?? null,
         })
-        // 준비 기간(startDate/endDate)은 대시보드 응답에 없어 prefill 불가 → 사용자가 다시 선택해야 함 (BE 필드 추가 요청 중)
+        // 준비 기간도 prefill. 아직 안 내려오는 서버면 undefined라 빈칸 유지 → 사용자가 다시 선택
+        if (data.startDate) setStartDate(data.startDate)
+        if (data.endDate) setEndDate(data.endDate)
       })
       .catch(() => {
         // 조회 실패 시 빈 폼 유지 (mock/네트워크 방어)
@@ -129,14 +132,18 @@ export default function GroupEditBasicPage() {
 
         {/* 준비방 이름 */}
         <div className="flex flex-col gap-2">
-          <p className="text-b1-m text-black">
-            준비방 이름 <span className="text-pink-500">*</span>
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-b1-m text-black">
+              준비방 이름 <span className="text-pink-500">*</span>
+            </p>
+            <span className="text-caption2-r text-gray-400">{roomName.length}/{FUNDING_TITLE_MAX_LENGTH}</span>
+          </div>
           <div className="flex h-12 items-center rounded-lg bg-background px-4">
             <input
               type="text"
+              maxLength={FUNDING_TITLE_MAX_LENGTH}
               value={roomName}
-              onChange={e => setStep1({ roomName: e.target.value })}
+              onChange={e => setStep1({ roomName: e.target.value.slice(0, FUNDING_TITLE_MAX_LENGTH) })}
               placeholder="준비방 이름을 입력해주세요"
               className="flex-1 bg-transparent text-b1-r text-black placeholder:text-gray-400 focus:outline-none"
             />
@@ -178,12 +185,16 @@ export default function GroupEditBasicPage() {
 
         {/* 준비방 소개글 또는 메모 */}
         <div className="flex flex-col gap-2">
-          <p className="text-b1-m text-black">준비방 소개글 또는 메모</p>
+          <div className="flex items-center justify-between">
+            <p className="text-b1-m text-black">준비방 소개글 또는 메모</p>
+            <span className="text-caption2-r text-gray-400">{memo.length}/{FUNDING_INTRODUCTION_MAX_LENGTH}</span>
+          </div>
           <div className="flex h-12 items-center rounded-lg bg-background px-4">
             <input
               type="text"
+              maxLength={FUNDING_INTRODUCTION_MAX_LENGTH}
               value={memo}
-              onChange={e => setStep1({ memo: e.target.value })}
+              onChange={e => setStep1({ memo: e.target.value.slice(0, FUNDING_INTRODUCTION_MAX_LENGTH) })}
               placeholder="선물 준비에 대해 간단히 소개 해주세요"
               className="flex-1 bg-transparent text-b1-r text-black placeholder:text-gray-400 focus:outline-none"
             />

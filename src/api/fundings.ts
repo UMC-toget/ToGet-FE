@@ -324,6 +324,8 @@ export function getInvitationCard(fundingId: number | string) {
 // ─── 계좌 조회 ─────────────────────────────────────────────────
 
 export interface FundingAccount {
+  /** 이 계좌의 등록 계좌 id. 계좌가 등록돼 있어야 응답하므로 실서버는 항상 내려주지만, mock 등에는 없을 수 있음 */
+  userAccountId?: number
   bankName: BankName
   account: string
   accountOwner: string

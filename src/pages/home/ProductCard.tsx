@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import GiftIcon from '../../components/icons/GiftIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -22,7 +22,8 @@ interface ProductCardProps {
 export default function ProductCard({ product, rank, isLoggedIn, wished, onLoginRequired, onWishClick }: ProductCardProps) {
   const [imageBroken, setImageBroken] = useState(false)
   const [linkConfirmOpen, setLinkConfirmOpen] = useState(false)
-  const hasBackground = useImageHasBackground(product.image || null)
+  const imgRef = useRef<HTMLImageElement>(null)
+  const hasBackground = useImageHasBackground(imgRef, product.image || null)
 
   const handleCardClick = () => {
     if (product.link) setLinkConfirmOpen(true)
@@ -45,6 +46,7 @@ export default function ProductCard({ product, rank, isLoggedIn, wished, onLogin
         >
           {product.image && !imageBroken ? (
             <img
+              ref={imgRef}
               src={product.image}
               alt={product.name}
               crossOrigin="anonymous"
@@ -94,7 +96,7 @@ export default function ProductCard({ product, rank, isLoggedIn, wished, onLogin
         open={linkConfirmOpen}
         title="외부 사이트로 이동할까요?"
         description={'상품 정보를 확인하기 위해\n외부 사이트로 이동해요.'}
-        cancelText="취소"
+        cancelText="돌아가기"
         confirmText="이동하기"
         onCancel={() => setLinkConfirmOpen(false)}
         onConfirm={() => {

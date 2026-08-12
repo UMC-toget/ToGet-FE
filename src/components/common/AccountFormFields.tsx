@@ -4,6 +4,7 @@ import BankSelectSheet from './BankSelectSheet'
 import CaretDownIcon from '../icons/CaretDownIcon'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
 import type { BankName } from '../../api/userAccounts'
+import { formatAccountNumber, normalizeAccountNumber } from '../../utils/accountNumber'
 
 interface AccountFormFieldsProps {
   /** 상단 안내 문구 표시 여부. 기본 true (등록/수정 화면 모두 피그마에서 항상 노출) */
@@ -68,11 +69,11 @@ export default function AccountFormFields({
               계좌번호 <span className="text-pink-500">*</span>
             </>
           }
-          value={accountNumber}
-          onChange={(e) => onAccountNumberChange(e.target.value.replace(/\D/g, ''))}
+          value={formatAccountNumber(accountNumber, bankCode)}
+          onChange={(e) => onAccountNumberChange(normalizeAccountNumber(e.target.value).slice(0, 15))}
           placeholder="본인의 계좌번호를 정확히 입력해주세요"
           inputMode="numeric"
-          maxLength={15}
+          maxLength={19}
           hideCounter
         />
 

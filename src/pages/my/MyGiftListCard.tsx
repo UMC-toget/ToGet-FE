@@ -1,5 +1,5 @@
 import type { MyFunding } from '../../api/users'
-import togetLogo from '../../assets/toget-logo.svg'
+import fundingCardFallback from '../../assets/funding-card-empty.svg'
 import LinkIcon from '../../components/icons/LinkIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import FundingStatusBadge from './FundingStatusBadge'
@@ -31,9 +31,9 @@ export default function MyGiftListCard({
           className={`flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-background ${dimClass}`}
         >
           <img
-            src={funding.thumbnailImageUrl ?? togetLogo}
+            src={funding.thumbnailImageUrl ?? fundingCardFallback}
             alt=""
-            className={funding.thumbnailImageUrl ? 'size-full object-cover' : 'h-[52px] w-[48px] object-contain'}
+            className="size-full object-cover"
           />
         </span>
         <div className="flex w-[246px] flex-col gap-[18px]">

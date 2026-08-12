@@ -31,7 +31,7 @@ export default function AccountListPage() {
     onError: () => {
       setDeleteTargetId(null)
       setErrorToastOpen(true)
-      setTimeout(() => setErrorToastOpen(false), 2500)
+      setTimeout(() => setErrorToastOpen(false), 2000)
     },
   })
 

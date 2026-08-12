@@ -4,8 +4,11 @@ import LetterCard from '../../components/common/LetterCard'
 import Toast from '../../components/common/Toast'
 import { getFundingAccount } from '../../api/fundings'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
+import type { BankName } from '../../api/userAccounts'
+import { formatAccountNumber, normalizeAccountNumber } from '../../utils/accountNumber'
 
 const MOCK_ACCOUNT = {
+  bankCode: 'KAKAO_BANK' as BankName,
   bankName: '카카오뱅크',
   accountNumber: '3333-22-1234567',
   holderName: '김희주',
@@ -32,8 +35,9 @@ export default function DepositStep({ hostName, letter, letterColor, amount, fun
     getFundingAccount(fundingId)
       .then((acc) => {
         setAccount({
+          bankCode: acc.bankName,
           bankName: BANK_NAME_LABELS[acc.bankName] ?? acc.bankName,
-          accountNumber: acc.account,
+          accountNumber: formatAccountNumber(acc.account, acc.bankName),
           holderName: acc.accountOwner,
         })
         setAccountError(false)
@@ -53,7 +57,7 @@ export default function DepositStep({ hostName, letter, letterColor, amount, fun
   const copyAccountNumber = async () => {
     if (!account) return
     // 은행 앱 계좌 입력란에 바로 붙여넣을 수 있게 하이픈 없이 숫자만 복사
-    const digits = account.accountNumber.replace(/-/g, '')
+    const digits = normalizeAccountNumber(account.accountNumber)
     let ok = true
     try {
       await navigator.clipboard.writeText(digits)

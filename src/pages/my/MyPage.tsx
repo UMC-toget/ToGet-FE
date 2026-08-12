@@ -8,8 +8,9 @@ import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import { useAuth } from '../../hooks/useAuth'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import { OAUTH_PROVIDER_LABELS } from '../../api/users'
+import { isAdminProfile } from '../../lib/admin'
 
-const TOAST_DURATION_MS = 2500
+const TOAST_DURATION_MS = 2000
 const IN_DEVELOPMENT_MESSAGE = '아직 개발 중인 기능이에요'
 
 const MENU_SECTIONS: { title: string; items: { label: string; path?: string }[] }[] = [
@@ -34,6 +35,18 @@ const MENU_SECTIONS: { title: string; items: { label: string; path?: string }[] 
 // 비로그인 상태에서는 설정 섹션만 노출됩니다 (피그마 기준)
 const GUEST_MENU_SECTIONS = MENU_SECTIONS.filter((s) => s.title === '설정')
 
+// 관리자 계정 전용 메뉴 (피그마 "마이 - 관리자" 화면 기준) — 일반 사용자 메뉴와 구성이 다름
+const ADMIN_MENU_SECTIONS: { title: string; items: { label: string; path?: string }[] }[] = [
+  {
+    title: '관리',
+    items: [
+      { label: '초대장 관리', path: '/admin/invitation-themes' },
+      { label: '선물 관리', path: '/admin/products' },
+    ],
+  },
+  { title: '설정', items: [{ label: '이용약관' }, { label: '개인정보 처리 방침' }] },
+]
+
 /** 마이페이지 (I. 마이) */
 export default function MyPage() {
   const navigate = useNavigate()
@@ -52,7 +65,8 @@ export default function MyPage() {
     return () => clearTimeout(timer)
   }, [toastMessage, location.pathname, navigate])
 
-  const sections = isLoggedIn ? MENU_SECTIONS : GUEST_MENU_SECTIONS
+  const isAdmin = isLoggedIn && isAdminProfile(profile)
+  const sections = isAdmin ? ADMIN_MENU_SECTIONS : isLoggedIn ? MENU_SECTIONS : GUEST_MENU_SECTIONS
 
   const handleMenuClick = (path?: string) => {
     if (path) {
@@ -74,7 +88,7 @@ export default function MyPage() {
         className="flex w-full items-center justify-between px-[18px] py-6"
       >
         <div className="flex items-center gap-3">
-          {isLoggedIn && profile?.profileImageUrl ? (
+          {!isAdmin && isLoggedIn && profile?.profileImageUrl ? (
             <img
               src={profile.profileImageUrl}
               alt=""
@@ -85,7 +99,7 @@ export default function MyPage() {
           )}
           <span className="flex flex-col items-start gap-2 text-left">
             <span className="text-b1-m text-black">
-              {isLoggedIn ? (profile?.nickname ?? '회원') : '로그인 및 회원가입'}
+              {isAdmin ? '투겟/관리자' : isLoggedIn ? (profile?.nickname ?? '회원') : '로그인 및 회원가입'}
             </span>
             <span className="text-caption1-r text-gray-600">
               {isLoggedIn

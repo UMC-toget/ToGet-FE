@@ -10,7 +10,9 @@ export interface InitialWishFormData {
 }
 
 export function useWishForm(initialData?: InitialWishFormData) {
-  const [wishType, setWishType] = useState<WishType>(initialData?.wishType ?? 'receive')
+  // 새로 등록할 때는 처음 진입 시 아무 유형도 선택돼 있지 않아야 합니다 (피그마 기준).
+  // 수정할 때는 initialData의 실제 유형을 그대로 보여줍니다.
+  const [wishType, setWishType] = useState<WishType | ''>(initialData?.wishType ?? '')
   const [name, setName] = useState(initialData?.name ?? '')
   const [price, setPrice] = useState(initialData?.price !== undefined ? String(initialData.price) : '')
   const [purchaseUrl, setPurchaseUrl] = useState(initialData?.purchaseUrl ?? '')
@@ -21,7 +23,7 @@ export function useWishForm(initialData?: InitialWishFormData) {
   const [selectSheetOpen, setSelectSheetOpen] = useState(false)
 
   const hasChanges =
-    wishType !== (initialData?.wishType ?? 'receive') ||
+    wishType !== (initialData?.wishType ?? '') ||
     name !== (initialData?.name ?? '') ||
     price !== (initialData?.price !== undefined ? String(initialData.price) : '') ||
     purchaseUrl !== (initialData?.purchaseUrl ?? '') ||
@@ -29,7 +31,7 @@ export function useWishForm(initialData?: InitialWishFormData) {
 
   // 백엔드가 purchaseUrl을 필수(minLength 1)로 요구해 name/price와 함께 필수 검증합니다
   const isValidInput =
-    name.trim().length > 0 && price.trim().length > 0 && purchaseUrl.trim().length > 0
+    wishType !== '' && name.trim().length > 0 && price.trim().length > 0 && purchaseUrl.trim().length > 0
   const isFormValid = initialData ? isValidInput && hasChanges : isValidInput
 
   // PhotoActionSheet가 자체 크롭(1:1)까지 끝낸 File을 넘겨주므로 미리보기는 바로 반영하고,
