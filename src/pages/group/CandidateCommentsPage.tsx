@@ -34,7 +34,7 @@ export default function CandidateCommentsPage() {
         }
       })
       .finally(() => setLoading(false))
-  }, [id, candidateId])
+  }, [id, candidateId, state?.candidate])
 
   const submitComment = async () => {
     const text = commentText.trim()

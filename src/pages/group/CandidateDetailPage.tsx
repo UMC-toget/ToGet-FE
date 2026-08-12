@@ -34,7 +34,7 @@ export default function CandidateDetailPage() {
         }
       })
       .finally(() => setLoading(false))
-  }, [id, candidateId])
+  }, [id, candidateId, state?.candidate])
 
   const vote = async () => {
     if (!candidate || toggling) return
