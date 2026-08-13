@@ -22,6 +22,7 @@ import { MOCK_SETTLEMENTS, MOCK_ACCOUNT, MOCK_DASHBOARD } from './groupMock'
 import { readLetterDraft, clearLetterDraft } from './letterDraft'
 import { markSelfSettled } from './settlementFlag'
 import { copyToClipboard } from '../../utils/clipboard'
+import { trackEvent } from '../../lib/analytics'
 
 // 접근: 로그인한 모든 역할 | 정산하기 — 계좌 조회 및 입금 확인 요청 (참여자 뷰)
 interface InfoRowProps {
@@ -57,6 +58,7 @@ export default function SettlePage() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [doneOpen, setDoneOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [errorToastOpen, setErrorToastOpen] = useState(false)
 
   // 입금 완료 신고(POST /members/me/contributions). '편지 남기기'에서 로컬 저장한 draft가 있으면 함께 보낸다(선택).
   const submitContribution = async () => {
@@ -74,14 +76,22 @@ export default function SettlePage() {
           isPrivate: draft?.isPrivate ?? false,
         })
       } catch (e) {
-        // 이미 입금 완료(409)면 결과적으로 PAID라 정상 취급, 그 외만 로그
+        // 이미 입금 완료(409)는 결과적으로 PAID라 성공 취급. 그 외 실패는 편지 draft를 유지하고
+        // 완료 처리 없이 중단해, 사용자가 편지 유실 없이 재시도할 수 있게 한다.
         const status = (e as { response?: { status?: number } }).response?.status
-        if (status !== 409) console.error('입금 완료 신고 실패', e)
+        if (status !== 409) {
+          console.error('입금 완료 신고 실패', e)
+          setSubmitting(false)
+          setErrorToastOpen(true)
+          setTimeout(() => setErrorToastOpen(false), 2000)
+          return
+        }
       }
     }
     clearLetterDraft(id)
     // 정산 완료 표시 — 개설자 SETTLING 하단 버튼을 '금액 모으기 마감하기'로 전환하는 데 쓰인다
     markSelfSettled(id)
+    trackEvent('funding_participate_complete', { funding_type: 'together' })
     setSubmitting(false)
     setDoneOpen(true)
   }
@@ -260,6 +270,7 @@ export default function SettlePage() {
       </StickyBottomBar>
 
       <Toast open={toastOpen} message="계좌번호 복사되었습니다" bottomClass="bottom-[102px]" />
+      <Toast open={errorToastOpen} message="입금 완료 신고에 실패했어요. 잠시 후 다시 시도해주세요" bottomClass="bottom-[102px]" />
 
       {/* 입금 완료 확인 — 제출 시 PAID로 확정되고 변경 불가 */}
       <EmojiPopup

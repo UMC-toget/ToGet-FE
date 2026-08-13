@@ -14,6 +14,7 @@ import DepositStep from './DepositStep'
 import { postContribution } from '../../api/contributions'
 import { getSharedFunding, sharedFundingToFundingDetail } from '../../api/fundings'
 import type { FundingDetail } from '../../types/funding'
+import { trackEvent } from '../../lib/analytics'
 
 /**
  * E03) 내 선물 참여: 축하 페이지 (4단계 참여 흐름)
@@ -82,6 +83,7 @@ export default function ParticipatePage() {
         content: letter,
         isPrivate,
       })
+      trackEvent('funding_participate_complete', { funding_type: 'my' })
       navigate(`/funding/${id}/complete`, { state: { hostName } })
     } catch (e) {
       console.error('참여 제출 실패', e)
