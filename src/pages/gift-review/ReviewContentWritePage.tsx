@@ -7,7 +7,7 @@ import Toast from '../../components/common/Toast'
 import PhotoActionSheet from '../../components/common/PhotoActionSheet'
 import LetterCard from '../../components/common/LetterCard'
 import LetterColorPicker from '../../components/common/LetterColorPicker'
-import { LETTER_COLORS } from '../../components/common/letterPalette'
+import { useLetterColors } from './useDecorations'
 import { useRequireAuth } from '../../hooks/useRequireAuth'
 import CloseIcon from '../../components/icons/CloseIcon'
 import PlusIcon from '../../components/icons/PlusIcon'
@@ -40,7 +40,7 @@ export default function ReviewContentWritePage() {
 
   const [title, setTitle] = useState('') // news 전용: 전달 소식 페이지 제목
   const [content, setContent] = useState('')
-  const [colorId, setColorId] = useState(LETTER_COLORS[7].id) // 기본 화이트
+  const [colorId, setColorId] = useState('white') // 기본 화이트
   const [images, setImages] = useState<File[]>([])
   const [showPhotoSheet, setShowPhotoSheet] = useState(false)
   const [showExitModal, setShowExitModal] = useState(false)
@@ -66,7 +66,8 @@ export default function ReviewContentWritePage() {
       .catch(() => {})
   }, [resolvedFundingId])
 
-  const letterColor = LETTER_COLORS.find((c) => c.id === colorId) ?? LETTER_COLORS[7]
+  const colors = useLetterColors()
+  const letterColor = colors.find((c) => c.id === colorId) ?? colors[colors.length - 1]
 
   // images가 바뀔 때만 새로 생성하고, 이전 URL은 해제해서 blob 메모리가 쌓이지 않게 함
   const imageUrls = useMemo(() => images.map((file) => URL.createObjectURL(file)), [images])
@@ -157,7 +158,8 @@ export default function ReviewContentWritePage() {
         />
       ) : (
         <>
-          <LetterColorPicker selectedId={colorId} onSelect={(color) => setColorId(color.id)} showLabel={false} />
+          <LetterColorPicker selectedId={colorId} onSelect={(color) => setColorId(color.id)} colors={colors} showLabel={false} />
+          {letterColor && (
           <LetterCard
             color={letterColor}
             state="preInput"
@@ -167,6 +169,7 @@ export default function ReviewContentWritePage() {
             onContentChange={setContent}
             maxLength={REVIEW_CONTENT_MAX_LENGTH}
           />
+          )}
         </>
       )}
     </div>

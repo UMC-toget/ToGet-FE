@@ -9,13 +9,12 @@ import ChevronLeftIcon from '../../components/icons/ChevronLeftIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import CloseIcon from '../../components/icons/CloseIcon'
 import ZoomOutIcon from '../../components/icons/ZoomOutIcon'
-import { LETTER_COLORS } from '../../components/common/letterPalette'
 import InvitationHero from '../../components/invitation/InvitationHero'
 import { getInviteThemeColor, isWhiteInviteTheme } from '../../components/invitation/inviteTheme'
 import { FALLBACK_CHARACTER_IMAGE } from './reviewCharacters'
 import { REVIEW_WRITE_TYPES } from './reviewTypes'
 import type { ReviewWriteType, ReviewPreviewData, ReviewContentState } from './reviewTypes'
-import { useContributionBackgrounds, useCharacters, colorIdToBackgroundId } from './useDecorations'
+import { useLetterColors, useCharacters, colorIdToBackgroundId } from './useDecorations'
 import { useCreateReview, useCreateNews, useCreateHeartfelt, getReviewSubmitErrorMessage } from './useReviews'
 import { useMyProfile } from '../../hooks/useMyProfile'
 
@@ -153,17 +152,17 @@ export default function ReviewWritePage() {
   const bodyContent = contentState?.content ?? ''
   const bodyImages = contentState?.images ?? []
   // 1단계에서 고른 편지지(후기 본문) 색상 — 이 화면의 색상 탭(초대장 색상)과 별개
-  const bodyColorId = contentState?.colorId ?? LETTER_COLORS[7].id
+  const bodyColorId = contentState?.colorId ?? 'white'
 
   const [tab, setTab] = useState<ReviewTab>('color')
-  const [colorId, setColorId] = useState(LETTER_COLORS[0].id) // 기본값: 색상 목록 첫 번째(핑크)
+  const [colorId, setColorId] = useState('pink') // 기본값: 색상 목록 첫 번째(핑크)
   const [characterIndex, setCharacterIndex] = useState(0) // 기본 No.01
   const [showExitModal, setShowExitModal] = useState(false)
   const [showExpandModal, setShowExpandModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
-  const backgrounds = useContributionBackgrounds()
+  const colors = useLetterColors()
   const characters = useCharacters()
   const createReviewMutation = useCreateReview(resolvedFundingId)
   const createNewsMutation = useCreateNews(resolvedFundingId)
@@ -178,8 +177,8 @@ export default function ReviewWritePage() {
   const config = type && type in REVIEW_WRITE_TYPES ? REVIEW_WRITE_TYPES[type as ReviewWriteType] : null
   if (!config) return <Navigate to="/home" replace />
 
-  const letterColor = LETTER_COLORS.find((c) => c.id === colorId) ?? LETTER_COLORS[7]
-  const bodyLetterColor = LETTER_COLORS.find((c) => c.id === bodyColorId) ?? LETTER_COLORS[7]
+  const letterColor = colors.find((c) => c.id === colorId) ?? colors[colors.length - 1]
+  const bodyLetterColor = colors.find((c) => c.id === bodyColorId) ?? colors[colors.length - 1]
   // characters 로딩이 늦거나 목록이 줄어들어도 characterIndex가 범위를 벗어나지 않도록 매번 렌더 시점에 보정
   const safeCharacterIndex = characters.length > 0 ? characterIndex % characters.length : 0
   const currentCharacter = characters[safeCharacterIndex]
@@ -191,11 +190,8 @@ export default function ReviewWritePage() {
   const letterTitle = config.invitationLetterTitle
   const canSubmit = !submitting
 
-  // 조회 화면(InvitationVisual/useInvitationCard)과 동일한 backgroundId→테마색 규칙을 작성 미리보기에도 그대로 적용.
-  // BE contribution-backgrounds의 hexCode/name은 로컬 LETTER_COLORS와 체계가 달라(파스텔 vs 비비드,
-  // 다른 색상명) colorIdToBackgroundId 매칭이 실패할 수 있다 — 그때도 배경/로고/from색이 고정 핑크로
-  // 굳어버리지 않도록 letterColor에 이미 있는 피그마 고정 순서 backgroundId로 폴백한다.
-  const previewBackgroundId = colorIdToBackgroundId(colorId, backgrounds) ?? letterColor.backgroundId
+  // 조회 화면(InvitationVisual/useInvitationCard)과 동일한 backgroundId→테마색 규칙을 작성 미리보기에도 그대로 적용
+  const previewBackgroundId = colorIdToBackgroundId(colorId) ?? letterColor?.backgroundId ?? 8
   const invitationThemeColor = getInviteThemeColor(previewBackgroundId)
   const invitationWhiteLogo = isWhiteInviteTheme(previewBackgroundId)
 
@@ -212,7 +208,7 @@ export default function ReviewWritePage() {
     setSubmitting(true)
     try {
       // 후기 본문(편지지) 색상은 1단계에서 고른 색, 초대장 색상은 이 화면의 색상 탭에서 고른 색으로 서로 별개다
-      const backgroundId = colorIdToBackgroundId(bodyColorId, backgrounds) ?? bodyLetterColor.backgroundId
+      const backgroundId = colorIdToBackgroundId(bodyColorId) ?? bodyLetterColor?.backgroundId ?? 8
       const invitationBackgroundId = previewBackgroundId
       const characterId = currentCharacter?.id ?? characters[0]?.id ?? 1
 
@@ -323,15 +319,15 @@ export default function ReviewWritePage() {
           <div className="flex flex-col gap-3">
             <p className="text-b1-m text-black">편지지 색상</p>
             <div className="flex items-center gap-3 overflow-x-auto pb-1">
-              {LETTER_COLORS.map((c) => (
+              {colors.map((c) => (
                 <button
                   key={c.id}
                   type="button"
                   aria-label={`${c.name} 편지지`}
                   onClick={() => setColorId(c.id)}
-                  className={`size-[35px] shrink-0 rounded-[4px] ${colorId === c.id ? '' : 'opacity-60'}`}
+                  className="size-[35px] shrink-0 rounded-[4px]"
                   style={{
-                    backgroundColor: c.background,
+                    backgroundColor: colorId === c.id ? c.chipSelected : c.chipUnselected,
                     ...(c.id === 'white' && { border: '2px solid var(--color-gray-500)' }),
                   }}
                 />

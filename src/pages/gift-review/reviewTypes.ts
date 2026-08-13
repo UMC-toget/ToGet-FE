@@ -15,7 +15,7 @@ export interface ReviewContentState {
   title: string
   content: string
   images: string[]
-  /** 1단계에서 고른 편지지(LetterCard) 색상. LETTER_COLORS의 id (초대장 색상과 별개) */
+  /** 1단계에서 고른 편지지(LetterCard) 색상 id (초대장 색상과 별개) */
   colorId: string
 }
 
@@ -29,7 +29,7 @@ export interface ReviewPreviewData {
   /** 받는 사람 인사말 (LetterCard 헤더, 예: "선물을 준 모두에게") */
   title: string
   content: string
-  /** LETTER_COLORS의 id */
+  /** 편지지 색상 id */
   colorId: string
   images: string[]
   /** 작성 API 응답으로 받은 실제 후기 id (BE 연동 전 접근 시엔 없음) */
