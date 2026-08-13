@@ -2,9 +2,16 @@ import { useState } from 'react'
 import TextField from './TextField'
 import BankSelectSheet from './BankSelectSheet'
 import CaretDownIcon from '../icons/CaretDownIcon'
+import BankIcon from '../icons/BankIcon'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
 import type { BankName } from '../../api/userAccounts'
+import { useBankDetection } from '../../hooks/useUserAccounts'
 import { formatAccountNumber, normalizeAccountNumber } from '../../utils/accountNumber'
+
+/** "KB국민은행" -> "KB국민" 처럼 추천 칩에 쓸 짧은 은행명 (끝의 "은행"만 제거) */
+function shortBankLabel(displayName: string): string {
+  return displayName.replace(/은행$/, '')
+}
 
 interface AccountFormFieldsProps {
   /** 상단 안내 문구 표시 여부. 기본 true (등록/수정 화면 모두 피그마에서 항상 노출) */
@@ -39,6 +46,7 @@ export default function AccountFormFields({
   onBankCodeChange,
 }: AccountFormFieldsProps) {
   const [bankSheetOpen, setBankSheetOpen] = useState(false)
+  const { data: suggestedBanks } = useBankDetection(accountNumber, bankCode === '')
 
   return (
     <>
@@ -91,9 +99,28 @@ export default function AccountFormFields({
             </span>
             <CaretDownIcon className="size-10 shrink-0 text-black" />
           </button>
-          {bankCode === '' && (
-            <p className="text-caption1-r text-gray-600">계좌번호를 입력하면 해당 은행을 추천해 드려요</p>
-          )}
+          {bankCode === '' &&
+            (suggestedBanks && suggestedBanks.length > 0 ? (
+              <div className="flex flex-wrap items-center gap-2">
+                {suggestedBanks.map((bank) => (
+                  <button
+                    key={bank.bankName}
+                    type="button"
+                    onClick={() => onBankCodeChange(bank.bankName)}
+                    className="flex items-center gap-1.5 rounded-lg border border-gray-600 py-2 pl-2.5 pr-3"
+                  >
+                    {bank.iconUrl ? (
+                      <img src={bank.iconUrl} alt="" className="size-5 object-contain" />
+                    ) : (
+                      <BankIcon className="size-5 text-gray-400" />
+                    )}
+                    <span className="text-caption1-r text-black">{shortBankLabel(bank.displayName)}</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-caption1-r text-gray-600">계좌번호를 입력하면 해당 은행을 추천해 드려요</p>
+            ))}
         </div>
       </div>
 

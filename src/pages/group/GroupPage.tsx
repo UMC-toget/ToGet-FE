@@ -36,14 +36,14 @@ export default function GroupPage() {
 
   // ── DEV 전용 UI 미리보기 오버라이드 ──────────────────────────
   // /group/1?role=CREATOR|ADMIN|PARTICIPANT&status=SELECTING|SETTLING|PURCHASING|DELIVERING|ENDED
-  // 구 별칭(HOST/CO_HOST/MEMBER)도 허용. API/토큰 없이 mock으로 역할×상태 조합을 바로 확인 (프로덕션 빌드엔 영향 없음)
+  // 구 별칭(HOST/CO_HOST/COHOST/MEMBER)도 허용. API/토큰 없이 mock으로 역할×상태 조합을 바로 확인 (프로덕션 빌드엔 영향 없음)
   const [searchParams] = useSearchParams()
   const ROLE_ALIAS: Record<string, FundingMemberRole> = {
-    HOST: 'CREATOR', CO_HOST: 'ADMIN', MEMBER: 'PARTICIPANT',
+    HOST: 'CREATOR', CO_HOST: 'ADMIN', COHOST: 'ADMIN', MEMBER: 'PARTICIPANT',
     CREATOR: 'CREATOR', ADMIN: 'ADMIN', PARTICIPANT: 'PARTICIPANT',
   }
   const rawRole = import.meta.env.DEV ? searchParams.get('role') : null
-  const devRole: FundingMemberRole | null = rawRole ? (ROLE_ALIAS[rawRole] ?? null) : null
+  const devRole: FundingMemberRole | null = rawRole ? (ROLE_ALIAS[rawRole.toUpperCase()] ?? null) : null
   const devStatus = import.meta.env.DEV ? (searchParams.get('status') as GroupFundingStatus | null) : null
   const devPreview = devRole !== null || devStatus !== null
 
@@ -384,7 +384,7 @@ export default function GroupPage() {
                             className="size-[26px] rounded-full object-cover"
                           />
                         ) : (
-                          <DefaultAvatar className="size-[26px] shrink-0" />
+                          <DefaultAvatar plain className="size-[26px] shrink-0" />
                         )}
                         <RoleRibbon
                           role={m.role}
@@ -592,9 +592,8 @@ export default function GroupPage() {
               </button>
             </div>
           ) : (
-            <Button className="pointer-events-auto" onClick={() => navigate(settleRoute)}>
-              정산하기
-            </Button>
+            // 구매 중엔 참여자·공동관리자 정산이 이미 끝난 단계라 하단 CTA 없음
+            null
           )
         )}
 
@@ -618,9 +617,8 @@ export default function GroupPage() {
               </button>
             </div>
           ) : (
-            <Button className="pointer-events-auto" onClick={() => navigate(settleRoute)}>
-              정산하기
-            </Button>
+            // 전달 중엔 참여자·공동관리자 정산이 이미 끝난 단계라 하단 CTA 없음
+            null
           )
         )}
 
@@ -663,7 +661,7 @@ export default function GroupPage() {
         titleClassName="whitespace-nowrap text-h3-sb"
         description={'지금 나가시면 투표한 내역이 사라지며\n참여자에서 제외돼요.'}
         buttons={[
-          { label: '취소하기', onClick: () => setLeaveOpen(false), variant: 'secondary' },
+          { label: '함께선물 계속하기', onClick: () => setLeaveOpen(false), variant: 'secondary' },
           { label: '나가기', onClick: handleLeave, variant: 'primary' },
         ]}
         onDimClick={() => setLeaveOpen(false)}

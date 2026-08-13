@@ -51,7 +51,7 @@ function ParticipantCard({ participant, onEdit }: { participant: Participant; on
   return (
     <div className="rounded-xl border border-gray-100 bg-white px-[14px] py-3">
       <div className="flex items-center gap-3">
-        <DefaultAvatar className="size-[52px] shrink-0" />
+        <DefaultAvatar plain className="size-[52px] shrink-0" />
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center justify-between gap-2">
             <p className="truncate text-b1-m leading-normal text-black">{participant.name}</p>

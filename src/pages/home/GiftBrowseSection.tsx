@@ -5,8 +5,8 @@ import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import ProductCard from './ProductCard'
 import PriceFilterSheet from './PriceFilterSheet'
 import WishTypeSheet from './WishTypeSheet'
-import { GIFT_CATEGORIES, PRICE_FILTERS } from './products'
-import type { PriceFilter } from './products'
+import { CATEGORY_CODE_BY_LABEL, GIFT_CATEGORIES, PRICE_FILTERS } from './products'
+import type { PriceFilter, ProductCategoryType } from './products'
 import { useProducts } from './useProducts'
 import { useWishToggle } from './useWishToggle'
 import { formatDateDots } from '../../utils/formatDate'
@@ -43,9 +43,13 @@ export default function GiftBrowseSection() {
   // 전체 상품을 보여주는 탭이라 카테고리 조건을 걸지 않습니다.
   const isPopular = category === POPULAR_CATEGORY
   const { products: filteredProducts } = useProducts({
-    category: isPopular ? undefined : category,
+    // 서버 category 필터는 한글 라벨이 아니라 enum 코드(BIRTHDAY/GRADUATION/HOUSEWARMING)를 받음
+    category: isPopular ? undefined : CATEGORY_CODE_BY_LABEL[category as ProductCategoryType],
     minPrice: priceFilter.min > 0 ? priceFilter.min : undefined,
-    maxPrice: Number.isFinite(priceFilter.max) ? priceFilter.max : undefined,
+    // PriceFilter.max는 FE 기준 "미만"(예: 4만 원대 = 40,000~50,000 미만)인데, 서버 maxPrice는
+    // 경계값을 포함(이하)해서 필터링합니다(정확히 50,000원인 상품이 4만 원대에도 걸리는 걸로 확인됨).
+    // 가격은 항상 원 단위 정수라 1을 빼서 보내면 서버의 "이하" 필터가 FE의 "미만" 의미와 맞아떨어집니다.
+    maxPrice: Number.isFinite(priceFilter.max) ? priceFilter.max - 1 : undefined,
     sort: isPopular ? 'WISHLIST_DESC' : 'LATEST',
   })
 
