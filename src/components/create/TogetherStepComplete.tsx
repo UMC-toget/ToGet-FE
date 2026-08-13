@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Check, Link, X } from 'lucide-react';
 import { useTogetherCreateStore } from '../../store/togetherCreateStore';
-import { getCharacterImageSrc, getInvitationAccent, useInvitationMeta } from './Mascot';
+import { getCharacterImageSrc, getInvitationCompletionColors, useInvitationMeta } from './Mascot';
 import heroStars from '../../assets/hero-stars.svg';
 import { trackEvent } from '../../lib/analytics';
 
@@ -16,10 +16,7 @@ export default function TogetherStepComplete({ fundingId, onViewFunding, onGoHom
   const [copied, setCopied] = useState(false);
   const { backgrounds, characters } = useInvitationMeta();
   const characterImageUrl = getCharacterImageSrc(characters.find((item) => item.id === inviteCharacter));
-  const selectedColor = backgrounds.find((item) => item.id === inviteBackgroundId)?.hexCode ?? inviteColor;
-  const glowColor = selectedColor === '#FFFFFF' ? '#D1D5DB' : selectedColor;
-  const accentColor = getInvitationAccent(selectedColor);
-  const decorationColor = selectedColor === '#FFFFFF' ? accentColor : selectedColor;
+  const { glowColor, decorationColor } = getInvitationCompletionColors(inviteColor, inviteBackgroundId, backgrounds);
 
   const sharePath = `/group/${fundingId}`;
   const shareLink = `toget.kr${sharePath}`;
