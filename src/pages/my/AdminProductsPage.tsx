@@ -9,7 +9,8 @@ import CategoryChips from '../../components/common/CategoryChips'
 import GiftIcon from '../../components/icons/GiftIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import { getProducts, deleteProduct } from '../../api/products'
-import { GIFT_CATEGORIES } from '../home/products'
+import { CATEGORY_CODE_BY_LABEL, GIFT_CATEGORIES } from '../home/products'
+import type { ProductCategoryType } from '../home/products'
 import { useRequireAdmin } from '../../hooks/useRequireAdmin'
 
 const PRODUCT_LIST_SIZE = 100
@@ -30,7 +31,7 @@ export default function AdminProductsPage() {
     queryKey: ['adminProducts', category],
     queryFn: () =>
       getProducts({
-        category: isPopular ? undefined : category,
+        category: isPopular ? undefined : CATEGORY_CODE_BY_LABEL[category as ProductCategoryType],
         size: PRODUCT_LIST_SIZE,
         sort: isPopular ? 'WISHLIST_DESC' : 'LATEST',
       }),

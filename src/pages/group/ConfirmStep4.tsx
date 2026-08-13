@@ -1,6 +1,7 @@
 import type { ConfirmedGift } from './ConfirmPage'
 import type { FundingAccount } from '../../api/fundings'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
+import { formatAccountNumber } from '../../utils/accountNumber'
 
 // ConfirmPage 서브 컴포넌트 (개설자 전용) | 4단계 정산 시작하기 — 최종 선물 목록 및 계좌 정보 확인
 interface Props {
@@ -64,7 +65,7 @@ export default function ConfirmStep4({ confirmedGifts, includedCount, account }:
           <div className="flex flex-col gap-3">
             <AccountRow label="은행" value={bankLabel} />
             <div className="h-px bg-gray-100" />
-            <AccountRow label="계좌번호" value={account?.account ?? '-'} />
+            <AccountRow label="계좌번호" value={account ? formatAccountNumber(account.account, account.bankName) : '-'} />
             <div className="h-px bg-gray-100" />
             <AccountRow label="예금주" value={account?.accountOwner ?? '-'} />
           </div>

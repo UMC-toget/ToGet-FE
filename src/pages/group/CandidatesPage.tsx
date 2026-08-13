@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
+import Toast from '../../components/common/Toast'
+import EmojiPopup from '../../components/common/EmojiPopup'
 import { getGiftCandidates, getTogetherGiftDashboard, joinGroupFunding, toggleGiftVote } from '../../api/groupFundings'
 import type { GiftCandidateItem, FundingMemberRole } from '../../api/groupFundings'
 import { useAuth } from '../../hooks/useAuth'
@@ -23,6 +25,9 @@ export default function CandidatesPage() {
   const [myRole, setMyRole] = useState<FundingMemberRole | null>(null)
   // 첫 투표 때 합류 API를 부르고 나면 켜져서, 이후 투표에선 합류를 다시 시도하지 않게 한다
   const [joined, setJoined] = useState(false)
+  const [limitToastOpen, setLimitToastOpen] = useState(false)
+  // 투표 내역이 있는 채로 페이지를 나가려 하면 뜨는 완료 팝업
+  const [leaveOpen, setLeaveOpen] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -65,7 +70,12 @@ export default function CandidatesPage() {
 
   const toggleVote = async (fundingGiftId: number) => {
     if (togglingId !== null) return
-    if (atMax && !votedIds.has(fundingGiftId)) return
+    // 이미 3개 투표한 상태에서 새 후보 선택 시도 → 선택 막고 안내 토스트
+    if (atMax && !votedIds.has(fundingGiftId)) {
+      setLimitToastOpen(true)
+      setTimeout(() => setLimitToastOpen(false), 2000)
+      return
+    }
 
     setTogglingId(fundingGiftId)
     const wasVoted = votedIds.has(fundingGiftId)
@@ -85,8 +95,11 @@ export default function CandidatesPage() {
     )
 
     try {
-      await ensureJoined()
-      await toggleGiftVote(id!, fundingGiftId)
+      // DEV(mock)에선 실제 펀딩이 아니라 투표 API가 응답 없이 멈출 수 있어, 네트워크 호출을 건너뛰고 로컬 토글만 한다
+      if (!import.meta.env.DEV) {
+        await ensureJoined()
+        await toggleGiftVote(id!, fundingGiftId)
+      }
     } catch (e) {
       console.error('투표 실패', e)
       if (!import.meta.env.DEV) {
@@ -122,7 +135,10 @@ export default function CandidatesPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-8">
-      <Header title="선물 후보 더보기" />
+      <Header
+        title="선물 후보 더보기"
+        onBack={() => (voteCount > 0 ? setLeaveOpen(true) : navigate(-1))}
+      />
 
       {/* 후보 등록 배너 (관리자만) */}
       {isAdmin && (
@@ -154,7 +170,6 @@ export default function CandidatesPage() {
               fundingId={id!}
               rank={idx + 1}
               isVoted={votedIds.has(candidate.fundingGiftId)}
-              disabled={atMax && !votedIds.has(candidate.fundingGiftId)}
               toggling={togglingId === candidate.fundingGiftId}
               onVote={() => toggleVote(candidate.fundingGiftId)}
             />
@@ -179,13 +194,26 @@ export default function CandidatesPage() {
               fundingId={id!}
               rank={idx + 1}
               isVoted={votedIds.has(candidate.fundingGiftId)}
-              disabled={atMax && !votedIds.has(candidate.fundingGiftId)}
               toggling={togglingId === candidate.fundingGiftId}
               onVote={() => toggleVote(candidate.fundingGiftId)}
             />
           ))}
         </div>
       </section>
+
+      <Toast open={limitToastOpen} message="선물은 최대 3개까지 투표 가능합니다." />
+
+      <EmojiPopup
+        open={leaveOpen}
+        icon="success"
+        title="투표가 완료되었습니다"
+        description="선물이 확정되면 알림을 통해 알려드릴게요."
+        buttons={[
+          { label: '수정하기', variant: 'secondary', onClick: () => setLeaveOpen(false) },
+          { label: '홈으로 돌아가기', variant: 'primary', onClick: () => navigate(`/group/${id}`) },
+        ]}
+        onDimClick={() => setLeaveOpen(false)}
+      />
     </div>
   )
 }
@@ -195,7 +223,6 @@ interface VoteCardProps {
   fundingId: string
   rank: number
   isVoted: boolean
-  disabled: boolean
   toggling: boolean
   onVote: () => void
 }
@@ -206,7 +233,7 @@ const RANK_COLORS: Record<number, string> = {
   3: 'bg-gray-900 text-white',
 }
 
-function VoteCard({ candidate, fundingId, rank, isVoted, disabled, toggling, onVote }: VoteCardProps) {
+function VoteCard({ candidate, fundingId, rank, isVoted, toggling, onVote }: VoteCardProps) {
   const navigate = useNavigate()
   const rankBadge = RANK_COLORS[rank]
 
@@ -249,13 +276,9 @@ function VoteCard({ candidate, fundingId, rank, isVoted, disabled, toggling, onV
       <button
         type="button"
         onClick={onVote}
-        disabled={disabled || toggling}
+        disabled={toggling}
         className={`mt-2 h-[26px] w-full rounded-lg text-caption2-m transition-colors ${
-          isVoted
-            ? 'bg-gray-900 text-white'
-            : disabled
-              ? 'bg-gray-100 text-gray-400'
-              : 'bg-gray-100 text-black'
+          isVoted ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'
         }`}
       >
         투표하기
