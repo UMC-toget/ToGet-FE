@@ -52,25 +52,18 @@ ToGet은 생일·졸업·집들이 등 특별한 날의 선물을 **여러 사�
         <img height="120px" width="120px" src="https://avatars.githubusercontent.com/sumin0423" />
       </a>
     </td>
-    <td width="300px" align="center">
-      <a href="https://github.com/OCJune">
-        <img height="120px" width="120px" src="https://avatars.githubusercontent.com/OCJune" />
-      </a>
-    </td>
   </tr>
   <tr height="30px">
     <td align="center"><a href="https://github.com/jhy335501"><b>장하영</b></a></td>
     <td align="center"><a href="https://github.com/snow-jun-0"><b>우준영</b></a></td>
     <td align="center"><a href="https://github.com/HongYeonLee"><b>이홍연</b></a></td>
     <td align="center"><a href="https://github.com/sumin0423"><b>최수민</b></a></td>
-    <td align="center"><a href="https://github.com/OCJune"><b>오창준</b></a></td>
   </tr>
   <tr height="30px">
     <td align="center">초대장 · 펀딩 상세/참여 · 메세지 · 함께 선물 참여</td>
     <td align="center">선물 만들기 진입 · 선물 후기</td>
-    <td align="center">온보딩 · 홈 · 마이 · 공통/API</td>
+    <td align="center">온보딩 · 홈 · 위시 · 마이 · 공통/API</td>
     <td align="center">선물 만들기 플로우(5단계)</td>
-    <td align="center">위시(위시리스트) 기능</td>
   </tr>
 </table>
 
