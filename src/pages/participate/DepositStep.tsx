@@ -17,7 +17,8 @@ const MOCK_ACCOUNT = {
 interface DepositStepProps {
   hostName: string
   letter: string
-  letterColor: LetterColor
+  /** 선택된 편지지 색 (색 목록 로딩 전이면 undefined) */
+  letterColor?: LetterColor
   /** 0이면 금액 없이 참여(마음만 보내기) → 계좌 안내 숨김 */
   amount: number
   fundingId?: string
@@ -83,6 +84,7 @@ export default function DepositStep({ hostName, letter, letterColor, amount, fun
       <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <p className="text-b1-m leading-normal text-black">축하 메세지</p>
+        {letterColor && (
         <LetterCard
           color={letterColor}
           state={letterOpen ? 'open' : 'folded'}
@@ -90,6 +92,7 @@ export default function DepositStep({ hostName, letter, letterColor, amount, fun
           content={letter}
           onToggle={() => setLetterOpen((prev) => !prev)}
         />
+        )}
       </div>
 
       <div className="flex flex-col gap-1">

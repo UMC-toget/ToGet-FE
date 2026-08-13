@@ -7,7 +7,7 @@ import EmojiPopup from '../../components/common/EmojiPopup'
 import CheckOption from '../../components/common/CheckOption'
 import LetterCard from '../../components/common/LetterCard'
 import LetterColorPicker from '../../components/common/LetterColorPicker'
-import { LETTER_COLORS } from '../../components/common/letterPalette'
+import { useLetterColors } from '../gift-review/useDecorations'
 import { readLetterDraft, writeLetterDraft } from './letterDraft'
 
 // 접근: 로그인한 모든 역할 | 편지 남기기
@@ -27,7 +27,8 @@ export default function LetterPage() {
   const [isPrivate, setIsPrivate] = useState(initialDraft?.isPrivate ?? false)
   const [showLeaveModal, setShowLeaveModal] = useState(false)
 
-  const selectedColor = LETTER_COLORS.find(c => c.id === colorId) ?? LETTER_COLORS[7]
+  const colors = useLetterColors()
+  const selectedColor = colors.find(c => c.id === colorId) ?? colors[colors.length - 1]
 
   const handleBack = () => {
     if (content.trim()) {
@@ -52,16 +53,18 @@ export default function LetterPage() {
         <h2 className="text-h3-sb text-black">{recipientName}님에게 편지남기기</h2>
 
         <div className="flex flex-col gap-4">
-          <LetterColorPicker selectedId={colorId} onSelect={c => setColorId(c.id)} />
+          <LetterColorPicker selectedId={colorId} onSelect={c => setColorId(c.id)} colors={colors} />
 
-          <LetterCard
-            color={selectedColor}
-            state="preInput"
-            title={`${recipientName}에게`}
-            content={content}
-            onContentChange={setContent}
-            maxLength={LETTER_MAX_LENGTH}
-          />
+          {selectedColor && (
+            <LetterCard
+              color={selectedColor}
+              state="preInput"
+              title={`${recipientName}에게`}
+              content={content}
+              onContentChange={setContent}
+              maxLength={LETTER_MAX_LENGTH}
+            />
+          )}
 
           <CheckOption
             label="메세지 내용 비공개 설정"

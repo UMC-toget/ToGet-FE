@@ -1,11 +1,11 @@
 import type { LetterColor } from './letterPalette'
-import { LETTER_COLORS } from './letterPalette'
 
 interface LetterColorPickerProps {
   /** 현재 선택된 색상 id */
   selectedId: string
   onSelect: (color: LetterColor) => void
-  colors?: LetterColor[]
+  /** BE에서 파생된 색 목록 (useLetterColors()) */
+  colors: LetterColor[]
   className?: string
   /** '편지지 색상' 라벨 노출 여부 (기본 노출, 스와치만 필요한 화면에서 false로 숨김) */
   showLabel?: boolean
@@ -18,7 +18,7 @@ interface LetterColorPickerProps {
 export default function LetterColorPicker({
   selectedId,
   onSelect,
-  colors = LETTER_COLORS,
+  colors,
   className = '',
   showLabel = true,
 }: LetterColorPickerProps) {
@@ -29,22 +29,20 @@ export default function LetterColorPicker({
         {colors.map((color) => {
           const selected = selectedId === color.id
           const isWhite = color.id === 'white'
+          // 화이트는 선택/미선택 색이 흰 배경과 잘 안 구분돼 회색 테두리로 표시
+          const borderColor = selected
+            ? isWhite ? 'var(--color-gray-400)' : color.swatchSelectedBorder
+            : isWhite ? 'var(--color-gray-200)' : undefined
           return (
             <button
               key={color.id}
               type="button"
               aria-label={`${color.name} 편지지`}
               onClick={() => onSelect(color)}
-              // 미선택 색상: opacity 0.6로 흐리게 / 선택: 원색 + 2px 색 테두리(피그마 기준)
-              // 화이트는 흐리지 않고, 미선택 시 옅은 회색 테두리로만 구분
-              className={`size-[35px] shrink-0 rounded-[4px] ${!selected && !isWhite ? 'opacity-60' : ''}`}
+              className="size-[35px] shrink-0 rounded-[4px]"
               style={{
-                backgroundColor: color.background,
-                border: selected
-                  ? `2px solid ${color.swatchSelectedBorder}`
-                  : isWhite
-                    ? '1px solid var(--color-gray-200)'
-                    : undefined,
+                backgroundColor: selected ? color.chipSelected : color.chipUnselected,
+                border: borderColor ? `${selected ? 2 : 1}px solid ${borderColor}` : undefined,
               }}
             />
           )

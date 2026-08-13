@@ -4,9 +4,8 @@ import { useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import Header from '../../components/common/Header'
 import LetterCard from '../../components/common/LetterCard'
-import { LETTER_COLORS } from '../../components/common/letterPalette'
 import type { ReviewPreviewData } from './reviewTypes'
-import { useContributionBackgrounds, backgroundIdToColorId } from './useDecorations'
+import { useLetterColors, backgroundIdToColorId } from './useDecorations'
 import { useReview } from './useReviews'
 import type { ReviewApiType } from '../../api/reviews'
 import { getTogetherGiftDashboard } from '../../api/groupFundings'
@@ -39,7 +38,7 @@ export default function GiftReviewDetailPage() {
     ? (requestedType as ReviewApiType)
     : 'review'
 
-  const backgrounds = useContributionBackgrounds()
+  const colors = useLetterColors()
   const { data: apiReview, isLoading, isError } = useReview(fundingId, reviewApiType)
 
   // news 조회 화면 상단은 함께 선물 대시보드(공개 API)를 추가로 보여준다. 실패해도 편지 본문은 그대로 보여야 하므로
@@ -57,7 +56,7 @@ export default function GiftReviewDetailPage() {
         authorName: apiReview.authorName,
         title: apiReview.title ?? '',
         content: apiReview.content,
-        colorId: backgroundIdToColorId(apiReview.backgroundId, backgrounds),
+        colorId: backgroundIdToColorId(apiReview.backgroundId),
         images: apiReview.images,
         fundingReviewId: apiReview.fundingReviewId,
       }
@@ -109,7 +108,7 @@ export default function GiftReviewDetailPage() {
     )
   }
 
-  const letterColor = LETTER_COLORS.find((c) => c.id === review.colorId) ?? LETTER_COLORS[7]
+  const letterColor = colors.find((c) => c.id === review.colorId) ?? colors[colors.length - 1]
   const hasImages = review.images.length > 0
   const heading = review.authorName ? `${review.authorName}님이 보낸 선물 후기` : '선물 후기'
 
@@ -158,14 +157,16 @@ export default function GiftReviewDetailPage() {
           </div>
         )}
 
-        <LetterCard
-          color={letterColor}
-          state="open"
-          title={review.title}
-          content={review.content}
-          showFrom={review.authorName != null}
-          fromLabel={review.authorName ? `from. ${review.authorName}` : undefined}
-        />
+        {letterColor && (
+          <LetterCard
+            color={letterColor}
+            state="open"
+            title={review.title}
+            content={review.content}
+            showFrom={review.authorName != null}
+            fromLabel={review.authorName ? `from. ${review.authorName}` : undefined}
+          />
+        )}
       </div>
     </div>
   )
