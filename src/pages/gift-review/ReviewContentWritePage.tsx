@@ -7,7 +7,7 @@ import Toast from '../../components/common/Toast'
 import PhotoActionSheet from '../../components/common/PhotoActionSheet'
 import LetterCard from '../../components/common/LetterCard'
 import LetterColorPicker from '../../components/common/LetterColorPicker'
-import { LETTER_COLORS } from '../../components/common/letterPalette'
+import { useLetterColors } from './useDecorations'
 import { useRequireAuth } from '../../hooks/useRequireAuth'
 import CloseIcon from '../../components/icons/CloseIcon'
 import PlusIcon from '../../components/icons/PlusIcon'
@@ -18,7 +18,7 @@ import GiftPagePreviewCard from './GiftPagePreviewCard'
 import {
   REVIEW_WRITE_TYPES,
   REVIEW_CONTENT_MAX_LENGTH,
-  NEWS_TITLE_MAX_LENGTH,
+  REVIEW_TITLE_MAX_LENGTH,
   NEWS_CONTENT_MAX_LENGTH,
 } from './reviewTypes'
 import type { ReviewWriteType, ReviewContentState } from './reviewTypes'
@@ -40,7 +40,7 @@ export default function ReviewContentWritePage() {
 
   const [title, setTitle] = useState('') // news 전용: 전달 소식 페이지 제목
   const [content, setContent] = useState('')
-  const [colorId, setColorId] = useState(LETTER_COLORS[7].id) // 기본 화이트
+  const [colorId, setColorId] = useState('white') // 기본 화이트
   const [images, setImages] = useState<File[]>([])
   const [showPhotoSheet, setShowPhotoSheet] = useState(false)
   const [showExitModal, setShowExitModal] = useState(false)
@@ -66,7 +66,8 @@ export default function ReviewContentWritePage() {
       .catch(() => {})
   }, [resolvedFundingId])
 
-  const letterColor = LETTER_COLORS.find((c) => c.id === colorId) ?? LETTER_COLORS[7]
+  const colors = useLetterColors()
+  const letterColor = colors.find((c) => c.id === colorId) ?? colors[colors.length - 1]
 
   // images가 바뀔 때만 새로 생성하고, 이전 URL은 해제해서 blob 메모리가 쌓이지 않게 함
   const imageUrls = useMemo(() => images.map((file) => URL.createObjectURL(file)), [images])
@@ -77,26 +78,29 @@ export default function ReviewContentWritePage() {
   const config = type && type in REVIEW_WRITE_TYPES ? REVIEW_WRITE_TYPES[type as ReviewWriteType] : null
   if (!config) return <Navigate to="/home" replace />
 
-  const isNews = config.key === 'news'
-  const canSubmit = content.trim() !== '' && !uploading && (!isNews || title.trim() !== '')
+  // gift만 편지지(LetterCard·색상 선택)를 쓰고, news/message는 단순 input/textarea + 제목 입력을 공유한다.
+  const usesPlainInput = config.key !== 'gift'
+  // gift는 이 화면에서 제목 입력이 없고(받는사람 자리는 1단계에서 제거됨), news/message는 제목이 BE 필수값이다.
+  const requiresTitle = config.key !== 'gift'
+  const canSubmit = content.trim() !== '' && !uploading && (!requiresTitle || title.trim() !== '')
 
   const removeImage = (index: number) => setImages((prev) => prev.filter((_, i) => i !== index))
 
   const handleExit = () => setShowExitModal(true)
 
-  const titleSection = isNews && (
+  const titleSection = requiresTitle && (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <p className="text-b1-m text-black">{config.titleLabel}</p>
         <span className="text-b2-r text-gray-400">
-          ({title.length}/{NEWS_TITLE_MAX_LENGTH})
+          ({title.length}/{REVIEW_TITLE_MAX_LENGTH})
         </span>
       </div>
       <input
         type="text"
         value={title}
-        onChange={(e) => setTitle(e.target.value.slice(0, NEWS_TITLE_MAX_LENGTH))}
-        maxLength={NEWS_TITLE_MAX_LENGTH}
+        onChange={(e) => setTitle(e.target.value.slice(0, REVIEW_TITLE_MAX_LENGTH))}
+        maxLength={REVIEW_TITLE_MAX_LENGTH}
         placeholder={config.titlePlaceholder}
         className="h-12 rounded-lg bg-background px-4 text-b1-r text-black placeholder:text-gray-400 focus:outline-none"
       />
@@ -140,13 +144,13 @@ export default function ReviewContentWritePage() {
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <p className="text-b1-m text-black">{config.contentLabel}</p>
-        {isNews && (
+        {usesPlainInput && (
           <span className="text-b2-r text-gray-400">
             ({content.length}/{NEWS_CONTENT_MAX_LENGTH})
           </span>
         )}
       </div>
-      {isNews ? (
+      {usesPlainInput ? (
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value.slice(0, NEWS_CONTENT_MAX_LENGTH))}
@@ -157,7 +161,8 @@ export default function ReviewContentWritePage() {
         />
       ) : (
         <>
-          <LetterColorPicker selectedId={colorId} onSelect={(color) => setColorId(color.id)} showLabel={false} />
+          <LetterColorPicker selectedId={colorId} onSelect={(color) => setColorId(color.id)} colors={colors} showLabel={false} />
+          {letterColor && (
           <LetterCard
             color={letterColor}
             state="preInput"
@@ -167,6 +172,7 @@ export default function ReviewContentWritePage() {
             onContentChange={setContent}
             maxLength={REVIEW_CONTENT_MAX_LENGTH}
           />
+          )}
         </>
       )}
     </div>
@@ -178,7 +184,7 @@ export default function ReviewContentWritePage() {
     try {
       const uploadedImageUrls = await Promise.all(images.map((file) => uploadImage(REVIEW_IMAGE_PREFIX, file)))
       const contentState: ReviewContentState = {
-        title: isNews ? title : '',
+        title: requiresTitle ? title : '',
         content,
         images: uploadedImageUrls,
         colorId,
@@ -220,7 +226,7 @@ export default function ReviewContentWritePage() {
           </div>
         )}
 
-        {isNews ? (
+        {usesPlainInput ? (
           <>
             {titleSection}
             {contentSection}
@@ -228,6 +234,7 @@ export default function ReviewContentWritePage() {
           </>
         ) : (
           <>
+            {titleSection}
             {imageSection}
             {contentSection}
           </>

@@ -5,7 +5,7 @@ import Button from '../../components/common/Button'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import Toast from '../../components/common/Toast'
 import { useMockFunding } from '../funding/useMockFunding'
-import { LETTER_COLORS, type LetterColor } from '../../components/common/letterPalette'
+import { useLetterColors, colorIdToBackgroundId } from '../gift-review/useDecorations'
 import ProcessBar from '../../components/common/ProcessBar'
 import NameStep from './NameStep'
 import LetterStep from './LetterStep'
@@ -14,6 +14,7 @@ import DepositStep from './DepositStep'
 import { postContribution } from '../../api/contributions'
 import { getSharedFunding, sharedFundingToFundingDetail } from '../../api/fundings'
 import type { FundingDetail } from '../../types/funding'
+import { trackEvent } from '../../lib/analytics'
 
 /**
  * E03) 내 선물 참여: 축하 페이지 (4단계 참여 흐름)
@@ -46,8 +47,10 @@ export default function ParticipatePage() {
   const [name, setName] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [letter, setLetter] = useState('')
-  // 편지지 색은 피그마 고정 8종(로컬 팔레트). 작성자가 자유롭게 선택 — BE 조회 불필요, 제출 시 backgroundId만 전송
-  const [letterColor, setLetterColor] = useState<LetterColor>(LETTER_COLORS[7]) // 기본 화이트
+  // 편지지 색은 BE(contribution-backgrounds) hexCode에서 파생. 제출 시 backgroundId만 전송
+  const colors = useLetterColors()
+  const [colorId, setColorId] = useState('white') // 기본 화이트
+  const letterColor = colors.find((c) => c.id === colorId) ?? colors[colors.length - 1]
   const [isPrivate, setIsPrivate] = useState(false)
   const [amount, setAmount] = useState<number | null>(null)
   const [showExitModal, setShowExitModal] = useState(false)
@@ -76,12 +79,13 @@ export default function ParticipatePage() {
     try {
       await postContribution(id!, {
         senderName: isAnonymous ? '익명' : name.trim(),
-        backgroundId: letterColor.backgroundId,
+        backgroundId: letterColor?.backgroundId ?? colorIdToBackgroundId(colorId) ?? 8,
         isAnonymous,
         amount: amount ?? 0,
         content: letter,
         isPrivate,
       })
+      trackEvent('funding_participate_complete', { funding_type: 'my' })
       navigate(`/funding/${id}/complete`, { state: { hostName } })
     } catch (e) {
       console.error('참여 제출 실패', e)
@@ -120,9 +124,10 @@ export default function ParticipatePage() {
             hostName={hostName}
             letter={letter}
             letterColor={letterColor}
+            colors={colors}
             isPrivate={isPrivate}
             onLetterChange={setLetter}
-            onColorChange={setLetterColor}
+            onColorChange={(c) => setColorId(c.id)}
             onPrivateChange={setIsPrivate}
           />
         )}

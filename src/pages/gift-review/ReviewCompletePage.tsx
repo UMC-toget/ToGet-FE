@@ -15,7 +15,7 @@ const TOAST_DURATION_MS = 2000
 export default function ReviewCompletePage() {
   useRequireAuth()
 
-  const { type } = useParams<{ type: string }>()
+  const { type, fundingId: routeFundingId } = useParams<{ type: string; fundingId?: string }>()
   const navigate = useNavigate()
   const location = useLocation()
   const previewData = location.state as ReviewPreviewData | null
@@ -30,7 +30,7 @@ export default function ReviewCompletePage() {
   const config = type && type in REVIEW_COMPLETE_TYPES ? REVIEW_COMPLETE_TYPES[type as ReviewWriteType] : null
   if (!config) return <Navigate to="/home" replace />
 
-  const fundingId = previewData?.fundingId
+  const fundingId = previewData?.fundingId ?? routeFundingId
   const fundingReviewId = previewData?.fundingReviewId
   const reviewPath = fundingId != null && fundingReviewId != null
     ? `/gift/review/${fundingReviewId}/${fundingId}?type=${REVIEW_API_TYPE[config.key]}`
@@ -75,7 +75,13 @@ export default function ReviewCompletePage() {
     await copyLink()
   }
 
+  // news/message: 초대장 미리보기 화면(저장된 캐릭터·배경색을 실제 API로 조회)을 거쳐 대시보드 조회로 이어진다.
+  // gift: 작성 API 응답으로 받은 실제 후기 ID를 사용해 상세 화면으로 이동한다.
   const handlePreview = () => {
+    if ((config.key === 'news' || config.key === 'message') && fundingId) {
+      navigate(`/gift/review/complete/${config.key}/${fundingId}/invitation-preview`)
+      return
+    }
     if (!reviewPath) {
       setToastMessage('후기 정보를 찾을 수 없어요')
       return

@@ -1,13 +1,15 @@
 import { useRef, useState } from 'react'
 import type { PointerEvent } from 'react'
 import { useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import Header from '../../components/common/Header'
 import LetterCard from '../../components/common/LetterCard'
-import { LETTER_COLORS } from '../../components/common/letterPalette'
 import type { ReviewPreviewData } from './reviewTypes'
-import { useContributionBackgrounds, backgroundIdToColorId } from './useDecorations'
+import { useLetterColors, backgroundIdToColorId } from './useDecorations'
 import { useReview } from './useReviews'
 import type { ReviewApiType } from '../../api/reviews'
+import { getTogetherGiftDashboard } from '../../api/groupFundings'
+import GiftDashboardSummary from './GiftDashboardSummary'
 
 const REVIEW_API_TYPES: ReviewApiType[] = ['review', 'news', 'heartfelt']
 
@@ -36,8 +38,17 @@ export default function GiftReviewDetailPage() {
     ? (requestedType as ReviewApiType)
     : 'review'
 
-  const backgrounds = useContributionBackgrounds()
+  const colors = useLetterColors()
   const { data: apiReview, isLoading, isError } = useReview(fundingId, reviewApiType)
+
+  // news/message(heartfelt) 조회 화면 상단은 함께 선물 대시보드(공개 API)를 추가로 보여준다. 실패해도 편지 본문은
+  // 그대로 보여야 하므로 이 쿼리는 로딩/에러를 페이지 전체 상태에 관여시키지 않고, 데이터가 없으면 요약 블록만 생략한다.
+  const showDashboard = reviewApiType === 'news' || reviewApiType === 'heartfelt'
+  const { data: dashboard } = useQuery({
+    queryKey: ['togetherGiftDashboard', fundingId],
+    queryFn: () => getTogetherGiftDashboard(fundingId!),
+    enabled: showDashboard && fundingId != null,
+  })
 
   const previewState = location.state as ReviewPreviewData | null
   const review: ReviewPreviewData | null = previewState ?? (apiReview
@@ -45,7 +56,7 @@ export default function GiftReviewDetailPage() {
         authorName: apiReview.authorName,
         title: apiReview.title ?? '',
         content: apiReview.content,
-        colorId: backgroundIdToColorId(apiReview.backgroundId, backgrounds),
+        colorId: backgroundIdToColorId(apiReview.backgroundId),
         images: apiReview.images,
         fundingReviewId: apiReview.fundingReviewId,
       }
@@ -97,13 +108,15 @@ export default function GiftReviewDetailPage() {
     )
   }
 
-  const letterColor = LETTER_COLORS.find((c) => c.id === review.colorId) ?? LETTER_COLORS[7]
+  const letterColor = colors.find((c) => c.id === review.colorId) ?? colors[colors.length - 1]
   const hasImages = review.images.length > 0
   const heading = review.authorName ? `${review.authorName}님이 보낸 선물 후기` : '선물 후기'
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-10">
       <Header title={heading} />
+
+      {showDashboard && dashboard && <GiftDashboardSummary dashboard={dashboard} />}
 
       <div className="flex flex-col gap-4 px-[18px] pt-5">
         <h2 className="text-h3-sb text-black">{heading}</h2>
@@ -144,14 +157,16 @@ export default function GiftReviewDetailPage() {
           </div>
         )}
 
-        <LetterCard
-          color={letterColor}
-          state="open"
-          title={review.title}
-          content={review.content}
-          showFrom={review.authorName != null}
-          fromLabel={review.authorName ? `from. ${review.authorName}` : undefined}
-        />
+        {letterColor && (
+          <LetterCard
+            color={letterColor}
+            state="open"
+            title={review.title}
+            content={review.content}
+            showFrom={review.authorName != null}
+            fromLabel={review.authorName ? `from. ${review.authorName}` : undefined}
+          />
+        )}
       </div>
     </div>
   )

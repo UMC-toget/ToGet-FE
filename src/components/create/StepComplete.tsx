@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Check, Heart, X } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
-import { getCharacterImageSrc, getInvitationAccent, useInvitationMeta } from './Mascot';
+import { getCharacterImageSrc, getInvitationCompletionColors, useInvitationMeta } from './Mascot';
+import { trackEvent } from '../../lib/analytics';
 
 interface Props {
   fundingId: number;
@@ -14,10 +15,7 @@ export default function StepComplete({ fundingId, onViewFunding, onGoHome }: Pro
   const [copied, setCopied] = useState(false);
   const { backgrounds, characters } = useInvitationMeta();
   const characterImageUrl = getCharacterImageSrc(characters.find((item) => item.id === inviteCharacter));
-  const selectedColor = backgrounds.find((item) => item.id === inviteBackgroundId)?.hexCode ?? inviteColor;
-  const glowColor = selectedColor === '#FFFFFF' ? '#D1D5DB' : selectedColor;
-  const accentColor = getInvitationAccent(selectedColor);
-  const decorationColor = selectedColor === '#FFFFFF' ? accentColor : selectedColor;
+  const { glowColor, decorationColor } = getInvitationCompletionColors(inviteColor, inviteBackgroundId, backgrounds);
 
   const sharePath = `/funding/${fundingId}/invitation`;
   const shareLink = `toget.kr${sharePath}`;
@@ -27,6 +25,7 @@ export default function StepComplete({ fundingId, onViewFunding, onGoHome }: Pro
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
+      trackEvent('invitation_share', { method: 'copy', funding_type: 'my' });
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // 클립보드 권한이 없는 등의 경우 - 조용히 무시 (필요시 토스트 처리)
@@ -39,7 +38,7 @@ export default function StepComplete({ fundingId, onViewFunding, onGoHome }: Pro
       <div
         className="absolute inset-x-0 top-0 h-96 pointer-events-none"
         style={{
-          background: `radial-gradient(circle at 50% 62%, color-mix(in srgb, ${glowColor} 28%, transparent) 0%, color-mix(in srgb, ${glowColor} 16%, transparent) 38%, transparent 68%)`,
+          background: `radial-gradient(circle at 50% 62%, color-mix(in srgb, ${glowColor} 48%, transparent) 0%, color-mix(in srgb, ${glowColor} 36%, transparent) 38%, transparent 68%)`,
         }}
       />
       <button
@@ -57,7 +56,7 @@ export default function StepComplete({ fundingId, onViewFunding, onGoHome }: Pro
           <div
             className="absolute inset-0 rounded-full blur-2xl pointer-events-none"
             style={{
-              background: `radial-gradient(circle, color-mix(in srgb, ${glowColor} 30%, transparent) 0%, transparent 70%)`,
+              background: `radial-gradient(circle, color-mix(in srgb, ${glowColor} 50%, transparent) 0%, transparent 70%)`,
               opacity: 0.55,
             }}
           />

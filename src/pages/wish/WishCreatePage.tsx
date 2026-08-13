@@ -4,6 +4,7 @@ import { WishForm } from './components/WishForm'
 import { setPendingToast } from './hooks/useWishToast'
 import { createWishlistItem } from '../../api/wishlists'
 import { uploadImage } from '../../utils/uploadImage'
+import { trackEvent } from '../../lib/analytics'
 
 const WISH_IMAGE_PREFIX = 'wishlists'
 
@@ -45,6 +46,7 @@ export default function WishCreatePage() {
         type: 'create',
         wishlistItemId: created.wishlistItemId,
       })
+      trackEvent('wish_create', { wish_type: wishType })
       navigate('/wish')
     } catch (err) {
       console.error('위시 아이템 생성 실패:', err)

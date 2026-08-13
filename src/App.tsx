@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
+import PageViewTracker from './components/common/PageViewTracker'
 import SplashPage from './pages/splash/SplashPage' // TEMP: GIF 스플래시 확인용, 확인 후 되돌릴 것
 import LoginPage from './pages/login/LoginPage'
 import ProfileSetupPage from './pages/signup/ProfileSetupPage'
@@ -47,13 +48,16 @@ import GroupMessagesPage from './pages/group/GroupMessagesPage'
 import ReviewContentWritePage from './pages/gift-review/ReviewContentWritePage'
 import ReviewWritePage from './pages/gift-review/ReviewWritePage'
 import ReviewCompletePage from './pages/gift-review/ReviewCompletePage'
+import ReviewInvitationPreviewPage from './pages/gift-review/ReviewInvitationPreviewPage'
 import GiftReviewDetailPage from './pages/gift-review/GiftReviewDetailPage'
 import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage'
 import TermsOfServicePage from './pages/legal/TermsOfServicePage'
 
 function App() {
   return (
-    <Routes>
+    <>
+      <PageViewTracker />
+      <Routes>
       <Route path="/" element={<SplashPage />} /> {/* TEMP: GIF 스플래시 확인용, 확인 후 HomePage로 되돌릴 것 */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup/profile" element={<ProfileSetupPage />} />
@@ -136,14 +140,19 @@ function App() {
       />
       <Route path="/group/:id/messages" element={<GroupMessagesPage />} />
       <Route
-        path="/gift/review/complete/:type"
+        path="/gift/review/complete/:type/:fundingId?"
         element={<ReviewCompletePage />}
+      />
+      <Route
+        path="/gift/review/complete/:type/:fundingId/invitation-preview"
+        element={<ReviewInvitationPreviewPage />}
       />
       <Route
         path="/gift/review/:id/:fundingId?"
         element={<GiftReviewDetailPage />}
       />
-    </Routes>
+      </Routes>
+    </>
   );
 }
 

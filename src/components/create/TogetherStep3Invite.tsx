@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { X, Expand, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTogetherCreateStore } from '../../store/togetherCreateStore';
-import { getCharacterImageSrc, getInvitationAccent, useInvitationMeta } from './Mascot';
+import { getCharacterImageSrc, getInvitePreviewAccent, InviteColorSwatchGrid, useInvitationMeta } from './Mascot';
 import { TogetLogoMark, InviteSparkles } from './Step5Invite';
 import { useMyProfile } from '../../hooks/useMyProfile';
+import InvitationPreviewCard from './InvitationPreviewCard';
+import CategoryChips from '../common/CategoryChips';
+import ZoomInIcon from '../icons/ZoomInIcon';
 
 export interface TogetherInviteInitialValue {
   title: string;
@@ -20,6 +23,12 @@ interface Props {
 }
 
 type Tab = 'message' | 'color' | 'character';
+
+const TABS: { key: Tab; label: string }[] = [
+  { key: 'message', label: '초대 메시지' },
+  { key: 'color', label: '초대장 색상' },
+  { key: 'character', label: '캐릭터' },
+];
 
 const TITLE_MAX = 15;
 const CONTENT_MAX = 60;
@@ -89,9 +98,7 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
   const currentCharacterIndex = Math.max(0, characters.findIndex((item) => item.id === currentCharacter?.id));
   const currentCharacterNumber = String(currentCharacterIndex + 1).padStart(2, '0');
   const currentCharacterImage = getCharacterImageSrc(currentCharacter);
-  const isWhite = inviteColor === '#FFFFFF';
-  const accentColor = isWhite ? getInvitationAccent(inviteColor) : inviteColor;
-  const glowColor = isWhite ? '#D1D5DB' : inviteColor;
+  const { isWhite, accentColor, glowColor } = getInvitePreviewAccent(inviteColor);
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
@@ -104,8 +111,9 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
         {/* 미리보기 - 탭하면 확대 모달 */}
         <button
           onClick={() => setShowPreviewModal(true)}
-          className="relative block w-full h-64 rounded-2xl overflow-hidden border border-gray-200 text-left bg-white"
+          className="relative block w-full text-left"
         >
+          <div className="hidden">
           <div
             className="absolute inset-x-0 top-0 h-40 pointer-events-none"
             style={{
@@ -126,27 +134,31 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
             <span className="block text-right text-[10px] font-normal mt-2" style={{ color: accentColor }}>from. {previewName}</span>
           </div>
           <Expand size={14} className="absolute right-3 bottom-3 text-gray-300 z-20" />
+          </div>
+          <InvitationPreviewCard
+            characterId={currentCharacter?.id}
+            backgroundId={inviteBackgroundId}
+            title={displayTitle}
+            content={displayContent}
+            fromName={previewName}
+            compact
+            overlay={
+              <span className="absolute bottom-3 right-3 z-30 flex size-7 items-center justify-center rounded-full bg-gray-100 text-gray-700 shadow-[0px_10px_62.5px_rgba(0,0,0,0.04)]">
+                <ZoomInIcon className="size-5" />
+              </span>
+            }
+          />
         </button>
 
-        {/* 탭 */}
-        <div className="flex gap-2">
-          {(
-            [
-              { key: 'message', label: '초대 메시지' },
-              { key: 'color', label: '초대장 색상' },
-              { key: 'character', label: '캐릭터' },
-            ] as { key: Tab; label: string }[]
-          ).map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors
-                ${tab === t.key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        {/* 탭 — 공용 카테고리 칩 디자인(CategoryChips) 재사용 */}
+        <CategoryChips
+          categories={TABS.map((t) => t.label)}
+          selected={TABS.find((t) => t.key === tab)?.label ?? TABS[0].label}
+          onSelect={(label) => {
+            const next = TABS.find((t) => t.label === label);
+            if (next) setTab(next.key);
+          }}
+        />
 
         {tab === 'message' && (
           <div className="space-y-4">
@@ -190,30 +202,11 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
         {tab === 'color' && (
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">초대장 색상</p>
-            <div className="grid grid-cols-8 gap-2">
-              {backgrounds.map((background) => {
-                // id8(화이트)는 BE가 #FFFFFF를 줘서 칩이 안 보이므로 그레이400으로 표시
-                const chipColor = background.hexCode.toUpperCase() === '#FFFFFF' ? '#ACA6AB' : background.hexCode
-                return (
-                  <button
-                    key={background.id}
-                    onClick={() => setInvite({ inviteBackgroundId: background.id, inviteColor: background.hexCode })}
-                    className={`relative aspect-square rounded-[3px] transition-colors ${
-                      inviteBackgroundId === background.id ? 'z-10 border-2' : 'border border-transparent'
-                    }`}
-                    style={{
-                      background:
-                        inviteBackgroundId === background.id
-                          ? chipColor
-                          : `color-mix(in srgb, ${chipColor} 50%, white)`,
-                      ...(inviteBackgroundId === background.id && { borderColor: chipColor }),
-                    }}
-                    aria-label={`${background.name} 색상 선택`}
-                    aria-pressed={inviteBackgroundId === background.id}
-                  />
-                )
-              })}
-            </div>
+            <InviteColorSwatchGrid
+              backgrounds={backgrounds}
+              selectedBackgroundId={inviteBackgroundId}
+              onSelect={(background) => setInvite({ inviteBackgroundId: background.id, inviteColor: background.hexCode })}
+            />
             {!isLoading && backgroundError && <p className="mt-3 text-xs text-red-400">색상 목록을 불러오지 못했어요.</p>}
           </div>
         )}
@@ -225,14 +218,14 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
               <button
                 onClick={() => changeCharacter(-1)}
                 aria-label="이전 캐릭터"
-                className="w-14 h-14 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                className="w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition-colors"
               >
                 <ChevronLeft size={28} />
               </button>
               <div className="flex flex-col items-center gap-2">
                 {currentCharacterImage ? <img src={currentCharacterImage} alt={currentCharacter?.name ?? '초대장 캐릭터'} className="w-32 h-32 object-contain" /> : <div className="w-32 h-32 rounded-full bg-gray-100 animate-pulse" />}
                 {currentCharacter ? (
-                  <span className="px-3 py-1.5 rounded-md bg-pink-400 text-sm font-semibold text-white">No.{currentCharacterNumber}</span>
+                  <span className="rounded-[3.46px] bg-pink-500 px-1.5 py-[4.73px] text-caption2-r text-white">No.{currentCharacterNumber}</span>
                 ) : (
                   <span className="text-xs font-semibold text-pink-400">{characterError ? '불러오기 실패' : '불러오는 중'}</span>
                 )}
@@ -240,7 +233,7 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
               <button
                 onClick={() => changeCharacter(1)}
                 aria-label="다음 캐릭터"
-                className="w-14 h-14 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                className="w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition-colors"
               >
                 <ChevronRight size={28} />
               </button>
@@ -260,16 +253,15 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
       </button>
 
       {/* 확대 미리보기 모달 */}
-      {showPreviewModal && (
-        <div
-          className="fixed inset-0 bg-black/30 flex items-start justify-center z-50 px-6 pt-24"
+      <div
+          className={`${showPreviewModal ? 'flex' : 'hidden'} fixed inset-0 z-50 items-start justify-center bg-black/30 px-6 pt-24`}
           onClick={() => setShowPreviewModal(false)}
         >
           <div
-            className="rounded-3xl p-7 w-full max-w-md text-center relative shadow-xl overflow-visible bg-white"
+            className="relative w-full max-w-[350px] overflow-visible text-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative rounded-2xl overflow-hidden border border-black/5 shadow-[0_6px_24px_rgba(0,0,0,0.12)] bg-white">
+            <div className="hidden">
               <div
                 className="absolute inset-x-0 top-0 h-96 pointer-events-none"
                 style={{
@@ -289,6 +281,13 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
                 </div>
               </div>
             </div>
+            <InvitationPreviewCard
+              characterId={currentCharacter?.id}
+              backgroundId={inviteBackgroundId}
+              title={displayTitle}
+              content={displayContent}
+              fromName={previewName}
+            />
 
             <button
               onClick={() => setShowPreviewModal(false)}
@@ -299,7 +298,6 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
             </button>
           </div>
         </div>
-      )}
     </div>
   );
 }
