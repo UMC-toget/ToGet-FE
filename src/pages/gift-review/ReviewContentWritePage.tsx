@@ -15,7 +15,12 @@ import { uploadImage } from '../../utils/uploadImage'
 import { getSharedFunding } from '../../api/fundings'
 import { formatDateDots } from '../../utils/formatDate'
 import GiftPagePreviewCard from './GiftPagePreviewCard'
-import { REVIEW_WRITE_TYPES, REVIEW_CONTENT_MAX_LENGTH } from './reviewTypes'
+import {
+  REVIEW_WRITE_TYPES,
+  REVIEW_CONTENT_MAX_LENGTH,
+  NEWS_TITLE_MAX_LENGTH,
+  NEWS_CONTENT_MAX_LENGTH,
+} from './reviewTypes'
 import type { ReviewWriteType, ReviewContentState } from './reviewTypes'
 
 const REVIEW_IMAGE_PREFIX = 'reviews'
@@ -33,6 +38,7 @@ export default function ReviewContentWritePage() {
   const resolvedFundingId = fundingId ?? FALLBACK_FUNDING_ID
   const navigate = useNavigate()
 
+  const [title, setTitle] = useState('') // news 전용: 전달 소식 페이지 제목
   const [content, setContent] = useState('')
   const [colorId, setColorId] = useState(LETTER_COLORS[7].id) // 기본 화이트
   const [images, setImages] = useState<File[]>([])
@@ -71,11 +77,100 @@ export default function ReviewContentWritePage() {
   const config = type && type in REVIEW_WRITE_TYPES ? REVIEW_WRITE_TYPES[type as ReviewWriteType] : null
   if (!config) return <Navigate to="/home" replace />
 
-  const canSubmit = content.trim() !== '' && !uploading
+  const isNews = config.key === 'news'
+  const canSubmit = content.trim() !== '' && !uploading && (!isNews || title.trim() !== '')
 
   const removeImage = (index: number) => setImages((prev) => prev.filter((_, i) => i !== index))
 
   const handleExit = () => setShowExitModal(true)
+
+  const titleSection = isNews && (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <p className="text-b1-m text-black">{config.titleLabel}</p>
+        <span className="text-b2-r text-gray-400">
+          ({title.length}/{NEWS_TITLE_MAX_LENGTH})
+        </span>
+      </div>
+      <input
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value.slice(0, NEWS_TITLE_MAX_LENGTH))}
+        maxLength={NEWS_TITLE_MAX_LENGTH}
+        placeholder={config.titlePlaceholder}
+        className="h-12 rounded-lg bg-background px-4 text-b1-r text-black placeholder:text-gray-400 focus:outline-none"
+      />
+    </div>
+  )
+
+  const imageSection = (
+    <div className="flex flex-col gap-3">
+      <p className="text-b1-m text-black">{config.imageLabel}</p>
+      <div className="flex items-center gap-3 overflow-x-auto pb-1">
+        {images.map((_, i) => (
+          <div key={i} className="relative size-[123px] shrink-0 overflow-hidden rounded-2xl">
+            <img src={imageUrls[i]} alt={`${config.imageLabel} ${i + 1}`} className="size-full object-cover" />
+            <button
+              type="button"
+              onClick={() => removeImage(i)}
+              aria-label={`${config.imageLabel} 삭제`}
+              className="absolute right-1.5 top-1.5 flex size-6 items-center justify-center rounded-full bg-black/50 text-white"
+            >
+              <CloseIcon className="size-3.5" />
+            </button>
+          </div>
+        ))}
+        {images.length < config.maxImages && (
+          <button
+            type="button"
+            onClick={() => setShowPhotoSheet(true)}
+            aria-label={`${config.imageLabel} 추가`}
+            className="flex size-[123px] shrink-0 items-center justify-center rounded-2xl bg-background"
+          >
+            <span className="flex size-8 items-center justify-center rounded-full bg-gray-100">
+              <PlusIcon className="size-5 text-gray-600" />
+            </span>
+          </button>
+        )}
+      </div>
+    </div>
+  )
+
+  const contentSection = (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <p className="text-b1-m text-black">{config.contentLabel}</p>
+        {isNews && (
+          <span className="text-b2-r text-gray-400">
+            ({content.length}/{NEWS_CONTENT_MAX_LENGTH})
+          </span>
+        )}
+      </div>
+      {isNews ? (
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value.slice(0, NEWS_CONTENT_MAX_LENGTH))}
+          maxLength={NEWS_CONTENT_MAX_LENGTH}
+          placeholder={config.contentPlaceholder}
+          rows={11}
+          className="w-full resize-none rounded-xl bg-background p-4 text-b2-r leading-[28px] text-black outline-none placeholder:text-gray-400"
+        />
+      ) : (
+        <>
+          <LetterColorPicker selectedId={colorId} onSelect={(color) => setColorId(color.id)} showLabel={false} />
+          <LetterCard
+            color={letterColor}
+            state="preInput"
+            title=""
+            content={content}
+            contentPlaceholder={LETTER_CONTENT_PLACEHOLDER}
+            onContentChange={setContent}
+            maxLength={REVIEW_CONTENT_MAX_LENGTH}
+          />
+        </>
+      )}
+    </div>
+  )
 
   const handleSubmit = async () => {
     if (!canSubmit) return
@@ -83,7 +178,7 @@ export default function ReviewContentWritePage() {
     try {
       const uploadedImageUrls = await Promise.all(images.map((file) => uploadImage(REVIEW_IMAGE_PREFIX, file)))
       const contentState: ReviewContentState = {
-        title: '',
+        title: isNews ? title : '',
         content,
         images: uploadedImageUrls,
         colorId,
@@ -116,7 +211,7 @@ export default function ReviewContentWritePage() {
 
         {fundingPreview && (
           <div className="flex flex-col gap-3">
-            <p className="text-b1-m text-black">선물 페이지</p>
+            <p className="text-b1-m text-black">{config.fundingPreviewLabel}</p>
             <GiftPagePreviewCard
               title={fundingPreview.title}
               date={fundingPreview.date}
@@ -125,50 +220,18 @@ export default function ReviewContentWritePage() {
           </div>
         )}
 
-        <div className="flex flex-col gap-3">
-          <p className="text-b1-m text-black">{config.imageLabel}</p>
-          <div className="flex items-center gap-3 overflow-x-auto pb-1">
-            {images.map((_, i) => (
-              <div key={i} className="relative size-[123px] shrink-0 overflow-hidden rounded-2xl">
-                <img src={imageUrls[i]} alt={`${config.imageLabel} ${i + 1}`} className="size-full object-cover" />
-                <button
-                  type="button"
-                  onClick={() => removeImage(i)}
-                  aria-label={`${config.imageLabel} 삭제`}
-                  className="absolute right-1.5 top-1.5 flex size-6 items-center justify-center rounded-full bg-black/50 text-white"
-                >
-                  <CloseIcon className="size-3.5" />
-                </button>
-              </div>
-            ))}
-            {images.length < config.maxImages && (
-              <button
-                type="button"
-                onClick={() => setShowPhotoSheet(true)}
-                aria-label={`${config.imageLabel} 추가`}
-                className="flex size-[123px] shrink-0 items-center justify-center rounded-2xl bg-background"
-              >
-                <span className="flex size-8 items-center justify-center rounded-full bg-gray-100">
-                  <PlusIcon className="size-5 text-gray-600" />
-                </span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-3">
-          <p className="text-b1-m text-black">{config.contentLabel}</p>
-          <LetterColorPicker selectedId={colorId} onSelect={(color) => setColorId(color.id)} showLabel={false} />
-          <LetterCard
-            color={letterColor}
-            state="preInput"
-            title=""
-            content={content}
-            contentPlaceholder={LETTER_CONTENT_PLACEHOLDER}
-            onContentChange={setContent}
-            maxLength={REVIEW_CONTENT_MAX_LENGTH}
-          />
-        </div>
+        {isNews ? (
+          <>
+            {titleSection}
+            {contentSection}
+            {imageSection}
+          </>
+        ) : (
+          <>
+            {imageSection}
+            {contentSection}
+          </>
+        )}
       </div>
 
       <div className="pointer-events-none fixed bottom-0 left-1/2 w-full max-w-[402px] -translate-x-1/2 bg-gradient-to-b from-white/0 to-white/80 px-[18px] pb-[34px] pt-10">
