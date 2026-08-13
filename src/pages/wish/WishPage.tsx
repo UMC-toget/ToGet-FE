@@ -307,7 +307,7 @@ export default function WishPage() {
         message={toastMessage ?? ''}
         actionLabel={toastActionLabel}
         onAction={handleToastAction}
-        bottomClass="bottom-[125px]"
+        bottomClass="bottom-[110px]"
       />
     </div>
   )
