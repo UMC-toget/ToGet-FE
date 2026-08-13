@@ -24,7 +24,7 @@ ToGet은 생일·졸업·집들이 등 특별한 날의 선물을 **여러 사�
 
 - 현재 저장소는 모바일 우선(Mobile-first) 반응형 웹으로 구현되었으며, 최대 너비 **402px** 기준의 모바일 레이아웃을 중심으로 설계되었습니다.
 
-- **스플래시 → 로그인(카카오/구글) → 프로필 설정(회원가입) → 홈(선물 둘러보기 · 내가 개최한 선물 모으기) → 위시 등록/수정 → 마이페이지(내 정보 · 계좌 관리) → 선물 만들기(내 선물/함께 선물) → 펀딩 상세/참여/후기 · 함께 선물 참여(후보 투표/정산) → 관리자(상품·초대장 테마 관리)**까지 전체 서비스 흐름의 화면이 구현되어 있습니다. <br>
+- **스플래시 → 홈(비로그인도 열람 가능) → 로그인(카카오/구글, 신규 가입자는 프로필 설정) → 위시 등록/수정 → 마이페이지(내 정보 · 계좌 관리) → 선물 만들기(내 선물/함께 선물) → 펀딩 상세/참여/후기 · 함께 선물 참여(후보 투표/정산) → 관리자(상품·초대장 테마 관리)**까지 전체 서비스 흐름의 화면이 구현되어 있습니다. <br>
 - **모든 화면이 실제 백엔드 API와 연동**되어 있습니다(Mock 데이터 없음).
 
 
@@ -95,7 +95,7 @@ ToGet은 생일·졸업·집들이 등 특별한 날의 선물을 **여러 사�
 | Package Manager | pnpm | `pnpm-lock.yaml` 사용 |
 | Deploy | Vercel | GitHub Actions 연동 |
 
-**상태 관리**: 인증은 React `Context API`(`AuthProvider`), 서버 상태는 `TanStack Query`, 화면 간 공유되는 클라이언트 전역 상태는 `Zustand`(`wishStore`, `fundingCreateStore`)로 분리해 관리합니다. <br><br>
+**상태 관리**: 인증은 React `Context API`(`AuthProvider`), 서버 상태는 `TanStack Query`, 화면 간 공유되는 클라이언트 전역 상태는 `Zustand`(`wishStore`, `fundingCreateStore`, `togetherCreateStore`)로 분리해 관리합니다. <br><br>
 **데이터**: 인증·프로필·계좌·위시·펀딩(내 선물/함께 선물)·후기 등 모든 도메인이 `axios` 기반 `apiClient`로 **실제 API 연동**되어 있습니다.
 
 ## 🚀 실행 방법
@@ -150,33 +150,37 @@ src/
 │   ├── products.ts              # 관리자 상품 관리
 │   └── metaApi.ts / decorations.ts / images.ts / webImages.ts 등
 │
-├── lib/                        # 통신 인프라
+├── lib/                        # 통신/인증/분석 인프라
 │   ├── apiClient.ts             # axios 인스턴스 + 토큰 주입/401 자동 갱신 인터셉터
 │   ├── queryClient.ts           # TanStack Query 클라이언트
-│   └── tokenStorage.ts          # access/refresh 토큰 localStorage 관리
+│   ├── tokenStorage.ts          # access/refresh 토큰 localStorage 관리
+│   ├── oauthConfig.ts / kakao.ts   # 구글/카카오 소셜 로그인 설정 및 SDK 연동
+│   ├── admin.ts                 # 관리자 이메일 판별
+│   └── analytics.ts             # GA4 이벤트 트래킹
 │
 ├── store/                      # Zustand 스토어
-│   ├── fundingCreateStore.ts    # 선물 만들기 5단계 입력값 + 수정 스냅샷
+│   ├── fundingCreateStore.ts    # 내 선물 만들기 5단계 입력값 + 수정 스냅샷
 │   ├── togetherCreateStore.ts   # 함께 선물 만들기 입력값
 │   └── wishStore.ts             # 위시 등록/해제 상태
 │
 ├── contexts/                   # AuthProvider (로그인 상태 Context)
 ├── hooks/                      # useAuth, useMyProfile, useUserAccounts, useRequireAuth, useRequireAdmin 등 (Query/가드 훅)
-├── layouts/                    # 공통 레이아웃 래퍼
-├── constants/                  # 전역 상수
+├── constants/                  # 전역 상수 (예: fundingFieldLimits.ts)
 ├── types/                      # funding.ts 등 공용 타입
 │
 ├── components/
-│   ├── common/                 # 공통 UI (Button/TextField/Header/BottomSheet/BottomNav/
-│   │                           #  MenuRow/ConfirmModal/Toast/LetterCard/DefaultAvatar/CategoryChips 등)
-│   ├── create/                 # 선물 만들기(내 선물/함께 선물) 스텝 + 이미지 등록/크롭
+│   ├── common/                 # 공통 UI (Button/TextField/Header/BottomSheet/BottomNav/MenuRow/
+│   │                           #  ConfirmModal/Toast/LetterCard/DefaultAvatar/CategoryChips/
+│   │                           #  PhotoActionSheet·ImageCropper(이미지 등록/크롭) 등)
+│   ├── create/                 # 내 선물(Step1~5)·함께 선물(TogetherStep1~3) 개설 폼 스텝
 │   ├── invitation/             # 초대장 비주얼 드롭인 컴포넌트 (InvitationVisual 등, E01·J 공용)
 │   └── icons/                  # SVG 아이콘 컴포넌트
 │
 ├── pages/
 │   ├── splash/ login/ signup/  # 온보딩 (스플래시/소셜 로그인/프로필 설정)
-│   ├── home/ wish/             # 홈(둘러보기·내 펀딩) / 위시 (WishPage/WishEditPage/WishEditModeSheet)
-│   ├── my/                     # 마이페이지·내 정보 수정·계좌 목록/등록/수정·관리자(상품/초대장 테마)
+│   ├── home/                   # 홈 (둘러보기·내 펀딩 목록)
+│   ├── wish/                   # 위시 조회/등록(WishCreatePage)/검색(WishSearchPage)/수정
+│   ├── my/                     # 마이페이지·내 정보 수정·계좌·내 펀딩 목록·관리자(상품/초대장 테마)
 │   ├── gift-about/             # 선물 페이지 이용 방법
 │   ├── gift-create/            # 선물 만들기 진입 시트 + 함께 선물 만들기 플로우
 │   ├── FundingCreatePage.tsx   # 내 선물 만들기 5단계 플로우
@@ -184,9 +188,9 @@ src/
 │   ├── invitation/             # 펀딩 초대장
 │   ├── participate/            # 펀딩 참여(4단계)·완료
 │   ├── group/                  # 함께 선물 참여 — H섹션
-│   │                           #  (GroupPage/CandidatesPage/CandidateNewPage/
-│   │                           #   ParticipantsPage/LetterPage/SettlePage/GroupEditPage)
-│   ├── gift-review/            # 선물 후기 작성/완료/조회
+│   │                           #  (GroupPage/CandidatesPage/CandidateNewPage/ConfirmPage/
+│   │                           #   ParticipantsPage/LetterPage/SettlePage/HostSettlePage/GroupEditPage)
+│   ├── gift-review/            # 선물 후기 작성(내용→초대장)/완료/조회
 │   └── legal/                  # 개인정보처리방침·이용약관
 │
 ├── assets/                     # 로고/캐릭터/은행 로고 등 (+ mock 이미지)
@@ -197,31 +201,49 @@ src/
 
 ```
 [/] SplashPage
-   │  2초 후 자동 이동 (replace)
+   │  4초 후 자동 이동 (replace) — 비로그인 사용자도 로그인 없이 서비스를
+   │  볼 수 있어야 한다는 구글 OAuth 브랜딩 요건상, 로그인이 아니라 홈으로 이동
    ▼
-[/login] LoginPage ── 카카오/구글 ──▶ [/signup/profile] (신규 가입자) ──▶ [/home] HomePage
-                                                                              │
+[/home] HomePage (B01 비로그인 / B02 로그인) ──[배너 "로그인" 버튼]──▶ [/login] LoginPage
+   │                                                                       │ 카카오/구글
+   │                                                        (신규 가입자) [/signup/profile]
+   │                                                                       │
+   │◀──────────────────────────────────────────────────────────────────────┘
+   │
+   ├─[배너 "선물 페이지 만들기"]─▶ GiftCreateSheet(바텀시트) ─┬─▶ [/gift/create/my] 내 선물 5단계 개설
+   │                                                          └─▶ [/gift/create/together] 함께 선물 개설
+   │
         ┌─────────────────────────────────────┬──────────────────────────┤ BottomNav
         ▼                        ▼             ▼                          ▼
-   [/wish] WishPage      [/funding/create]   [/my] MyPage         [/gift/about]
-   위시 조회 → 등록/수정   선물 만들기 5단계    마이페이지            이용 방법
-   (카드 "⋮" → 수정/삭제)     │ 완료               │
-                              ▼                    ▼
-                     [/funding/:id] ◀──────  [/my/accounts] 계좌 관리 (API)
-                     펀딩 상세(개설자/참여자)    [/my/profile] 내 정보 수정 (API)
-                              │
-              ┌───────────────┼────────────────┐
-              ▼               ▼                 ▼
-      [/participate]   [/messages]        [/gift/review/write/:type]
-      펀딩 참여 4단계   메세지 전체보기      선물 후기 작성 → 완료 → 조회
+   [/wish] WishPage      (배너/+ 버튼)         [/my] MyPage         [/gift/about]
+   위시 조회             [/wish/create] 등록     마이페이지            이용 방법
+   [/wish/:id/edit] 수정  [/wish/search] 검색      │
+                                                    ├─ [/my/fundings/my] 내 선물 목록
+                                                    ├─ [/my/fundings/together] 함께 선물 목록
+                                                    ├─ [/my/accounts] 계좌 관리
+                                                    ├─ [/my/profile] 내 정보 수정
+                                                    └─(관리자)─┬─ [/admin/products] 상품 관리
+                                                               └─ [/admin/invitation-themes] 초대장 테마 관리
+
+[/funding/:id] 펀딩 상세(개설자/참여자, 내 선물)
+   ├── [/funding/:id/invitation]   초대장
+   ├── [/funding/:id/edit], [/edit/:step]   수정
+   ├── [/funding/:id/messages]     축하 메세지 전체보기
+   ├── [/funding/:id/participate] → [/funding/:id/complete]   참여 4단계 → 완료
+   └── [/gift/review/write/:type/:fundingId?] → .../invitation → [/gift/review/complete/:type/:fundingId?]
+       후기 내용 작성 → 초대장 꾸미기 → 완료 → [/gift/review/:id/:fundingId?] 조회
 
 [/group/:id] 함께 선물 메인 (H 섹션 — 그룹 펀딩 참여)
-   ├── [/group/:id/candidates]         선물 후보 목록/투표 (최대 3표)
-   │     └── [/group/:id/candidates/new]  후보 등록 (CO_HOST 이상)
-   ├── [/group/:id/participants]       참여자 목록
-   ├── [/group/:id/letter]             편지 남기기
-   ├── [/group/:id/settle]             정산하기
-   └── [/group/:id/edit]               선물 페이지 수정 (HOST 전용)
+   ├── [/group/:id/candidates]                선물 후보 목록/투표 (최대 3표)
+   │     ├── [/group/:id/candidates/new]         후보 등록 (공동관리자 이상)
+   │     └── [/group/:id/candidates/:id], .../comments   후보 상세/댓글
+   ├── [/group/:id/participants]              참여자 목록 (뷰/관리)
+   ├── [/group/:id/confirm], .../edit         선물 확정
+   ├── [/group/:id/letter]                    편지 남기기
+   ├── [/group/:id/settle], .../settle/host   정산하기 (참여자/개설자 뷰)
+   ├── [/group/:id/purchase-upload]           구매 인증 업로드
+   ├── [/group/:id/messages]                  메세지 전체보기
+   └── [/group/:id/edit], .../basic·account·invitation   선물 페이지 수정 (개설자 전용)
 ```
 
 ## 🗂 상태 관리 & 데이터
@@ -293,9 +315,10 @@ prefix: `feat` · `fix` · `docs` · `refactor` · `test` · `chore` · `ci` · 
 
 ## 🚢 배포
 
-- **플랫폼**: Vercel — GitHub 연동을 통해 `main` push 시 자동으로 프로덕션에 배포됩니다.
+- **플랫폼**: Vercel. Vercel 무료 플랜에서 GitHub **조직(Organization)** 저장소 연동 배포가 제한되어, 개인 저장소(`HongYeonLee/ToGet-FE`)를 미러로 두고 그쪽을 Vercel과 연동하는 방식으로 우회합니다.
 - **배포 주소**: [`https://www.toget.kr`](https://www.toget.kr) (`to-get-fe.vercel.app` 등 Vercel 기본 도메인으로도 접근 가능)
 - **GitHub Actions** (`.github/workflows/`)
+  - `deploy.yml` — `main` push 시 저장소 전체를 미러 저장소(`HongYeonLee/ToGet-FE`)의 `main`으로 push. Vercel은 이 미러 저장소 연동을 통해 실제 프로덕션 배포를 실행합니다.
   - `preview.yaml` — `main`/`dev` 대상 PR 생성 시 Vercel Preview 배포 후 PR에 미리보기 URL 코멘트
   - `main-merge-guard.yml` — `main` 대상 PR의 head 브랜치가 `dev`인지 검증(다른 브랜치의 직접 병합 차단)
   - `dev-to-main-release.yml` — `dev`에 머지됐지만 아직 `main`에 반영 안 된 PR이 5개 이상 쌓이면 release PR(dev → main)을 자동 생성
