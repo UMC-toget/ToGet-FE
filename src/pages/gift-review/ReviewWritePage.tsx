@@ -48,6 +48,7 @@ function InvitationCardFrame({
   logoColor,
   whiteLogo,
   heroTitle,
+  letterTitle,
   content,
   isContentPlaceholder,
   fromName,
@@ -59,6 +60,8 @@ function InvitationCardFrame({
   logoColor?: string
   whiteLogo?: boolean
   heroTitle: string
+  /** 편지지 영역 상단 고정 제목(굵게). news 전용 — 있으면 안내 문구를 가운데 정렬로 보여준다 */
+  letterTitle?: string
   content: string
   isContentPlaceholder: boolean
   fromName?: string | null
@@ -112,8 +115,13 @@ function InvitationCardFrame({
             className="absolute rounded-2xl bg-white p-5 text-left shadow-sm"
             style={{ left: '4.5%', top: '72%', width: '91%' }}
           >
+            {letterTitle && (
+              <p className="text-center font-medium text-black" style={{ fontSize: '20px', marginBottom: '20px' }}>
+                {letterTitle}
+              </p>
+            )}
             <p
-              className={`line-clamp-3 whitespace-pre-line text-b2-r ${isContentPlaceholder ? 'text-gray-400' : 'text-gray-600'}`}
+              className={`line-clamp-3 whitespace-pre-line text-b2-r ${letterTitle ? 'text-center' : ''} ${isContentPlaceholder ? 'text-gray-400' : 'text-gray-600'}`}
             >
               {content}
             </p>
@@ -176,8 +184,11 @@ export default function ReviewWritePage() {
   const safeCharacterIndex = characters.length > 0 ? characterIndex % characters.length : 0
   const currentCharacter = characters[safeCharacterIndex]
   const characterImage = currentCharacter?.imageUrl ?? FALLBACK_CHARACTER_IMAGE
-  // 후기내용은 1단계(ReviewContentWritePage)에서 입력받아 여기선 미리보기에만 반영한다. 받는사람 자리는 1단계에서 이미 제거됨
-  const displayContent = bodyContent || config.contentPlaceholder
+  // 편지지 영역 문구: config.invitationLetterText가 있는 유형(news)은 1단계 입력 대신 유형별 고정 문구를 초대장에 쓴다.
+  // 그 외(gift/message)는 1단계(ReviewContentWritePage)에서 입력받은 내용을 그대로 미리보기에 반영한다. 받는사람 자리는 1단계에서 이미 제거됨
+  const displayContent = config.invitationLetterText ?? (bodyContent || config.contentPlaceholder)
+  const isContentPlaceholder = config.invitationLetterText == null && !bodyContent
+  const letterTitle = config.invitationLetterTitle
   const canSubmit = !submitting
 
   // 조회 화면(InvitationVisual/useInvitationCard)과 동일한 backgroundId→테마색 규칙을 작성 미리보기에도 그대로 적용.
@@ -279,8 +290,9 @@ export default function ReviewWritePage() {
             logoColor={invitationThemeColor}
             whiteLogo={invitationWhiteLogo}
             heroTitle={config.heroHeading}
+            letterTitle={letterTitle}
             content={displayContent}
-            isContentPlaceholder={!bodyContent}
+            isContentPlaceholder={isContentPlaceholder}
             fromName={config.showFrom ? profile?.nickname ?? '' : null}
             accentColor={invitationThemeColor}
           />
@@ -395,8 +407,9 @@ export default function ReviewWritePage() {
                 logoColor={invitationThemeColor}
                 whiteLogo={invitationWhiteLogo}
                 heroTitle={config.heroHeading}
+                letterTitle={letterTitle}
                 content={displayContent}
-                isContentPlaceholder={!bodyContent}
+                isContentPlaceholder={isContentPlaceholder}
                 fromName={config.showFrom ? profile?.nickname ?? '' : null}
                 accentColor={invitationThemeColor}
               />
