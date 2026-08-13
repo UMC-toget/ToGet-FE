@@ -22,6 +22,7 @@ import { MOCK_SETTLEMENTS, MOCK_ACCOUNT, MOCK_DASHBOARD } from './groupMock'
 import { readLetterDraft, clearLetterDraft } from './letterDraft'
 import { markSelfSettled } from './settlementFlag'
 import { copyToClipboard } from '../../utils/clipboard'
+import { trackEvent } from '../../lib/analytics'
 
 // 접근: 로그인한 모든 역할 | 정산하기 — 계좌 조회 및 입금 확인 요청 (참여자 뷰)
 interface InfoRowProps {
@@ -90,6 +91,7 @@ export default function SettlePage() {
     clearLetterDraft(id)
     // 정산 완료 표시 — 개설자 SETTLING 하단 버튼을 '금액 모으기 마감하기'로 전환하는 데 쓰인다
     markSelfSettled(id)
+    trackEvent('funding_participate_complete', { funding_type: 'together' })
     setSubmitting(false)
     setDoneOpen(true)
   }

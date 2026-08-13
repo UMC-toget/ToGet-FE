@@ -11,6 +11,7 @@ import LockIcon from '../../components/icons/LockIcon'
 import ChatIcon from '../../components/icons/ChatIcon'
 import StarIcon from '../../components/icons/StarIcon'
 import WalletIcon from '../../components/icons/WalletIcon'
+import { trackEvent } from '../../lib/analytics'
 
 type GiftPageType = 'my' | 'together'
 
@@ -139,7 +140,14 @@ export default function GiftAboutPage() {
       </div>
 
       <div className="fixed inset-x-0 bottom-0 left-1/2 w-full max-w-[402px] -translate-x-1/2 bg-white px-[18px] pt-3 pb-6">
-        <Button onClick={() => navigate(content.createPath)}>페이지 만들기</Button>
+        <Button
+          onClick={() => {
+            trackEvent('funding_create_start', { funding_type: activeTab })
+            navigate(content.createPath)
+          }}
+        >
+          페이지 만들기
+        </Button>
       </div>
     </div>
   )

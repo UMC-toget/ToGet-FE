@@ -9,6 +9,7 @@ import type { GiftPageType } from './giftTypes'
 import { useDeleteIndividualDraft, useIndividualDraft } from './useIndividualDraft'
 import { useDeleteTogetherDraft, useTogetherDraft } from './useTogetherDraft'
 import { useAuth } from '../../hooks/useAuth'
+import { trackEvent } from '../../lib/analytics'
 
 interface GiftCreateCardInfo {
   type: GiftPageType
@@ -33,6 +34,8 @@ const GIFT_PAGE_CARDS: GiftCreateCardInfo[] = [
 ]
 
 const resolveCreatePath = (type: GiftPageType) => `/gift/create/${type}`
+
+const trackCreateStart = (type: GiftPageType) => trackEvent('funding_create_start', { funding_type: type })
 
 interface GiftCreateSheetProps {
   open: boolean
@@ -66,6 +69,7 @@ export default function GiftCreateSheet({
           return
         }
         onClose()
+        trackCreateStart(type)
         navigate(isLoggedIn ? resolveCreatePath(type) : '/login')
         return
       }
@@ -76,6 +80,7 @@ export default function GiftCreateSheet({
         return
       }
       onClose()
+      trackCreateStart(type)
       navigate(isLoggedIn ? resolveCreatePath(type) : '/login')
     },
     [individualDraftQuery.isLoading, individualDraftQuery.data, togetherDraftQuery.isLoading, togetherDraftQuery.data, isLoggedIn, onClose, navigate],
@@ -99,14 +104,20 @@ export default function GiftCreateSheet({
       localStorage.removeItem('toget:together-draft-meta')
     }
     onClose()
-    if (type) navigate(isLoggedIn ? resolveCreatePath(type) : '/login')
+    if (type) {
+      trackCreateStart(type)
+      navigate(isLoggedIn ? resolveCreatePath(type) : '/login')
+    }
   }, [draftModalType, individualDraftQuery.data, togetherDraftQuery.data, deleteIndividualDraft, deleteTogetherDraft, isLoggedIn, onClose, navigate])
 
   const handleContinueDraft = useCallback(() => {
     const type = draftModalType
     setDraftModalType(null)
     onClose()
-    if (type) navigate(isLoggedIn ? resolveCreatePath(type) : '/login', { state: { continueDraft: true } })
+    if (type) {
+      trackCreateStart(type)
+      navigate(isLoggedIn ? resolveCreatePath(type) : '/login', { state: { continueDraft: true } })
+    }
   }, [draftModalType, isLoggedIn, onClose, navigate])
 
   const handleGuideClick = useCallback(() => {

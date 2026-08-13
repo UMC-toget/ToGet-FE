@@ -10,6 +10,7 @@ import GiftCreateSheet from "../gift-create/GiftCreateSheet";
 import { useAuth } from "../../hooks/useAuth";
 import { useMyFundings } from "./useMyFundings";
 import type { MyFundingSummary } from "../../types/funding";
+import { trackEvent } from "../../lib/analytics";
 
 const TOAST_DURATION_MS = 2000;
 
@@ -25,12 +26,15 @@ export default function HomePage() {
       ? `/group/${funding.id}`
       : `/funding/${funding.id}/invitation`;
     const inviteUrl = `${window.location.origin}${invitePath}`;
+    const fundingTypeParam = funding.fundingType === 'TOGETHER_GIFT' ? 'together' : 'my';
     try {
       if (navigator.share) {
         await navigator.share({ title: funding.title, url: inviteUrl });
+        trackEvent('invitation_share', { method: 'share', funding_type: fundingTypeParam });
         return;
       }
       await navigator.clipboard.writeText(inviteUrl);
+      trackEvent('invitation_share', { method: 'copy', funding_type: fundingTypeParam });
       setToastMessage("초대장 링크가 복사되었어요");
       setTimeout(() => setToastMessage(null), TOAST_DURATION_MS);
     } catch {

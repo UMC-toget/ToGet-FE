@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Check, Heart, X } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import { getCharacterImageSrc, getInvitationAccent, useInvitationMeta } from './Mascot';
+import { trackEvent } from '../../lib/analytics';
 
 interface Props {
   fundingId: number;
@@ -27,6 +28,7 @@ export default function StepComplete({ fundingId, onViewFunding, onGoHome }: Pro
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
+      trackEvent('invitation_share', { method: 'copy', funding_type: 'my' });
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // 클립보드 권한이 없는 등의 경우 - 조용히 무시 (필요시 토스트 처리)
