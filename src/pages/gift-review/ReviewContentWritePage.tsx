@@ -18,7 +18,7 @@ import GiftPagePreviewCard from './GiftPagePreviewCard'
 import {
   REVIEW_WRITE_TYPES,
   REVIEW_CONTENT_MAX_LENGTH,
-  NEWS_TITLE_MAX_LENGTH,
+  REVIEW_TITLE_MAX_LENGTH,
   NEWS_CONTENT_MAX_LENGTH,
 } from './reviewTypes'
 import type { ReviewWriteType, ReviewContentState } from './reviewTypes'
@@ -79,25 +79,27 @@ export default function ReviewContentWritePage() {
   if (!config) return <Navigate to="/home" replace />
 
   const isNews = config.key === 'news'
-  const canSubmit = content.trim() !== '' && !uploading && (!isNews || title.trim() !== '')
+  // gift는 이 화면에서 제목 입력이 없고(받는사람 자리는 1단계에서 제거됨), news/message는 제목이 BE 필수값이다.
+  const requiresTitle = config.key !== 'gift'
+  const canSubmit = content.trim() !== '' && !uploading && (!requiresTitle || title.trim() !== '')
 
   const removeImage = (index: number) => setImages((prev) => prev.filter((_, i) => i !== index))
 
   const handleExit = () => setShowExitModal(true)
 
-  const titleSection = isNews && (
+  const titleSection = requiresTitle && (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <p className="text-b1-m text-black">{config.titleLabel}</p>
         <span className="text-b2-r text-gray-400">
-          ({title.length}/{NEWS_TITLE_MAX_LENGTH})
+          ({title.length}/{REVIEW_TITLE_MAX_LENGTH})
         </span>
       </div>
       <input
         type="text"
         value={title}
-        onChange={(e) => setTitle(e.target.value.slice(0, NEWS_TITLE_MAX_LENGTH))}
-        maxLength={NEWS_TITLE_MAX_LENGTH}
+        onChange={(e) => setTitle(e.target.value.slice(0, REVIEW_TITLE_MAX_LENGTH))}
+        maxLength={REVIEW_TITLE_MAX_LENGTH}
         placeholder={config.titlePlaceholder}
         className="h-12 rounded-lg bg-background px-4 text-b1-r text-black placeholder:text-gray-400 focus:outline-none"
       />
@@ -181,7 +183,7 @@ export default function ReviewContentWritePage() {
     try {
       const uploadedImageUrls = await Promise.all(images.map((file) => uploadImage(REVIEW_IMAGE_PREFIX, file)))
       const contentState: ReviewContentState = {
-        title: isNews ? title : '',
+        title: requiresTitle ? title : '',
         content,
         images: uploadedImageUrls,
         colorId,
@@ -231,6 +233,7 @@ export default function ReviewContentWritePage() {
           </>
         ) : (
           <>
+            {titleSection}
             {imageSection}
             {contentSection}
           </>
