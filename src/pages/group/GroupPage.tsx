@@ -36,14 +36,14 @@ export default function GroupPage() {
 
   // ── DEV 전용 UI 미리보기 오버라이드 ──────────────────────────
   // /group/1?role=CREATOR|ADMIN|PARTICIPANT&status=SELECTING|SETTLING|PURCHASING|DELIVERING|ENDED
-  // 구 별칭(HOST/CO_HOST/MEMBER)도 허용. API/토큰 없이 mock으로 역할×상태 조합을 바로 확인 (프로덕션 빌드엔 영향 없음)
+  // 구 별칭(HOST/CO_HOST/COHOST/MEMBER)도 허용. API/토큰 없이 mock으로 역할×상태 조합을 바로 확인 (프로덕션 빌드엔 영향 없음)
   const [searchParams] = useSearchParams()
   const ROLE_ALIAS: Record<string, FundingMemberRole> = {
-    HOST: 'CREATOR', CO_HOST: 'ADMIN', MEMBER: 'PARTICIPANT',
+    HOST: 'CREATOR', CO_HOST: 'ADMIN', COHOST: 'ADMIN', MEMBER: 'PARTICIPANT',
     CREATOR: 'CREATOR', ADMIN: 'ADMIN', PARTICIPANT: 'PARTICIPANT',
   }
   const rawRole = import.meta.env.DEV ? searchParams.get('role') : null
-  const devRole: FundingMemberRole | null = rawRole ? (ROLE_ALIAS[rawRole] ?? null) : null
+  const devRole: FundingMemberRole | null = rawRole ? (ROLE_ALIAS[rawRole.toUpperCase()] ?? null) : null
   const devStatus = import.meta.env.DEV ? (searchParams.get('status') as GroupFundingStatus | null) : null
   const devPreview = devRole !== null || devStatus !== null
 
