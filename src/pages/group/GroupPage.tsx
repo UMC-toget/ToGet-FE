@@ -411,15 +411,17 @@ export default function GroupPage() {
                   )}
                 </div>
 
-                {/* 초대장 공유 */}
-                <button
-                  type="button"
-                  onClick={copyInviteLink}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-100 py-2"
-                >
-                  <LinkIcon className="size-5 text-black" />
-                  <span className="text-caption1-m text-black">초대장 공유</span>
-                </button>
+                {/* 초대장 공유 — 전달 완료(ENDED)면 더 이상 참여 모집이 없으므로 숨김 */}
+                {group.status !== 'ENDED' && (
+                  <button
+                    type="button"
+                    onClick={copyInviteLink}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-100 py-2"
+                  >
+                    <LinkIcon className="size-5 text-black" />
+                    <span className="text-caption1-m text-black">초대장 공유</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
