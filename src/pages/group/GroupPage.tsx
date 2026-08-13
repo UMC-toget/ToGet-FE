@@ -592,9 +592,8 @@ export default function GroupPage() {
               </button>
             </div>
           ) : (
-            <Button className="pointer-events-auto" onClick={() => navigate(settleRoute)}>
-              정산하기
-            </Button>
+            // 구매 중엔 참여자·공동관리자 정산이 이미 끝난 단계라 하단 CTA 없음
+            null
           )
         )}
 
@@ -618,9 +617,8 @@ export default function GroupPage() {
               </button>
             </div>
           ) : (
-            <Button className="pointer-events-auto" onClick={() => navigate(settleRoute)}>
-              정산하기
-            </Button>
+            // 전달 중엔 참여자·공동관리자 정산이 이미 끝난 단계라 하단 CTA 없음
+            null
           )
         )}
 
