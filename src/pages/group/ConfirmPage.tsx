@@ -11,6 +11,7 @@ import ConfirmStep3 from './ConfirmStep3'
 import ConfirmStep4 from './ConfirmStep4'
 import { getTogetherGiftDashboard, getGiftCandidates, postFinalSelections, type GiftCandidateItem, type MemberSummary } from '../../api/groupFundings'
 import { getFundingAccount, type FundingAccount } from '../../api/fundings'
+import { MOCK_CANDIDATES, MOCK_DASHBOARD, MOCK_ACCOUNT } from './groupMock'
 
 // 접근: 개설자 전용 | 선물 확정 플로우 4단계 (선물 확정 → 정산인원 → 금액 → 정산 시작)
 export interface ConfirmedGift {
@@ -34,24 +35,35 @@ export default function ConfirmPage() {
   // ConfirmEditPage에서 돌아올 때 state로 복원
   const returnState = location.state as {
     step?: number
-    selectedGiftId?: number | null
+    selectedGiftIds?: number[]
     includedMemberIds?: number[]
     confirmedGifts?: ConfirmedGift[]
   } | null
 
+  // DEV 프리뷰: URL에 ?preview 가 있으면 실 API를 기다리지 않고 mock을 초기값으로 쓴다.
+  // BE 지연/장애 시 UI만 확인하는 용도. 파라미터가 없으면 평소대로 실 API 호출.
+  const isPreview = import.meta.env.DEV && new URLSearchParams(location.search).has('preview')
+  const previewMembers = (): MemberWithStatus[] => {
+    const savedIds = returnState?.includedMemberIds
+    return MOCK_DASHBOARD.members.map(m => ({
+      ...m,
+      included: savedIds ? savedIds.includes(m.fundingMemberId) : true,
+    }))
+  }
+
   const [step, setStep] = useState<1 | 2 | 3 | 4>((returnState?.step as 1 | 2 | 3 | 4) ?? 1)
-  const [selectedGiftId, setSelectedGiftId] = useState<number | null>(returnState?.selectedGiftId ?? null)
-  const [candidates, setCandidates] = useState<GiftCandidateItem[]>([])
-  const [members, setMembers] = useState<MemberWithStatus[]>([])
+  const [selectedGiftIds, setSelectedGiftIds] = useState<number[]>(returnState?.selectedGiftIds ?? [])
+  const [candidates, setCandidates] = useState<GiftCandidateItem[]>(isPreview ? MOCK_CANDIDATES.candidates : [])
+  const [members, setMembers] = useState<MemberWithStatus[]>(isPreview ? previewMembers() : [])
   const [confirmedGifts, setConfirmedGifts] = useState<ConfirmedGift[]>(returnState?.confirmedGifts ?? [])
-  const [account, setAccount] = useState<FundingAccount | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [account, setAccount] = useState<FundingAccount | null>(isPreview ? MOCK_ACCOUNT : null)
+  const [loading, setLoading] = useState(!isPreview)
   const [showExitModal, setShowExitModal] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    if (!id) return
+    if (!id || isPreview) return
     Promise.allSettled([
       getGiftCandidates(id),
       getTogetherGiftDashboard(id),
@@ -85,7 +97,7 @@ export default function ConfirmPage() {
   const includedMembers = members.filter(m => m.included)
 
   const canGoNext =
-    step === 1 ? selectedGiftId !== null :
+    step === 1 ? selectedGiftIds.length > 0 :
     step === 2 ? includedMembers.length > 0 :
     step === 3 ? confirmedGifts.length > 0 :
     true
@@ -96,17 +108,18 @@ export default function ConfirmPage() {
   }
 
   const handleNext = async () => {
-    if (step === 1 && selectedGiftId !== null) {
-      // 선택된 선물을 확정 목록 초기값으로 설정
-      const selected = candidates.find(c => c.fundingGiftId === selectedGiftId)
-      if (selected) {
-        setConfirmedGifts([{
-          id: selected.fundingGiftId,
-          name: selected.giftName,
-          price: selected.giftPrice,
-          imageUrl: selected.giftImageUrl,
-        }])
-      }
+    if (step === 1 && selectedGiftIds.length > 0) {
+      // 선택된 선물들을 확정 목록 초기값으로 설정 (선택 순서가 아니라 목록 순서 유지)
+      setConfirmedGifts(
+        candidates
+          .filter(c => selectedGiftIds.includes(c.fundingGiftId))
+          .map(c => ({
+            id: c.fundingGiftId,
+            name: c.giftName,
+            price: c.giftPrice,
+            imageUrl: c.giftImageUrl,
+          })),
+      )
       setStep(2)
       return
     }
@@ -116,6 +129,11 @@ export default function ConfirmPage() {
     }
     // 4단계: 선물·정산 참여자 확정 → SETTLING 전환 후 홈으로
     if (submitting) return
+    // 프리뷰 모드는 실제 제출 없이 성공 화면만 보여준다 (BE 미호출)
+    if (isPreview) {
+      setShowSuccess(true)
+      return
+    }
     setSubmitting(true)
     try {
       if (id) {
@@ -133,12 +151,13 @@ export default function ConfirmPage() {
   }
 
   const handleGoToEdit = () => {
-    navigate(`/group/${id}/confirm/edit`, {
+    // location.search를 유지해 DEV 프리뷰(?preview)가 편집 왕복에서 끊기지 않게 한다
+    navigate(`/group/${id}/confirm/edit${location.search}`, {
       replace: true,
       state: {
         confirmedGifts,
         step,
-        selectedGiftId,
+        selectedGiftIds,
         includedMemberIds: members.filter(m => m.included).map(m => m.fundingMemberId),
       },
     })
@@ -171,8 +190,12 @@ export default function ConfirmPage() {
         {step === 1 && (
           <ConfirmStep1
             candidates={candidates}
-            selectedGiftId={selectedGiftId}
-            onSelect={setSelectedGiftId}
+            selectedGiftIds={selectedGiftIds}
+            onToggle={giftId =>
+              setSelectedGiftIds(prev =>
+                prev.includes(giftId) ? prev.filter(x => x !== giftId) : [...prev, giftId],
+              )
+            }
           />
         )}
         {step === 2 && (

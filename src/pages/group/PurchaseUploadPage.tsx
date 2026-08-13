@@ -64,7 +64,7 @@ export default function PurchaseUploadPage() {
 
       <div className="flex flex-1 flex-col gap-6 px-[18px] pt-7">
         {/* 타이틀 */}
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           <h2 className="text-h3-sb text-black">구매내역 업로드</h2>
           <p className="text-caption1-r text-gray-600">펀딩금액으로 구매한 선물내역을 공유해주세요.</p>
         </div>
