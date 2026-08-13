@@ -138,8 +138,8 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
 
 /** 내용 글자수 제한 (gift/message 등 공통 기본값) */
 export const REVIEW_CONTENT_MAX_LENGTH = 60
-/** news 전용 제목 글자수 제한 */
-export const NEWS_TITLE_MAX_LENGTH = 20
+/** 제목 글자수 제한 (news/message 공통 — gift는 제목 입력 없음) */
+export const REVIEW_TITLE_MAX_LENGTH = 20
 /** news 전용 내용 글자수 제한 */
 export const NEWS_CONTENT_MAX_LENGTH = 70
 
