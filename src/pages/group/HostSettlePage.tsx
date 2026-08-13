@@ -79,7 +79,7 @@ export default function HostSettlePage() {
         ) : (
           <div className="flex flex-col px-[18px]">
             {/* 제목 + 캡션 */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <h2 className="text-h3-sb text-black">정산인원 확정하기</h2>
               <p className="text-caption1-r text-[#7F7779]">참여자별 입금 상태를 확인해요</p>
             </div>
@@ -181,7 +181,7 @@ function SettlementCard({ member, menuOpen, onToggleMenu, onCloseMenu, onAction 
         <div className="shrink-0">
           {member.profileImageUrl
             ? <img src={member.profileImageUrl} alt={member.name} className="size-10 rounded-full object-cover" />
-            : <DefaultAvatar className="size-10 shrink-0" />
+            : <DefaultAvatar plain className="size-10 shrink-0" />
           }
         </div>
         <div className="flex flex-col gap-1">

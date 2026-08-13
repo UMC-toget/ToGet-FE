@@ -5,6 +5,7 @@ import Button from '../../components/common/Button'
 import StickyBottomBar from '../../components/common/StickyBottomBar'
 import Toast from '../../components/common/Toast'
 import DefaultAvatar from '../../components/common/DefaultAvatar'
+import RoleRibbon from './RoleRibbon'
 import togetherFundingFallback from '../../assets/together-funding-empty.svg'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import LinkIcon from '../../components/icons/LinkIcon'
@@ -18,6 +19,8 @@ import type { ContributionItem } from '../../api/contributions'
 import { MOCK_DASHBOARD, MOCK_CONTRIBUTIONS } from './groupMock'
 import EnvelopeButton from '../funding/EnvelopeButton'
 import LetterModal from '../funding/LetterModal'
+import DeliveryShareSheet from './DeliveryShareSheet'
+import { hasSelfSettled } from './settlementFlag'
 import { useAuth } from '../../hooks/useAuth'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import EmojiPopup from '../../components/common/EmojiPopup'
@@ -34,14 +37,14 @@ export default function GroupPage() {
 
   // ── DEV 전용 UI 미리보기 오버라이드 ──────────────────────────
   // /group/1?role=CREATOR|ADMIN|PARTICIPANT&status=SELECTING|SETTLING|PURCHASING|DELIVERING|ENDED
-  // 구 별칭(HOST/CO_HOST/MEMBER)도 허용. API/토큰 없이 mock으로 역할×상태 조합을 바로 확인 (프로덕션 빌드엔 영향 없음)
+  // 구 별칭(HOST/CO_HOST/COHOST/MEMBER)도 허용. API/토큰 없이 mock으로 역할×상태 조합을 바로 확인 (프로덕션 빌드엔 영향 없음)
   const [searchParams] = useSearchParams()
   const ROLE_ALIAS: Record<string, FundingMemberRole> = {
-    HOST: 'CREATOR', CO_HOST: 'ADMIN', MEMBER: 'PARTICIPANT',
+    HOST: 'CREATOR', CO_HOST: 'ADMIN', COHOST: 'ADMIN', MEMBER: 'PARTICIPANT',
     CREATOR: 'CREATOR', ADMIN: 'ADMIN', PARTICIPANT: 'PARTICIPANT',
   }
   const rawRole = import.meta.env.DEV ? searchParams.get('role') : null
-  const devRole: FundingMemberRole | null = rawRole ? (ROLE_ALIAS[rawRole] ?? null) : null
+  const devRole: FundingMemberRole | null = rawRole ? (ROLE_ALIAS[rawRole.toUpperCase()] ?? null) : null
   const devStatus = import.meta.env.DEV ? (searchParams.get('status') as GroupFundingStatus | null) : null
   const devPreview = devRole !== null || devStatus !== null
 
@@ -52,6 +55,9 @@ export default function GroupPage() {
   const [giftListOpen, setGiftListOpen] = useState(false)
   const [selectedLetter, setSelectedLetter] = useState<ContributionItem | null>(null)
   const [leaveOpen, setLeaveOpen] = useState(false)
+  const [shareSheetOpen, setShareSheetOpen] = useState(false)
+  // 정산 완료 여부(로컬 플래그) — SettlePage에서 돌아오며 재마운트될 때 다시 읽힌다
+  const [hostSettled] = useState(() => hasSelfSettled(id))
 
   useEffect(() => {
     if (!id) return
@@ -177,7 +183,7 @@ export default function GroupPage() {
             {
               label: group.status === 'SELECTING' ? '참여자 관리' : '정산 내역',
               active: false,
-              onClick: () => navigate(group.status === 'SELECTING' ? `/group/${id}/participants` : settleRoute),
+              onClick: () => navigate(group.status === 'SELECTING' ? `/group/${id}/participants/manage` : settleRoute),
             },
           ]}
         />
@@ -373,7 +379,7 @@ export default function GroupPage() {
                 <div className="flex items-center gap-[30px]">
                   {visibleMembers.map(m => (
                     <div key={m.fundingMemberId} className="flex items-center gap-2">
-                      <div className="mt-[5px] shrink-0">
+                      <div className="relative mt-[5px] flex shrink-0">
                         {getMemberProfileImageUrl(m) ? (
                           <img
                             src={getMemberProfileImageUrl(m) ?? undefined}
@@ -381,12 +387,16 @@ export default function GroupPage() {
                             className="size-[26px] rounded-full object-cover"
                           />
                         ) : (
-                          <DefaultAvatar className="size-[26px] shrink-0" />
+                          <DefaultAvatar plain className="size-[26px] shrink-0" />
                         )}
+                        <RoleRibbon
+                          role={m.role}
+                          className="absolute bottom-[21px] left-1/2 h-[10.24px] w-[17px] -translate-x-1/2"
+                        />
                       </div>
                       <div className="flex flex-col gap-1">
                         <span className="text-[8px] font-normal leading-[10px] text-[#797378]">{ROLE_LABELS[m.role]}</span>
-                        <span className="max-w-[34px] truncate text-caption1-m text-[#111111]">
+                        <span className="max-w-[34px] truncate text-caption1-m leading-[17px] text-[#111111]">
                           {m.name || (m.userId === profile?.userId ? profile?.nickname : '')}
                         </span>
                       </div>
@@ -404,22 +414,24 @@ export default function GroupPage() {
                   )}
                 </div>
 
-                {/* 초대장 공유 */}
-                <button
-                  type="button"
-                  onClick={copyInviteLink}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-100 py-2"
-                >
-                  <LinkIcon className="size-5 text-black" />
-                  <span className="text-caption1-m text-black">초대장 공유</span>
-                </button>
+                {/* 초대장 공유 — 전달 완료(ENDED)면 더 이상 참여 모집이 없으므로 숨김 */}
+                {group.status !== 'ENDED' && (
+                  <button
+                    type="button"
+                    onClick={copyInviteLink}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-100 py-2"
+                  >
+                    <LinkIcon className="size-5 text-black" />
+                    <span className="text-caption1-m text-black">초대장 공유</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* 선물 후보 섹션 (SELECTING 단계에서만 표시) */}
-        {group.status === 'SELECTING' && group.topGifts && group.topGifts.length > 0 && (
+        {/* 선물 후보 섹션 (SELECTING 단계에서만 표시). 후보가 없어도 헤더·더보기는 노출해 등록 진입점을 남긴다 */}
+        {group.status === 'SELECTING' && (
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
@@ -437,18 +449,22 @@ export default function GroupPage() {
 
             <div className="flex flex-col gap-4">
               <p className="text-b1-m text-[#000]">실시간 득표수가 높은 선물후보</p>
-              <div className="grid grid-cols-2 gap-3">
-                {group.topGifts.map((gift, idx) => (
-                  <CandidateCard key={gift.fundingGiftId} candidate={gift} rank={idx + 1} />
-                ))}
-              </div>
+              {group.topGifts && group.topGifts.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {group.topGifts.map((gift, idx) => (
+                    <CandidateCard key={gift.fundingGiftId} candidate={gift} rank={idx + 1} />
+                  ))}
+                </div>
+              ) : (
+                <p className="py-6 text-center text-b2-r text-gray-400">아직 등록된 선물 후보가 없어요</p>
+              )}
             </div>
           </div>
         )}
 
-        {/* 축하 메세지 섹션 — SELECTING 홈에선 숨김. SETTLING 이후 전 상태에서 봉투 아이콘으로 노출.
-            헤더 액션: 역할·상태 무관하게 항상 '더보기'(전체 축하 메세지 보기) */}
-        {contributions.length > 0 && group.status !== 'SELECTING' && (
+        {/* 축하 메세지 섹션 — 함께 선물 홈에선 전달 완료(ENDED) 상태에서만 노출.
+            메세지가 0개여도 헤더·더보기는 유지(더보기 → 빈 전체보기), 봉투만 데이터 없으면 안 나옴 */}
+        {group.status === 'ENDED' && (
           <div className="flex flex-col gap-[9px]">
             <div className="flex flex-col gap-[9px]">
               <div className="flex items-center justify-between">
@@ -481,16 +497,26 @@ export default function GroupPage() {
       {/* 하단 고정 CTA */}
       <StickyBottomBar>
         {!effectiveLoggedIn ? (
-          // 비로그인 참여자: H는 조회만 비로그인 OK → 참여하려면 로그인. 로그인 후 이 펀딩으로 복귀
-          <Button
-            className="pointer-events-auto"
-            onClick={() => {
-              setReturnUrl(`/group/${id}`)
-              navigate('/login')
-            }}
-          >
-            함께 선물 참여하기
-          </Button>
+          // 비로그인 참여자: H는 조회만 비로그인 OK. 전달 완료(ENDED)면 참여가 끝났으니 소식 보기(로그인 불필요),
+          // 그 외엔 참여하려면 로그인 → 로그인 후 이 펀딩으로 복귀
+          group.status === 'ENDED' ? (
+            <Button
+              className="pointer-events-auto !bg-[#1E1D1E]"
+              onClick={() => navigate(`/gift/review/${id}/${id}?type=news`)}
+            >
+              전달 완료 소식보기
+            </Button>
+          ) : (
+            <Button
+              className="pointer-events-auto"
+              onClick={() => {
+                setReturnUrl(`/group/${id}`)
+                navigate('/login')
+              }}
+            >
+              함께 선물 참여하기
+            </Button>
+          )
         ) : (
           <>
         {/* 선물 고르는 중 */}
@@ -499,7 +525,7 @@ export default function GroupPage() {
             <div className="pointer-events-auto flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => navigate(`/group/${id}/confirm`)}
+                onClick={() => navigate(`/group/${id}/confirm${devPreview ? '?preview' : ''}`)}
                 className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-[#797378] bg-white text-b2-sb text-black"
               >
                 선물 확정하기
@@ -527,12 +553,17 @@ export default function GroupPage() {
         {group.status === 'SETTLING' && (
           isHost ? (
             <div className="pointer-events-auto flex items-center gap-3">
+              {/* 개설자도 참여자처럼 정산(/settle)을 먼저 거치고, 정산 완료 후에만 금액 모으기 마감 가능 */}
               <button
                 type="button"
-                onClick={() => handleStatusTransition('PURCHASING')}
+                onClick={() =>
+                  hostSettled
+                    ? handleStatusTransition('PURCHASING')
+                    : navigate(`/group/${id}/settle`)
+                }
                 className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-gray-500 bg-white text-b2-m text-black"
               >
-                금액 모으기 마감하기
+                {hostSettled ? '금액 모으기 마감하기' : '정산하기'}
               </button>
               <button
                 type="button"
@@ -569,9 +600,8 @@ export default function GroupPage() {
               </button>
             </div>
           ) : (
-            <Button className="pointer-events-auto" onClick={() => navigate(settleRoute)}>
-              정산하기
-            </Button>
+            // 구매 중엔 참여자·공동관리자 정산이 이미 끝난 단계라 하단 CTA 없음
+            null
           )
         )}
 
@@ -595,9 +625,8 @@ export default function GroupPage() {
               </button>
             </div>
           ) : (
-            <Button className="pointer-events-auto" onClick={() => navigate(settleRoute)}>
-              정산하기
-            </Button>
+            // 전달 중엔 참여자·공동관리자 정산이 이미 끝난 단계라 하단 CTA 없음
+            null
           )
         )}
 
@@ -606,7 +635,7 @@ export default function GroupPage() {
           isHost ? (
             <Button
               className="pointer-events-auto !bg-[#1E1D1E]"
-              onClick={() => navigate(`/gift/review/write/news/${id}`)}
+              onClick={() => setShareSheetOpen(true)}
             >
               전달 완료 소식 남기기
             </Button>
@@ -625,7 +654,7 @@ export default function GroupPage() {
           </>
         )}
       </StickyBottomBar>
-      <Toast open={toastOpen} message="초대장 링크가 복사되었습니다." variant="pink" bottomClass="bottom-[102px]" />
+      <Toast open={toastOpen} message="초대장 링크가 복사되었습니다." bottomClass="bottom-[102px]" />
       <LetterModal
         open={selectedLetter !== null}
         hostName={`${group.recipientName}님`}
@@ -638,13 +667,15 @@ export default function GroupPage() {
         open={leaveOpen}
         title="함께 선물 페이지를 나가시겠습니까?"
         titleClassName="whitespace-nowrap text-h3-sb"
-        description={'지금 나가면 투표한 내역이 사라지며\n참여자에서 제외돼요.'}
+        description={'지금 나가시면 투표한 내역이 사라지며\n참여자에서 제외돼요.'}
         buttons={[
-          { label: '나가기', onClick: handleLeave, variant: 'secondary' },
-          { label: '함께선물 계속하기', onClick: () => setLeaveOpen(false), variant: 'primary' },
+          { label: '취소하기', onClick: () => setLeaveOpen(false), variant: 'secondary' },
+          { label: '나가기', onClick: handleLeave, variant: 'primary' },
         ]}
         onDimClick={() => setLeaveOpen(false)}
       />
+      {/* 전달 완료 소식/마음 공유 진입 바텀시트 (개설자 ENDED) */}
+      <DeliveryShareSheet open={shareSheetOpen} onClose={() => setShareSheetOpen(false)} />
     </div>
   )
 }

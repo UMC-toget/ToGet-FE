@@ -1,5 +1,23 @@
 export const GIFT_CATEGORIES = ['요즘 인기', '생일', '졸업', '집들이'] as const
 
+/** 실제 상품에 지정 가능한 카테고리('요즘 인기'는 홈 탭 전용 가상 필터라 제외) */
+export const PRODUCT_CATEGORY_TYPES = ['생일', '졸업', '집들이'] as const
+export type ProductCategoryType = (typeof PRODUCT_CATEGORY_TYPES)[number]
+
+/** 한글 카테고리 라벨 -> 서버 categoryTypes enum 코드 (GET /products의 category 필터, POST/PUT 요청 바디 모두 이 코드를 씀) */
+export const CATEGORY_CODE_BY_LABEL: Record<ProductCategoryType, string> = {
+  생일: 'BIRTHDAY',
+  졸업: 'GRADUATION',
+  집들이: 'HOUSEWARMING',
+}
+
+/** 서버 categoryTypes enum 코드 -> 한글 라벨 (상품 상세/수정 폼에 표시할 때 역변환용) */
+export const CATEGORY_LABEL_BY_CODE: Record<string, ProductCategoryType> = {
+  BIRTHDAY: '생일',
+  GRADUATION: '졸업',
+  HOUSEWARMING: '집들이',
+}
+
 export interface Product {
   id: number
   brand: string

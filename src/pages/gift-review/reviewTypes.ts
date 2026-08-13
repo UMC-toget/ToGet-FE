@@ -8,6 +8,18 @@ export const REVIEW_API_TYPE: Record<ReviewWriteType, 'review' | 'news' | 'heart
 }
 
 /**
+ * 후기 작성 1단계(ReviewContentWritePage) → 2단계(ReviewWritePage, 초대장) navigate state.
+ * images는 1단계에서 이미 S3 업로드까지 끝낸 최종 imageUrl 목록이다.
+ */
+export interface ReviewContentState {
+  title: string
+  content: string
+  images: string[]
+  /** 1단계에서 고른 편지지(LetterCard) 색상. LETTER_COLORS의 id (초대장 색상과 별개) */
+  colorId: string
+}
+
+/**
  * 작성 화면 → 완료 화면 → 조회 화면으로 넘기는 임시 데이터 (서버 연동 전, navigate state로 전달)
  * 조회 화면(GiftReviewDetailPage)은 이 값이 없으면(직접 URL 접근 등) 실제 조회 API로 대체한다.
  */
@@ -44,10 +56,23 @@ interface ReviewWriteTypeConfig {
   showFrom: boolean
   /** 이미지 등록 영역 라벨 (피그마 기준: gift/news는 "선물 이미지", message는 "대표 이미지") */
   imageLabel: string
+  /** 1단계 상단에 노출하는 선물 페이지 요약 카드 라벨 */
+  fundingPreviewLabel: string
   /** 등록 가능한 최대 이미지 개수 (gift만 여러 장, news/message는 대표 이미지 1장) */
   maxImages: number
-  /** 초대장 카드 상단 히어로 헤딩 (2줄, \n으로 줄바꿈) */
+  /** 초대장 카드 상단 히어로 헤딩 (유형별 고정 문구, 1줄) */
   heroHeading: string
+  /**
+   * 초대장 카드 편지지 영역 고정 문구. 지정된 유형은 1단계에서 입력한 title/content 대신
+   * 이 문구를 초대장 미리보기·저장에 사용한다 (news: 사용자 입력이 초대장에 반영되지 않음).
+   * 미지정 시 기존처럼 1단계 content를 그대로 보여준다.
+   */
+  invitationLetterText?: string
+  /**
+   * 초대장 카드 편지지 영역 상단 제목(굵게). invitationLetterText와 함께 지정된 유형만 노출하며,
+   * 있을 때는 안내 문구(invitationLetterText)를 가운데 정렬로 보여준다 (news 전용).
+   */
+  invitationLetterTitle?: string
   /** 작성 완료 후 이동 경로 (캐릭터 선택·완료 화면은 별도 이슈라 임시 경로) */
   completePath: string
 }
@@ -62,31 +87,35 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
   gift: {
     key: 'gift',
     headerTitle: '후기 남기기',
-    guideTitle: '선물 후기 남기기',
-    guideDescription: '투겟을 통해 선물을 받고, 선물을 전달한 후기를 남겨보세요.',
+    guideTitle: '선물 후기를 작성해 주세요',
+    guideDescription: '친구들에게 고마운 마음을 표현해 보세요',
     titleLabel: '받는 사람',
     titlePlaceholder: '받는사람을 입력해 주세요',
     contentLabel: '후기 내용',
     contentPlaceholder: '후기 내용을 입력해 주세요',
     showFrom: true,
     imageLabel: '선물 이미지',
+    fundingPreviewLabel: '선물 페이지',
     maxImages: 5,
-    heroHeading: '따뜻한 축하와 선물\n감사합니다!',
+    heroHeading: '선물 후기가 도착했어요!',
     completePath: '/gift/review/complete/gift',
   },
   news: {
     key: 'news',
-    headerTitle: '전달완료 소식남기기',
-    guideTitle: '전달완료 소식남기기',
+    headerTitle: '전달 소식 전하기',
+    guideTitle: '전달 소식 전하기',
     guideDescription: '함께 준비한 선물에 대한, 전달 완료 소식을 보내보세요.',
-    titleLabel: '후기 제목',
-    titlePlaceholder: '후기 제목을 입력해 주세요',
-    contentLabel: '후기 내용',
-    contentPlaceholder: '후기 내용을 입력해 주세요',
+    titleLabel: '전달 소식 페이지 제목',
+    titlePlaceholder: '페이지의 제목을 입력해 주세요',
+    contentLabel: '전달 소식 페이지 내용',
+    contentPlaceholder: '페이지에 들어갈 내용을 입력해 주세요',
     showFrom: true,
-    imageLabel: '선물 이미지',
+    imageLabel: '이미지',
+    fundingPreviewLabel: '함께한 선물 페이지',
     maxImages: 1,
-    heroHeading: '함께 준비한\n소중한 선물을 전달했어요!',
+    heroHeading: '함께 준비한 선물을 전달했어요!',
+    invitationLetterTitle: '함께 준비한 선물을 전달했어요!',
+    invitationLetterText: '친구가 남긴 편지를 확인해 보세요',
     completePath: '/gift/review/complete/news',
   },
   message: {
@@ -100,16 +129,19 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
     contentPlaceholder: '후기 내용을 입력해 주세요',
     showFrom: false,
     imageLabel: '대표 이미지',
+    fundingPreviewLabel: '선물 페이지',
     maxImages: 1,
-    heroHeading: '함께 마음을 담아\n준비했어요',
+    heroHeading: '친구들이 마음을 모아 선물을 준비했어요!',
     completePath: '/gift/review/complete/message',
   },
 }
 
-/** 제목 글자수 제한 */
-export const REVIEW_TITLE_MAX_LENGTH = 15
-/** 내용 글자수 제한 */
+/** 내용 글자수 제한 (gift/message 등 공통 기본값) */
 export const REVIEW_CONTENT_MAX_LENGTH = 60
+/** news 전용 제목 글자수 제한 */
+export const NEWS_TITLE_MAX_LENGTH = 20
+/** news 전용 내용 글자수 제한 */
+export const NEWS_CONTENT_MAX_LENGTH = 70
 
 interface ReviewCompleteTypeConfig {
   key: ReviewWriteType
@@ -146,8 +178,8 @@ export const REVIEW_COMPLETE_TYPES: Record<ReviewWriteType, ReviewCompleteTypeCo
     completeDescription: '함께해 준 친구들에게 선물 도착 소식을 전해보세요.',
     // 피그마 원본 링크 박스 라벨이 message와 동일하게 "초대장"으로 되어 있어 그대로 따름
     linkLabel: '초대장 링크',
-    shareLabel: '초대장 공유',
-    previewLabel: '초대장 미리보기',
+    shareLabel: '전달 소식 공유',
+    previewLabel: '전달 소식 미리보기',
   },
   message: {
     key: 'message',

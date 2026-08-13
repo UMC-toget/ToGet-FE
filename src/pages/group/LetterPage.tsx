@@ -8,9 +8,10 @@ import CheckOption from '../../components/common/CheckOption'
 import LetterCard from '../../components/common/LetterCard'
 import LetterColorPicker from '../../components/common/LetterColorPicker'
 import { LETTER_COLORS } from '../../components/common/letterPalette'
-import { postSettlementContribution } from '../../api/groupFundings'
+import { readLetterDraft, writeLetterDraft } from './letterDraft'
 
 // 접근: 로그인한 모든 역할 | 편지 남기기
+// 이 화면은 편지를 '작성/로컬 저장'만 한다. 실제 제출(입금 완료 신고)은 정산하기(SettlePage)에서 이 draft를 함께 보낸다.
 const LETTER_MAX_LENGTH = 234
 
 export default function LetterPage() {
@@ -20,13 +21,11 @@ export default function LetterPage() {
 
   const recipientName = (location.state as { recipientName?: string } | null)?.recipientName ?? '받는 분'
 
-  const [colorId, setColorId] = useState('white')
-  const [content, setContent] = useState('')
-  const [isPrivate, setIsPrivate] = useState(false)
+  const [initialDraft] = useState(() => readLetterDraft(id))
+  const [colorId, setColorId] = useState(initialDraft?.colorId ?? 'white')
+  const [content, setContent] = useState(initialDraft?.content ?? '')
+  const [isPrivate, setIsPrivate] = useState(initialDraft?.isPrivate ?? false)
   const [showLeaveModal, setShowLeaveModal] = useState(false)
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const [doneOpen, setDoneOpen] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
 
   const selectedColor = LETTER_COLORS.find(c => c.id === colorId) ?? LETTER_COLORS[7]
 
@@ -38,27 +37,11 @@ export default function LetterPage() {
     }
   }
 
-  // 이 화면 제출이 곧 입금 완료 신고(POST /members/me/contributions) — 편지는 선택.
-  // 입금완료 진입점을 여기 하나로 모아 중복 호출(FUNDING409_2)을 방지한다.
-  const submitContribution = async () => {
-    if (submitting) return
-    setSubmitting(true)
-    setConfirmOpen(false)
-    if (!import.meta.env.DEV && id) {
-      try {
-        await postSettlementContribution(id, {
-          backgroundId: selectedColor.backgroundId,
-          content,
-          isPrivate,
-        })
-      } catch (e) {
-        // 이미 입금 완료(409)면 결과적으로 PAID 상태라 정상 취급, 그 외만 로그
-        const status = (e as { response?: { status?: number } }).response?.status
-        if (status !== 409) console.error('입금 완료 신고 실패', e)
-      }
-    }
-    setSubmitting(false)
-    setDoneOpen(true)
+  // 편지를 로컬에 저장하고 정산하기로 복귀. 제출은 정산하기 '입금 완료'에서 이 draft로 이뤄진다.
+  const saveAndLeave = () => {
+    writeLetterDraft(id, { colorId, content, isPrivate })
+    setShowLeaveModal(false)
+    navigate(-1)
   }
 
   return (
@@ -89,45 +72,21 @@ export default function LetterPage() {
       </div>
 
       <StickyBottomBar>
-        <Button
-          className="pointer-events-auto"
-          disabled={submitting}
-          onClick={() => setConfirmOpen(true)}
-        >
-          입금 완료
+        <Button className="pointer-events-auto" onClick={saveAndLeave}>
+          완료하기
         </Button>
       </StickyBottomBar>
 
-      {/* 편지 작성 이탈 확인 — 피그마(3440:117304): 나가기(좌·회색)/이어서 작성하기(우·검정), 배경 탭은 닫힘(안전) */}
+      {/* 편지 작성 이탈 — 로컬 임시저장 방식: 계속 작성하기(좌·회색)/저장하고 나가기(우·검정), 배경 탭은 닫힘(안전) */}
       <EmojiPopup
         open={showLeaveModal}
-        title="페이지를 나가시겠어요?"
-        description="지금 나가면, 작성 중인 메세지가 사라질 수 있어요"
+        title="작성 중인 페이지를 저장할까요?"
+        description={'지금 나가면 현재까지 입력한 내용이 저장되고,\n다음에 다시 이어서 작성할 수 있어요'}
         buttons={[
-          { label: '나가기', variant: 'secondary', onClick: () => navigate(-1) },
-          { label: '이어서 작성하기', variant: 'primary', onClick: () => setShowLeaveModal(false) },
+          { label: '계속 작성하기', variant: 'secondary', onClick: () => setShowLeaveModal(false) },
+          { label: '저장하고 나가기', variant: 'primary', onClick: saveAndLeave },
         ]}
         onDimClick={() => setShowLeaveModal(false)}
-      />
-
-      {/* 입금 완료 확인 — 제출 시 PAID로 확정되고 변경 불가 */}
-      <EmojiPopup
-        open={confirmOpen}
-        title="입금을 완료하셨나요?"
-        description="완료하기를 누르면, 변경이 불가해요."
-        buttons={[
-          { label: '완료하기', variant: 'secondary', onClick: submitContribution },
-          { label: '변경하기', variant: 'primary', onClick: () => setConfirmOpen(false) },
-        ]}
-        onDimClick={() => setConfirmOpen(false)}
-      />
-
-      {/* 입금 완료 완료 — 체크 아이콘 + 홈으로 */}
-      <EmojiPopup
-        open={doneOpen}
-        icon="success"
-        title="입금 완료되었습니다"
-        buttons={[{ label: '홈으로 돌아가기', variant: 'primary', onClick: () => navigate('/home') }]}
       />
     </div>
   )

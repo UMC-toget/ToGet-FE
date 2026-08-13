@@ -129,7 +129,7 @@ function MemberCard({
         <div className="shrink-0">
           {displayProfileImageUrl
             ? <img src={displayProfileImageUrl} alt={displayName} className="size-10 rounded-full object-cover" />
-            : <DefaultAvatar className="size-10 shrink-0" />
+            : <DefaultAvatar plain className="size-10 shrink-0" />
           }
         </div>
         <div className="flex flex-col gap-1">

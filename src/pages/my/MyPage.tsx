@@ -12,8 +12,10 @@ import { isAdminProfile } from '../../lib/admin'
 
 const TOAST_DURATION_MS = 2000
 const IN_DEVELOPMENT_MESSAGE = '아직 개발 중인 기능이에요'
+// 홈 화면 문의하기(HomeFooter)와 동일한 문의처
+const CONTACT_EMAIL = 'hello.toget.team@gmail.com'
 
-const MENU_SECTIONS: { title: string; items: { label: string; path?: string }[] }[] = [
+const MENU_SECTIONS: { title: string; items: { label: string; path?: string; mailto?: string }[] }[] = [
   {
     title: '선물 페이지',
     items: [
@@ -25,7 +27,7 @@ const MENU_SECTIONS: { title: string; items: { label: string; path?: string }[] 
   {
     title: '설정',
     items: [
-      { label: '고객 문의' },
+      { label: '고객 문의', mailto: CONTACT_EMAIL },
       { label: '이용약관', path: '/terms' },
       { label: '개인정보 처리 방침', path: '/privacy-policy' },
     ],
@@ -36,7 +38,7 @@ const MENU_SECTIONS: { title: string; items: { label: string; path?: string }[] 
 const GUEST_MENU_SECTIONS = MENU_SECTIONS.filter((s) => s.title === '설정')
 
 // 관리자 계정 전용 메뉴 (피그마 "마이 - 관리자" 화면 기준) — 일반 사용자 메뉴와 구성이 다름
-const ADMIN_MENU_SECTIONS: { title: string; items: { label: string; path?: string }[] }[] = [
+const ADMIN_MENU_SECTIONS: { title: string; items: { label: string; path?: string; mailto?: string }[] }[] = [
   {
     title: '관리',
     items: [
@@ -68,9 +70,10 @@ export default function MyPage() {
   const isAdmin = isLoggedIn && isAdminProfile(profile)
   const sections = isAdmin ? ADMIN_MENU_SECTIONS : isLoggedIn ? MENU_SECTIONS : GUEST_MENU_SECTIONS
 
-  const handleMenuClick = (path?: string) => {
-    if (path) {
-      navigate(path)
+  const handleMenuClick = (item: { path?: string; mailto?: string }) => {
+    if (item.mailto) return
+    if (item.path) {
+      navigate(item.path)
       return
     }
     setToastMessage(IN_DEVELOPMENT_MESSAGE)
@@ -119,7 +122,12 @@ export default function MyPage() {
             <h2 className="text-h3-sb text-black">{section.title}</h2>
             <div className="flex flex-col gap-3">
               {section.items.map((item) => (
-                <MenuRow key={item.label} label={item.label} onClick={() => handleMenuClick(item.path)} />
+                <MenuRow
+                  key={item.label}
+                  label={item.label}
+                  href={item.mailto ? `mailto:${item.mailto}` : undefined}
+                  onClick={() => handleMenuClick(item)}
+                />
               ))}
             </div>
           </section>
@@ -127,7 +135,7 @@ export default function MyPage() {
         <p className="text-caption1-r text-gray-600">투겟(ToGet) v1.0.0</p>
       </div>
 
-      <Toast open={toastMessage !== null} message={toastMessage ?? ''} />
+      <Toast open={toastMessage !== null} message={toastMessage ?? ''} bottomClass="bottom-[110px]" />
       <BottomNav active="my" />
     </div>
   )

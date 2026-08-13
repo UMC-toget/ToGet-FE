@@ -48,13 +48,18 @@ export function useReview(fundingId: string | undefined, type: ReviewApiType) {
 /** 작성 실패(404/403/409)를 사용자 안내 문구로 변환 */
 export function getReviewSubmitErrorMessage(error: unknown): string {
   if (error instanceof AxiosError) {
+    const responseData = error.response?.data as { code?: string; message?: string } | undefined
+    const errorCode = responseData?.code ?? ''
     switch (error.response?.status) {
       case 404:
-        return '펀딩을 찾을 수 없거나 아직 완료되지 않았어요.'
+        return '펀딩을 찾을 수 없어요.'
       case 403:
         return '펀딩을 개설한 사람만 작성할 수 있어요.'
       case 409:
-        return '이미 작성된 후기예요.'
+        if (errorCode.includes('STATUS')) {
+          return '펀딩 마감 처리가 완료되지 않았어요.'
+        }
+        return responseData?.message || '이미 작성된 후기예요.'
     }
   }
   return '저장에 실패했어요. 다시 시도해 주세요.'

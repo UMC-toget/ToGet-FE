@@ -16,7 +16,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useMyProfile } from '../hooks/useMyProfile';
 import { uploadImage } from '../utils/uploadImage';
 import Toast from '../components/common/Toast';
-import { getMyFundings } from '../api/users';
+import { getMyFundings, getMyProfile } from '../api/users';
 import { deleteIndividualDraft, getIndividualDraft, saveIndividualDraft } from '../api/individualDraft';
 
 const TOTAL_STEPS = 5;
@@ -67,6 +67,12 @@ export default function FundingCreatePage() {
     continueDraft,
   );
   const isComplete = step > TOTAL_STEPS;
+
+  useEffect(() => {
+    if (!createError) return;
+    const timer = window.setTimeout(() => setCreateError(''), 2500);
+    return () => window.clearTimeout(timer);
+  }, [createError]);
 
   // 편집 화면에서 사용하던 Zustand 값이 새 만들기 화면으로 새어 들어오지 않도록 초기화합니다.
   // 명시적으로 "이어서 만들기"를 선택한 경우에만 임시저장 복원용 상태를 유지합니다.
@@ -239,8 +245,12 @@ export default function FundingCreatePage() {
   const handleCreateFunding = async () => {
     if (isCreating) return;
     const selectedAccount = fundingForm.accounts.find((account) => account.id === fundingForm.selectedAccountId);
-    if (!profile || !selectedAccount || !fundingForm.inviteBackgroundId) {
-      setCreateError('프로필, 계좌 또는 초대장 정보를 다시 확인해 주세요.');
+    if (!selectedAccount) {
+      setCreateError('사용할 계좌를 선택해 주세요.');
+      return;
+    }
+    if (!fundingForm.inviteBackgroundId) {
+      setCreateError('초대장 색상을 선택해 주세요.');
       return;
     }
 
@@ -253,6 +263,9 @@ export default function FundingCreatePage() {
     setIsCreating(true);
     setCreateError('');
     try {
+      // 프로필 쿼리가 아직 끝나지 않은 상태에서 저장을 눌러도 생성 요청이 누락되지 않도록
+      // 제출 시점에 한 번 더 조회합니다.
+      const currentProfile = profile ?? await getMyProfile();
       const targetAmount = fundingForm.wishlist.reduce((sum, gift) => sum + gift.price, 0);
       const existingFundings = await getMyFundings({ page: 0, size: 100 });
       const recentMatchingFunding = [...existingFundings.fundings]
@@ -307,7 +320,7 @@ export default function FundingCreatePage() {
       const result = await createFunding({
         fundingType: 'MY_GIFT',
         title: fundingForm.title,
-        recipientName: profile.nickname,
+        recipientName: currentProfile.nickname,
         anniversaryDate: fundingForm.anniversaryDate,
         startDate: fundingForm.preparationStartDate,
         endDate: fundingForm.preparationEndDate,

@@ -69,6 +69,8 @@ export const MOCK_CANDIDATES: GiftCandidateListResponse = {
     { fundingGiftId: 1, giftName: '오브리 도트 머쉬룸 램프 화이트', giftPrice: 65000, giftImageUrl: mockMushroomLamp, voteCount: 12 },
     { fundingGiftId: 2, giftName: '르쿠르제 에코 텀블러 체리 레드', giftPrice: 49000, giftImageUrl: null, voteCount: 8 },
     { fundingGiftId: 3, giftName: '에어팟 프로 2세대', giftPrice: 329000, giftImageUrl: null, voteCount: 5 },
+    { fundingGiftId: 4, giftName: '블루투스 스피커 미니', giftPrice: 79000, giftImageUrl: null, voteCount: 3 },
+    { fundingGiftId: 5, giftName: '핸드메이드 캔들 세트', giftPrice: 32000, giftImageUrl: null, voteCount: 1 },
   ],
 }
 
