@@ -6,7 +6,7 @@ import Toast from '../../components/common/Toast'
 import CloseIcon from '../../components/icons/CloseIcon'
 import ShareIcon from '../../components/icons/ShareIcon'
 import reviewCompleteHero from '../../assets/review-complete-hero.png'
-import { REVIEW_COMPLETE_TYPES } from './reviewTypes'
+import { REVIEW_API_TYPE, REVIEW_COMPLETE_TYPES } from './reviewTypes'
 import type { ReviewWriteType, ReviewPreviewData } from './reviewTypes'
 
 const TOAST_DURATION_MS = 2000
@@ -15,7 +15,7 @@ const TOAST_DURATION_MS = 2000
 export default function ReviewCompletePage() {
   useRequireAuth()
 
-  const { type, fundingId } = useParams<{ type: string; fundingId?: string }>()
+  const { type, fundingId: routeFundingId } = useParams<{ type: string; fundingId?: string }>()
   const navigate = useNavigate()
   const location = useLocation()
   const previewData = location.state as ReviewPreviewData | null
@@ -30,11 +30,20 @@ export default function ReviewCompletePage() {
   const config = type && type in REVIEW_COMPLETE_TYPES ? REVIEW_COMPLETE_TYPES[type as ReviewWriteType] : null
   if (!config) return <Navigate to="/home" replace />
 
-  // TODO: BE 연동 후 실제 발급된 링크로 교체
-  const linkPath = `toger.kr/p/${config.key}-mock`
-  const linkUrl = `https://${linkPath}`
+  const fundingId = previewData?.fundingId ?? routeFundingId
+  const fundingReviewId = previewData?.fundingReviewId
+  const reviewPath = fundingId != null && fundingReviewId != null
+    ? `/gift/review/${fundingReviewId}/${fundingId}?type=${REVIEW_API_TYPE[config.key]}`
+    : null
+  const linkUrl = reviewPath ? `${window.location.origin}${reviewPath}` : ''
+  const linkPath = reviewPath ? `${window.location.host}${reviewPath}` : '링크를 만들 수 없어요'
 
   const copyLink = async () => {
+    if (!linkUrl) {
+      setToastMessage('후기 링크 정보를 찾을 수 없어요')
+      return
+    }
+
     try {
       await navigator.clipboard.writeText(linkUrl)
     } catch {
@@ -50,6 +59,11 @@ export default function ReviewCompletePage() {
   }
 
   const handleShare = async () => {
+    if (!linkUrl) {
+      setToastMessage('후기 링크 정보를 찾을 수 없어요')
+      return
+    }
+
     if (navigator.share) {
       try {
         await navigator.share({ title: config.completeTitle, url: linkUrl })
@@ -62,13 +76,17 @@ export default function ReviewCompletePage() {
   }
 
   // news/message: 초대장 미리보기 화면(저장된 캐릭터·배경색을 실제 API로 조회)을 거쳐 대시보드 조회로 이어진다.
-  // gift: 아직 BE 연동 전이라 TODO대로 mock id를 그대로 사용한다.
+  // gift: 작성 API 응답으로 받은 실제 후기 ID를 사용해 상세 화면으로 이동한다.
   const handlePreview = () => {
     if ((config.key === 'news' || config.key === 'message') && fundingId) {
       navigate(`/gift/review/complete/${config.key}/${fundingId}/invitation-preview`)
       return
     }
-    navigate(`/gift/review/${config.key}-mock`, { state: previewData })
+    if (!reviewPath) {
+      setToastMessage('후기 정보를 찾을 수 없어요')
+      return
+    }
+    navigate(reviewPath, { state: previewData })
   }
 
   return (
