@@ -7,7 +7,8 @@ export interface ApiProduct {
   description?: string
   imageUrl?: string
   purchaseUrl: string
-  category?: string
+  /** 서버 enum 코드 배열 (BIRTHDAY/GRADUATION/HOUSEWARMING) */
+  categoryTypes: string[]
   brand?: string
   createdAt: string
   updatedAt: string
@@ -23,6 +24,7 @@ export interface ProductListResult {
 export type ProductSort = 'LATEST' | 'OLDEST' | 'PRICE_ASC' | 'PRICE_DESC' | 'WISHLIST_DESC'
 
 export interface GetProductsParams {
+  /** 서버 enum 코드 (BIRTHDAY/GRADUATION/HOUSEWARMING) - 한글 라벨을 그대로 보내면 400 */
   category?: string
   keyword?: string
   brand?: string
@@ -41,14 +43,15 @@ export function getProduct(productId: number) {
   return unwrap<ApiProduct>(apiClient.get(`/api/v1/products/${productId}`))
 }
 
-/** 상품 등록/수정 요청 본문. name/price/purchaseUrl은 필수입니다. [관리자 전용] */
+/** 상품 등록/수정 요청 본문. name/price/purchaseUrl/categoryTypes(1개 이상)는 필수입니다. [관리자 전용] */
 export interface ProductInput {
   name: string
   price: number
   description?: string
   imageUrl?: string
   purchaseUrl: string
-  category?: string
+  /** 서버 enum 코드 배열 (BIRTHDAY/GRADUATION/HOUSEWARMING), 최소 1개 */
+  categoryTypes: string[]
   brand?: string
 }
 

@@ -13,7 +13,7 @@ function toProduct(apiProduct: ApiProduct): Product {
     name: apiProduct.name,
     price: apiProduct.price,
     image: apiProduct.imageUrl ?? '',
-    occasion: apiProduct.category ?? '',
+    occasion: apiProduct.categoryTypes[0] ?? '',
     link: apiProduct.purchaseUrl,
   }
 }

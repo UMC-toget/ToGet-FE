@@ -10,7 +10,8 @@ import PhotoActionSheet from '../../components/common/PhotoActionSheet'
 import PlusIcon from '../../components/icons/PlusIcon'
 import CloseIcon from '../../components/icons/CloseIcon'
 import { getProduct, createProduct, updateProduct } from '../../api/products'
-import { GIFT_CATEGORIES } from '../home/products'
+import { CATEGORY_CODE_BY_LABEL, CATEGORY_LABEL_BY_CODE, PRODUCT_CATEGORY_TYPES } from '../home/products'
+import type { ProductCategoryType } from '../home/products'
 import { uploadImage } from '../../utils/uploadImage'
 import { useRequireAdmin } from '../../hooks/useRequireAdmin'
 import { sanitizePurchaseUrl } from '../../utils/sanitizePurchaseUrl'
@@ -20,7 +21,8 @@ const NAME_MAX_LENGTH = 20
 const BRAND_MAX_LENGTH = 20
 
 interface ProductFormState {
-  category: (typeof GIFT_CATEGORIES)[number] | ''
+  /** 서버에는 categoryTypes 배열(enum 코드, 최소 1개)로 보내지만 폼에서는 한글 라벨로 다룹니다 */
+  categoryTypes: ProductCategoryType[]
   name: string
   price: string
   purchaseUrl: string
@@ -28,7 +30,7 @@ interface ProductFormState {
 }
 
 const EMPTY_FORM: ProductFormState = {
-  category: '',
+  categoryTypes: [],
   name: '',
   price: '',
   purchaseUrl: '',
@@ -57,9 +59,11 @@ export default function AdminProductFormPage() {
 
   useEffect(() => {
     if (!existingProduct) return
-    const category = GIFT_CATEGORIES.find((c) => c === existingProduct.category) ?? ''
+    const categoryTypes = existingProduct.categoryTypes
+      .map((code) => CATEGORY_LABEL_BY_CODE[code])
+      .filter((label): label is ProductCategoryType => label !== undefined)
     setForm({
-      category,
+      categoryTypes,
       name: existingProduct.name,
       price: String(existingProduct.price),
       purchaseUrl: existingProduct.purchaseUrl,
@@ -67,6 +71,16 @@ export default function AdminProductFormPage() {
     })
     setImagePreviewUrl(existingProduct.imageUrl ?? null)
   }, [existingProduct])
+
+  const toggleCategory = (label: string) => {
+    const category = label as ProductCategoryType
+    setForm((prev) => ({
+      ...prev,
+      categoryTypes: prev.categoryTypes.includes(category)
+        ? prev.categoryTypes.filter((c) => c !== category)
+        : [...prev.categoryTypes, category],
+    }))
+  }
 
   const handleImageSelect = (file: File) => {
     setImageFile(file)
@@ -91,7 +105,7 @@ export default function AdminProductFormPage() {
         price: Number(form.price),
         imageUrl,
         purchaseUrl: form.purchaseUrl,
-        category: form.category || undefined,
+        categoryTypes: form.categoryTypes.map((label) => CATEGORY_CODE_BY_LABEL[label]),
         brand: form.brand,
       }
       if (isEditMode) {
@@ -112,7 +126,7 @@ export default function AdminProductFormPage() {
   })
 
   const isFormValid =
-    form.category !== '' &&
+    form.categoryTypes.length > 0 &&
     form.brand.trim().length > 0 &&
     form.name.trim().length > 0 &&
     Number(form.price) > 0 &&
@@ -128,11 +142,7 @@ export default function AdminProductFormPage() {
           <label className="text-b1-m text-black">
             선물 유형 <span className="text-pink-500">*</span>
           </label>
-          <CategoryChips
-            categories={GIFT_CATEGORIES}
-            selected={form.category}
-            onSelect={(c) => setForm({ ...form, category: c as (typeof GIFT_CATEGORIES)[number] })}
-          />
+          <CategoryChips categories={PRODUCT_CATEGORY_TYPES} selected={form.categoryTypes} onSelect={toggleCategory} />
         </div>
 
         <TextField
