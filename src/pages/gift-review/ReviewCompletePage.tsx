@@ -61,11 +61,11 @@ export default function ReviewCompletePage() {
     await copyLink()
   }
 
-  // news: 초대장 미리보기 화면(저장된 캐릭터·배경색을 실제 API로 조회)을 거쳐 대시보드 조회로 이어진다.
-  // gift/message: 아직 BE 연동 전이라 TODO대로 mock id를 그대로 사용한다.
+  // news/message: 초대장 미리보기 화면(저장된 캐릭터·배경색을 실제 API로 조회)을 거쳐 대시보드 조회로 이어진다.
+  // gift: 아직 BE 연동 전이라 TODO대로 mock id를 그대로 사용한다.
   const handlePreview = () => {
-    if (config.key === 'news' && fundingId) {
-      navigate(`/gift/review/complete/news/${fundingId}/invitation-preview`)
+    if ((config.key === 'news' || config.key === 'message') && fundingId) {
+      navigate(`/gift/review/complete/${config.key}/${fundingId}/invitation-preview`)
       return
     }
     navigate(`/gift/review/${config.key}-mock`, { state: previewData })

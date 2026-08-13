@@ -41,13 +41,13 @@ export default function GiftReviewDetailPage() {
   const colors = useLetterColors()
   const { data: apiReview, isLoading, isError } = useReview(fundingId, reviewApiType)
 
-  // news 조회 화면 상단은 함께 선물 대시보드(공개 API)를 추가로 보여준다. 실패해도 편지 본문은 그대로 보여야 하므로
-  // 이 쿼리는 로딩/에러를 페이지 전체 상태에 관여시키지 않고, 데이터가 없으면 요약 블록만 생략한다.
-  const isNews = reviewApiType === 'news'
+  // news/message(heartfelt) 조회 화면 상단은 함께 선물 대시보드(공개 API)를 추가로 보여준다. 실패해도 편지 본문은
+  // 그대로 보여야 하므로 이 쿼리는 로딩/에러를 페이지 전체 상태에 관여시키지 않고, 데이터가 없으면 요약 블록만 생략한다.
+  const showDashboard = reviewApiType === 'news' || reviewApiType === 'heartfelt'
   const { data: dashboard } = useQuery({
     queryKey: ['togetherGiftDashboard', fundingId],
     queryFn: () => getTogetherGiftDashboard(fundingId!),
-    enabled: isNews && fundingId != null,
+    enabled: showDashboard && fundingId != null,
   })
 
   const previewState = location.state as ReviewPreviewData | null
@@ -116,7 +116,7 @@ export default function GiftReviewDetailPage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-10">
       <Header title={heading} />
 
-      {isNews && dashboard && <GiftDashboardSummary dashboard={dashboard} />}
+      {showDashboard && dashboard && <GiftDashboardSummary dashboard={dashboard} />}
 
       <div className="flex flex-col gap-4 px-[18px] pt-5">
         <h2 className="text-h3-sb text-black">{heading}</h2>

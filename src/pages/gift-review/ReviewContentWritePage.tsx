@@ -78,7 +78,8 @@ export default function ReviewContentWritePage() {
   const config = type && type in REVIEW_WRITE_TYPES ? REVIEW_WRITE_TYPES[type as ReviewWriteType] : null
   if (!config) return <Navigate to="/home" replace />
 
-  const isNews = config.key === 'news'
+  // gift만 편지지(LetterCard·색상 선택)를 쓰고, news/message는 단순 input/textarea + 제목 입력을 공유한다.
+  const usesPlainInput = config.key !== 'gift'
   // gift는 이 화면에서 제목 입력이 없고(받는사람 자리는 1단계에서 제거됨), news/message는 제목이 BE 필수값이다.
   const requiresTitle = config.key !== 'gift'
   const canSubmit = content.trim() !== '' && !uploading && (!requiresTitle || title.trim() !== '')
@@ -143,13 +144,13 @@ export default function ReviewContentWritePage() {
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <p className="text-b1-m text-black">{config.contentLabel}</p>
-        {isNews && (
+        {usesPlainInput && (
           <span className="text-b2-r text-gray-400">
             ({content.length}/{NEWS_CONTENT_MAX_LENGTH})
           </span>
         )}
       </div>
-      {isNews ? (
+      {usesPlainInput ? (
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value.slice(0, NEWS_CONTENT_MAX_LENGTH))}
@@ -225,7 +226,7 @@ export default function ReviewContentWritePage() {
           </div>
         )}
 
-        {isNews ? (
+        {usesPlainInput ? (
           <>
             {titleSection}
             {contentSection}
