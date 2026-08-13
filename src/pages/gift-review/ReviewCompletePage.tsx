@@ -6,7 +6,7 @@ import Toast from '../../components/common/Toast'
 import CloseIcon from '../../components/icons/CloseIcon'
 import ShareIcon from '../../components/icons/ShareIcon'
 import reviewCompleteHero from '../../assets/review-complete-hero.png'
-import { REVIEW_COMPLETE_TYPES } from './reviewTypes'
+import { REVIEW_API_TYPE, REVIEW_COMPLETE_TYPES } from './reviewTypes'
 import type { ReviewWriteType, ReviewPreviewData } from './reviewTypes'
 
 const TOAST_DURATION_MS = 2000
@@ -30,11 +30,20 @@ export default function ReviewCompletePage() {
   const config = type && type in REVIEW_COMPLETE_TYPES ? REVIEW_COMPLETE_TYPES[type as ReviewWriteType] : null
   if (!config) return <Navigate to="/home" replace />
 
-  // TODO: BE 연동 후 실제 발급된 링크로 교체
-  const linkPath = `toger.kr/p/${config.key}-mock`
-  const linkUrl = `https://${linkPath}`
+  const fundingId = previewData?.fundingId
+  const fundingReviewId = previewData?.fundingReviewId
+  const reviewPath = fundingId != null && fundingReviewId != null
+    ? `/gift/review/${fundingReviewId}/${fundingId}?type=${REVIEW_API_TYPE[config.key]}`
+    : null
+  const linkUrl = reviewPath ? `${window.location.origin}${reviewPath}` : ''
+  const linkPath = reviewPath ? `${window.location.host}${reviewPath}` : '링크를 만들 수 없어요'
 
   const copyLink = async () => {
+    if (!linkUrl) {
+      setToastMessage('후기 링크 정보를 찾을 수 없어요')
+      return
+    }
+
     try {
       await navigator.clipboard.writeText(linkUrl)
     } catch {
@@ -50,6 +59,11 @@ export default function ReviewCompletePage() {
   }
 
   const handleShare = async () => {
+    if (!linkUrl) {
+      setToastMessage('후기 링크 정보를 찾을 수 없어요')
+      return
+    }
+
     if (navigator.share) {
       try {
         await navigator.share({ title: config.completeTitle, url: linkUrl })
@@ -61,9 +75,13 @@ export default function ReviewCompletePage() {
     await copyLink()
   }
 
-  // TODO: BE 연동 후 실제 발급된 id로 교체. 작성 데이터(previewData)가 있으면 그대로 들고 가고,
-  // 없으면(새로고침 등으로 유실된 경우) 조회 화면이 빈 상태를 보여준다.
-  const handlePreview = () => navigate(`/gift/review/${config.key}-mock`, { state: previewData })
+  const handlePreview = () => {
+    if (!reviewPath) {
+      setToastMessage('후기 정보를 찾을 수 없어요')
+      return
+    }
+    navigate(reviewPath, { state: previewData })
+  }
 
   return (
     <div className="relative mx-auto flex min-h-dvh w-full max-w-[402px] flex-col overflow-hidden bg-white antialiased">

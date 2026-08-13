@@ -252,6 +252,7 @@ export default function ReviewWritePage() {
         colorId: bodyColorId,
         images: bodyImages,
         fundingReviewId,
+        fundingId: resolvedFundingId,
       }
       navigate(config.completePath, { state: previewData })
     } catch (error) {
