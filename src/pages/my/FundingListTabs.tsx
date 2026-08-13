@@ -17,8 +17,8 @@ export default function FundingListTabs({ tabs }: FundingListTabsProps) {
           key={tab.label}
           type="button"
           onClick={tab.onClick}
-          className={`rounded-full px-4 py-2 text-b2-m ${
-            tab.active ? 'bg-gray-900 text-white' : 'border border-gray-300 bg-white text-gray-700'
+          className={`rounded-full border px-4 py-2 text-b2-m ${
+            tab.active ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-300 bg-white text-gray-700'
           }`}
         >
           {tab.label}

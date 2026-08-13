@@ -220,8 +220,9 @@ export default function AdminInvitationThemesPage() {
                   onClick={() => handleColorSwatchClick(color)}
                   // 흰색만 배경(흰 화면)과 구분되는 테두리가 있고, 나머지 색상은 테두리 없음 (피그마 기준)
                   className={`relative size-[35px] shrink-0 rounded-[4px] ${
-                    color.hexCode.toLowerCase() === '#ffffff' ? 'border border-[#D9D9D9]' : ''
+                    color.hexCode.toLowerCase() === '#ffffff' ? 'border-[1.5px] border-[#D9D9D9]' : ''
                   }`}
+                  // 백엔드 hexCode가 이미 "원색 + 50%"로 합성된 값이라 그대로 씁니다 (추가 불투명도 적용 시 이중 블렌딩됨)
                   style={{ backgroundColor: color.hexCode }}
                   aria-label={color.name}
                 >
