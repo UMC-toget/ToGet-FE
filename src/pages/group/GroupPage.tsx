@@ -19,6 +19,7 @@ import type { ContributionItem } from '../../api/contributions'
 import { MOCK_DASHBOARD, MOCK_CONTRIBUTIONS } from './groupMock'
 import EnvelopeButton from '../funding/EnvelopeButton'
 import LetterModal from '../funding/LetterModal'
+import DeliveryShareSheet from './DeliveryShareSheet'
 import { useAuth } from '../../hooks/useAuth'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import EmojiPopup from '../../components/common/EmojiPopup'
@@ -53,6 +54,7 @@ export default function GroupPage() {
   const [giftListOpen, setGiftListOpen] = useState(false)
   const [selectedLetter, setSelectedLetter] = useState<ContributionItem | null>(null)
   const [leaveOpen, setLeaveOpen] = useState(false)
+  const [shareSheetOpen, setShareSheetOpen] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -615,7 +617,7 @@ export default function GroupPage() {
           isHost ? (
             <Button
               className="pointer-events-auto !bg-[#1E1D1E]"
-              onClick={() => navigate(`/gift/review/write/news/${id}`)}
+              onClick={() => setShareSheetOpen(true)}
             >
               전달 완료 소식 남기기
             </Button>
@@ -654,6 +656,8 @@ export default function GroupPage() {
         ]}
         onDimClick={() => setLeaveOpen(false)}
       />
+      {/* 전달 완료 소식/마음 공유 진입 바텀시트 (개설자 ENDED) */}
+      <DeliveryShareSheet open={shareSheetOpen} onClose={() => setShareSheetOpen(false)} />
     </div>
   )
 }
