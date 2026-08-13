@@ -29,7 +29,7 @@ export const isWhiteInviteTheme = (backgroundId?: number | null): boolean => bac
 
 /**
  * 초대장 글로우 배경 style.
- * 중심에 테마 색 50% → 가장자리 투명 원형 그라데이션. 절대 위치(top)와 크기 포함.
+ * 중심에 테마 색 70% → 가장자리 투명 원형 그라데이션. 절대 위치(top)와 크기 포함.
  * 컬러 테마는 피그마 스펙(286, blur100)으로 은은한 색 wash.
  * 화이트 테마(id8)는 어두운 #1E1D1E라 blur100이면 배경이 더럽게 차서, blur를 줄이고 원을 키워
  * 또렷한 원형 글로우로 낸다. (그라데이션이 falloff를 담당, blur는 경계만 살짝 부드럽게)
@@ -47,6 +47,6 @@ export const getInviteGlowStyle = (themeColor: string, whiteTheme: boolean): CSS
         top: 292,
         width: 286,
         height: 286,
-        background: `radial-gradient(circle, ${themeColor}80 0%, transparent 100%)`,
+        background: `radial-gradient(circle, ${themeColor}B3 0%, transparent 100%)`,
         filter: 'blur(100px)',
       }
