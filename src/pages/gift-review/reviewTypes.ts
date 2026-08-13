@@ -24,7 +24,7 @@ export interface ReviewContentState {
  * 조회 화면(GiftReviewDetailPage)은 이 값이 없으면(직접 URL 접근 등) 실제 조회 API로 대체한다.
  */
 export interface ReviewPreviewData {
-  /** 후기를 작성한 사람 이름. REVIEW/NEWS는 값 있음, HEARTFELT(마음전하기)는 항상 null */
+  /** 후기를 작성한 사람 이름. showFrom 유형(REVIEW/NEWS/HEARTFELT)은 값 있음, 그 외는 null */
   authorName: string | null
   /** 받는 사람 인사말 (LetterCard 헤더, 예: "선물을 준 모두에게") */
   title: string
@@ -75,6 +75,8 @@ interface ReviewWriteTypeConfig {
   invitationLetterTitle?: string
   /** 작성 완료 후 이동 경로 (캐릭터 선택·완료 화면은 별도 이슈라 임시 경로) */
   completePath: string
+  /** 완료 후 초대장 미리보기 화면(ReviewInvitationPreviewPage) 하단 버튼 라벨 */
+  invitationPreviewButtonLabel: string
 }
 
 /**
@@ -99,6 +101,7 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
     maxImages: 5,
     heroHeading: '선물 후기가 도착했어요!',
     completePath: '/gift/review/complete/gift',
+    invitationPreviewButtonLabel: '후기 보러가기',
   },
   news: {
     key: 'news',
@@ -117,22 +120,26 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
     invitationLetterTitle: '함께 준비한 선물을 전달했어요!',
     invitationLetterText: '친구가 남긴 편지를 확인해 보세요',
     completePath: '/gift/review/complete/news',
+    invitationPreviewButtonLabel: '선물 완료 소식보기',
   },
   message: {
     key: 'message',
     headerTitle: '마음 전하기',
     guideTitle: '선물과 함께 마음전하기',
-    guideDescription: '친구들과 함께 준비한 과정과 마음을 선물을 받을 친구에게 전달하세요.',
-    titleLabel: '마음전하기 제목',
-    titlePlaceholder: '후기 제목을 입력해 주세요',
-    contentLabel: '마음전하기 내용',
-    contentPlaceholder: '후기 내용을 입력해 주세요',
-    showFrom: false,
+    guideDescription: '친구들과 함께 준비한 과정과 마음을 선물을 받을 친구에게 전달하세요',
+    titleLabel: '마음전하기 페이지 제목',
+    titlePlaceholder: '페이지의 제목을 입력해 주세요',
+    contentLabel: '마음전하기 페이지 내용',
+    contentPlaceholder: '페이지에 들어갈 내용을 입력해 주세요',
+    showFrom: true,
     imageLabel: '대표 이미지',
-    fundingPreviewLabel: '선물 페이지',
+    fundingPreviewLabel: '함께한 선물 페이지',
     maxImages: 1,
     heroHeading: '친구들이 마음을 모아 선물을 준비했어요!',
+    invitationLetterTitle: '친구들이 마음을 모아 선물을 준비했어요!',
+    invitationLetterText: '친구가 남긴 편지를 확인해 보세요',
     completePath: '/gift/review/complete/message',
+    invitationPreviewButtonLabel: '페이지 보러가기',
   },
 }
 
@@ -140,7 +147,7 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
 export const REVIEW_CONTENT_MAX_LENGTH = 60
 /** 제목 글자수 제한 (news/message 공통 — gift는 제목 입력 없음) */
 export const REVIEW_TITLE_MAX_LENGTH = 20
-/** news 전용 내용 글자수 제한 */
+/** news/message(입력형 페이지) 전용 내용 글자수 제한 */
 export const NEWS_CONTENT_MAX_LENGTH = 70
 
 interface ReviewCompleteTypeConfig {

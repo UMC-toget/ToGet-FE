@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Check, Heart, X } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
-import { getCharacterImageSrc, getInvitationAccent, useInvitationMeta } from './Mascot';
+import { getCharacterImageSrc, getInvitationCompletionColors, useInvitationMeta } from './Mascot';
 import { trackEvent } from '../../lib/analytics';
 
 interface Props {
@@ -15,10 +15,7 @@ export default function StepComplete({ fundingId, onViewFunding, onGoHome }: Pro
   const [copied, setCopied] = useState(false);
   const { backgrounds, characters } = useInvitationMeta();
   const characterImageUrl = getCharacterImageSrc(characters.find((item) => item.id === inviteCharacter));
-  const selectedColor = backgrounds.find((item) => item.id === inviteBackgroundId)?.hexCode ?? inviteColor;
-  const glowColor = selectedColor === '#FFFFFF' ? '#D1D5DB' : selectedColor;
-  const accentColor = getInvitationAccent(selectedColor);
-  const decorationColor = selectedColor === '#FFFFFF' ? accentColor : selectedColor;
+  const { glowColor, decorationColor } = getInvitationCompletionColors(inviteColor, inviteBackgroundId, backgrounds);
 
   const sharePath = `/funding/${fundingId}/invitation`;
   const shareLink = `toget.kr${sharePath}`;

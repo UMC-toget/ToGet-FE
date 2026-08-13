@@ -4,13 +4,13 @@ import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
 import InvitationHero from '../../components/invitation/InvitationHero'
 import { useInvitationCard } from '../../components/invitation/useInvitationCard'
-import { REVIEW_WRITE_TYPES } from './reviewTypes'
+import { REVIEW_API_TYPE, REVIEW_WRITE_TYPES } from './reviewTypes'
 import type { ReviewWriteType } from './reviewTypes'
 
 /**
- * J03-2) 전달완료 소식 초대장 미리보기 (/gift/review/complete/:type/:fundingId/invitation-preview)
- * ReviewCompletePage의 '전달 소식 미리보기'에서 진입. 방금 저장된 초대장(캐릭터·배경색·개설자)을
- * 실제 조회 API로 보여주고, 하단 버튼으로 대시보드 조회 화면(GiftReviewDetailPage, type=news)까지 연결한다.
+ * J03-2) 전달완료 소식·마음전하기 초대장 미리보기 (/gift/review/complete/:type/:fundingId/invitation-preview)
+ * ReviewCompletePage의 '전달 소식/초대장 미리보기'에서 진입(news/message). 방금 저장된 초대장(캐릭터·배경색·개설자)을
+ * 실제 조회 API로 보여주고, 하단 버튼으로 대시보드 조회 화면(GiftReviewDetailPage)까지 연결한다.
  */
 export default function ReviewInvitationPreviewPage() {
   useRequireAuth()
@@ -56,8 +56,10 @@ export default function ReviewInvitationPreviewPage() {
       </div>
 
       <div className="px-[18px] pb-[34px] pt-10">
-        <Button onClick={() => navigate(`/gift/review/${fundingId}/${fundingId}?type=news`)}>
-          선물 완료 소식보기
+        <Button
+          onClick={() => navigate(`/gift/review/${fundingId}/${fundingId}?type=${REVIEW_API_TYPE[config.key]}`)}
+        >
+          {config.invitationPreviewButtonLabel}
         </Button>
       </div>
     </div>
