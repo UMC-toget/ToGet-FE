@@ -522,7 +522,7 @@ export default function GroupPage() {
             <div className="pointer-events-auto flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => navigate(`/group/${id}/confirm`)}
+                onClick={() => navigate(`/group/${id}/confirm${devPreview ? '?preview' : ''}`)}
                 className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-[#797378] bg-white text-b2-sb text-black"
               >
                 선물 확정하기
@@ -661,7 +661,7 @@ export default function GroupPage() {
         titleClassName="whitespace-nowrap text-h3-sb"
         description={'지금 나가시면 투표한 내역이 사라지며\n참여자에서 제외돼요.'}
         buttons={[
-          { label: '함께선물 계속하기', onClick: () => setLeaveOpen(false), variant: 'secondary' },
+          { label: '취소하기', onClick: () => setLeaveOpen(false), variant: 'secondary' },
           { label: '나가기', onClick: handleLeave, variant: 'primary' },
         ]}
         onDimClick={() => setLeaveOpen(false)}
