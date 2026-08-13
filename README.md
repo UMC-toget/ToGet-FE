@@ -92,7 +92,9 @@ ToGet은 생일·졸업·집들이 등 특별한 날의 선물을 **여러 사�
 | Deploy | Vercel | GitHub Actions 연동 |
 
 **상태 관리**: 인증은 React `Context API`(`AuthProvider`), 서버 상태는 `TanStack Query`, 화면 간 공유되는 클라이언트 전역 상태는 `Zustand`(`wishStore`, `fundingCreateStore`)로 분리해 관리합니다. <br><br>
-**데이터**: 프로필·계좌·토큰 갱신은 `axios` 기반 `apiClient`로 **실제 API 연동**되어 있고, 상품·위시·펀딩·후기 등은 Mock 데이터를 사용합니다. 연동 여부는 각 페이지 상단 주석과 코드 내 `// TODO`로 표시되어 있습니다.
+**데이터**: 프로필·계좌·토큰 갱신은 `axios` 기반 `apiClient`로 **실제 API 연동**되어 있습니다. 펀딩 상세·참여·메시지는 백엔드 API(`getMyGiftDashboard`, `getSharedFunding`, `getContributions`)를 사용해 서버 응답을 소스 오브 트루스로 삼습니다. 개발 편의상 DEV 환경에서 `?mock=1`으로만 `pages/funding`의 목데이터를 오버레이할 수 있습니다. 상품·위시, 선물 후기·편지 등은 현재 Mock 데이터를 사용합니다.
+
+선물 만들기 입력값은 클라이언트의 Zustand 스토어(`store/fundingCreateStore.ts`)에 저장됩니다. 실제 생성은 `FundingCreatePage`에서 `createFunding` API를 호출해 서버에 POST한 뒤(이미지 업로드 포함) 성공 응답을 확인하고 `commitAsFunding`으로 로컬 스냅샷을 확정하여 상세 페이지에 반영합니다. 연동 여부는 각 페이지 상단 주석과 코드 내 `// TODO`로 표시되어 있습니다.
 
 ## 🚀 실행 방법
 
@@ -240,7 +242,11 @@ src/
 | 정산 상태 수정 (PATCH `/api/v1/fundings/{id}/members/{memberId}/settlement-status`) | ✅ 연동 (HOST 전용) |
 | 참여자 역할 변경 (PATCH `/api/v1/fundings/{id}/members/{memberId}/role`) | ✅ 연동 (HOST 전용) |
 | 참여자 UNPAID → PAID 상태 변경 | ❌ BE 미구현 (연동 대기) |
-| 상품·위시·펀딩(비개설자 뷰)·후기·편지 | ❌ Mock (연동 예정) |
+| 상품·위시 | ❌ Mock | `pages/home/products.ts`, `store/wishStore.ts` (TODO: BE 연동 시 API 교체) |
+| 펀딩 상세·참여·메세지 (E 섹션) | ✅ 연동 | 주요 엔드포인트: `api/fundings.ts` (`getMyGiftDashboard`, `getSharedFunding`, `createFunding`, `getFundingAccount`, `updateFundingStatus`, `getFundingContributionList`, `updateContributionAmount`) 및 `api/contributions.ts` (`getContributions`, `postContribution`, `getContribution`). 실제 API 응답을 소스 오브 트루스로 사용하며, 개발 시 `pages/funding/*.ts`의 목데이터는 DEV에서 `?mock=1`로만 오버레이됩니다. |
+| 함께 선물 (H 섹션) | ✅ 연동 | 주요 엔드포인트: `api/groupFundings.ts` (`getTogetherGiftDashboard`, `getGiftCandidates`, `toggleGiftVote`, `getGiftCandidateDetail`, `postGiftCandidate`, `getFundingSettlements`, `getGroupMembers`, `postSettlementContribution`, `postFinalSelections`, `updateMemberRole`, `joinGroupFunding`, `leaveGroupFunding`, `updateGroupFundingStatus`, `postGiftPurchase`). UI는 서버 응답을 사용하며, 일부 화면은 DEV mock(`src/pages/group/groupMock.ts`)을 대비해 대체 데이터를 사용 |
+| 선물 후기·편지 | ❌ Mock/전달 | `pages/gift-review/mockReview.ts`, 작성→조회는 `navigate` state로 전달 |
+| 선물 후기·편지 | ❌ Mock/전달 | `pages/gift-review/mockReview.ts`, 작성→조회는 `navigate` state로 전달 |
 
 > 모든 API 응답은 `ApiEnvelope<T>`(`{ isSuccess, code, message, result }`) 형태이며, `apiClient`의 `unwrap()`이 `result`만 반환하고 실패 시 `ApiError`를 던집니다. <br> <br>
 > `apiClient`는 요청에 access token을 주입하고, 401 응답 시 refresh token으로 자동 재발급 후 원요청을 재시도합니다. <br><br>
