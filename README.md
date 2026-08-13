@@ -62,7 +62,7 @@ ToGet은 생일·졸업·집들이 등 특별한 날의 선물을 **여러 사�
   <tr height="30px">
     <td align="center">초대장 · 펀딩 상세/참여 · 메세지 · 함께 선물 참여</td>
     <td align="center">선물 만들기 진입 · 선물 후기</td>
-    <td align="center">온보딩 · 홈 · 위시 · 마이 · 공통/API</td>
+    <td align="center">온보딩 · 홈 · 위시 · 마이 · 관리자 · 공통/API</td>
     <td align="center">선물 만들기 플로우(5단계)</td>
   </tr>
 </table>
