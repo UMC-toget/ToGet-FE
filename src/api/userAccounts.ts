@@ -95,3 +95,14 @@ export function updateUserAccount(userAccountId: number, payload: Partial<UserAc
 export function deleteUserAccount(userAccountId: number) {
   return unwrap<void>(apiClient.delete(`/api/v1/user-accounts/${userAccountId}`))
 }
+
+export interface BankDetectionResult {
+  bankName: BankName
+  displayName: string
+  iconUrl: string | null
+}
+
+/** 계좌번호(하이픈 제외 숫자만) 자릿수·패턴으로 추론 가능한 은행 목록. 추론 불가하면 빈 배열. */
+export function detectBanks(accountNumber: string) {
+  return unwrap<BankDetectionResult[]>(apiClient.post('/api/v1/banks/detections', { accountNumber }))
+}
