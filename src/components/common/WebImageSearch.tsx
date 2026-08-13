@@ -189,7 +189,7 @@ export default function WebImageSearch({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && runSearch(query)}
-              placeholder="상품 이름을 검색해보세요"
+              placeholder="키워드로 이미지를 찾아보세요"
               className="w-full bg-transparent text-b1-r text-black placeholder:text-gray-400 focus:outline-none"
               autoFocus
             />
