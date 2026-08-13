@@ -7,7 +7,7 @@ import Toast from '../../components/common/Toast'
 import EmojiPopup from '../../components/common/EmojiPopup'
 import PlusIcon from '../../components/icons/PlusIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
-import { LETTER_COLORS } from '../../components/common/letterPalette'
+import { colorIdToBackgroundId } from '../gift-review/useDecorations'
 import {
   getFundingSettlements,
   getTogetherGiftDashboard,
@@ -68,8 +68,7 @@ export default function SettlePage() {
     if (!import.meta.env.DEV && id) {
       try {
         const draft = readLetterDraft(id)
-        const backgroundId =
-          LETTER_COLORS.find(c => c.id === (draft?.colorId ?? 'white'))?.backgroundId ?? 1
+        const backgroundId = colorIdToBackgroundId(draft?.colorId ?? 'white') ?? 8
         await postSettlementContribution(id, {
           backgroundId,
           content: draft?.content ?? '',
