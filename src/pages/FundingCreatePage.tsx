@@ -170,34 +170,54 @@ export default function FundingCreatePage() {
     setIsSavingDraft(true);
     setCreateError('');
     try {
-      const thumbnailImageUrl = fundingForm.thumbnailImage instanceof File
-        ? await uploadImage('drafts/thumbnails', fundingForm.thumbnailImage)
-        : fundingForm.thumbnailImage ?? undefined;
-      const gifts = await Promise.all(fundingForm.wishlist.map(async (gift) => ({
-        giftName: gift.name,
-        giftPrice: gift.price,
-        giftImageUrl: gift.imageFile
-          ? await uploadImage('drafts/gifts', gift.imageFile)
-          : gift.imageUrl,
-        giftShopUrl: gift.link,
-      })));
+      let thumbnailImageUrl = typeof fundingForm.thumbnailImage === 'string'
+        ? fundingForm.thumbnailImage
+        : undefined;
+      if (fundingForm.thumbnailImage instanceof File) {
+        try {
+          thumbnailImageUrl = await uploadImage('drafts/thumbnails', fundingForm.thumbnailImage);
+        } catch {
+          // 이미지 업로드 실패가 나머지 작성 내용의 임시저장을 막지 않게 합니다.
+        }
+      }
+      const gifts = await Promise.all(fundingForm.wishlist.map(async (gift) => {
+        let giftImageUrl = gift.imageUrl;
+        if (gift.imageFile) {
+          try {
+            giftImageUrl = await uploadImage('drafts/gifts', gift.imageFile);
+          } catch {
+            // 개별 선물 이미지 실패 시 해당 이미지만 제외하고 목록은 저장합니다.
+          }
+        }
+        return {
+          giftName: gift.name,
+          giftPrice: gift.price,
+          giftImageUrl,
+          giftShopUrl: gift.link,
+        };
+      }));
       const selectedAccount = fundingForm.accounts.find((account) => account.id === fundingForm.selectedAccountId);
       let userAccountId: number | undefined;
       if (selectedAccount) {
-        const bankName = resolveBankCode(selectedAccount.bankName);
-        if (!bankName) throw new Error('선택한 은행 정보를 확인해 주세요.');
-        const normalizedAccount = selectedAccount.accountNumber.replace(/\D/g, '');
-        const registeredAccounts = await getUserAccounts();
-        const registeredAccount = registeredAccounts.find((account) =>
-          account.bankName === bankName &&
-          account.account === normalizedAccount &&
-          account.accountOwner === selectedAccount.accountHolder,
-        );
-        userAccountId = registeredAccount?.userAccountId ?? (await createUserAccount({
-          bankName,
-          accountOwner: selectedAccount.accountHolder,
-          account: normalizedAccount,
-        })).userAccountId;
+        try {
+          const bankName = resolveBankCode(selectedAccount.bankName);
+          if (bankName) {
+            const normalizedAccount = selectedAccount.accountNumber.replace(/\D/g, '');
+            const registeredAccounts = await getUserAccounts();
+            const registeredAccount = registeredAccounts.find((account) =>
+              account.bankName === bankName &&
+              account.account === normalizedAccount &&
+              account.accountOwner === selectedAccount.accountHolder,
+            );
+            userAccountId = registeredAccount?.userAccountId ?? (await createUserAccount({
+              bankName,
+              accountOwner: selectedAccount.accountHolder,
+              account: normalizedAccount,
+            })).userAccountId;
+          }
+        } catch {
+          // 계좌 연동 실패 시에도 계좌를 제외한 작성 내용은 임시저장합니다.
+        }
       }
 
       const savedDraft = await saveIndividualDraft({

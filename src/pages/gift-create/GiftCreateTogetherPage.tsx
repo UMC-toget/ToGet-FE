@@ -96,6 +96,12 @@ export default function GiftCreateTogetherPage() {
   const isComplete = step > TOTAL_STEPS
 
   useEffect(() => {
+    if (!createError) return
+    const timer = window.setTimeout(() => setCreateError(''), 2500)
+    return () => window.clearTimeout(timer)
+  }, [createError])
+
+  useEffect(() => {
     if (!continueDraft) {
       resetTogetherForm()
       return
@@ -158,26 +164,38 @@ export default function GiftCreateTogetherPage() {
     setIsSavingDraft(true)
     setCreateError('')
     try {
-      const thumbnailImageUrl = togetherForm.thumbnailImage instanceof File
-        ? await uploadImage('drafts/thumbnails', togetherForm.thumbnailImage)
-        : togetherForm.thumbnailImage ?? undefined
+      let thumbnailImageUrl = typeof togetherForm.thumbnailImage === 'string'
+        ? togetherForm.thumbnailImage
+        : undefined
+      if (togetherForm.thumbnailImage instanceof File) {
+        try {
+          thumbnailImageUrl = await uploadImage('drafts/thumbnails', togetherForm.thumbnailImage)
+        } catch {
+          // 이미지 업로드 실패가 나머지 작성 내용의 임시저장을 막지 않게 합니다.
+        }
+      }
       const selectedAccount = togetherForm.accounts.find((account) => account.id === togetherForm.selectedAccountId)
       let userAccountId: number | undefined
       if (selectedAccount) {
-        const bankName = resolveBankCode(selectedAccount.bankName)
-        if (!bankName) throw new Error('선택한 은행 정보를 확인해 주세요.')
-        const normalizedAccount = selectedAccount.accountNumber.replace(/\D/g, '')
-        const registeredAccounts = await getUserAccounts()
-        const registeredAccount = registeredAccounts.find((account) =>
-          account.bankName === bankName &&
-          account.account === normalizedAccount &&
-          account.accountOwner === selectedAccount.accountHolder,
-        )
-        userAccountId = registeredAccount?.userAccountId ?? (await createUserAccount({
-          bankName,
-          accountOwner: selectedAccount.accountHolder,
-          account: normalizedAccount,
-        })).userAccountId
+        try {
+          const bankName = resolveBankCode(selectedAccount.bankName)
+          if (bankName) {
+            const normalizedAccount = selectedAccount.accountNumber.replace(/\D/g, '')
+            const registeredAccounts = await getUserAccounts()
+            const registeredAccount = registeredAccounts.find((account) =>
+              account.bankName === bankName &&
+              account.account === normalizedAccount &&
+              account.accountOwner === selectedAccount.accountHolder,
+            )
+            userAccountId = registeredAccount?.userAccountId ?? (await createUserAccount({
+              bankName,
+              accountOwner: selectedAccount.accountHolder,
+              account: normalizedAccount,
+            })).userAccountId
+          }
+        } catch {
+          // 계좌 연동 실패 시에도 계좌를 제외한 작성 내용은 임시저장합니다.
+        }
       }
       const savedDraft = await saveTogetherDraft({
         step,
