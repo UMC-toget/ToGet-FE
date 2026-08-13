@@ -522,7 +522,7 @@ export default function GroupPage() {
             <div className="pointer-events-auto flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => navigate(`/group/${id}/confirm`)}
+                onClick={() => navigate(`/group/${id}/confirm${devPreview ? '?preview' : ''}`)}
                 className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-[#797378] bg-white text-b2-sb text-black"
               >
                 선물 확정하기
