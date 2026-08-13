@@ -54,7 +54,7 @@ export default function ConfirmEditPage() {
       <div className="flex flex-1 flex-col overflow-y-auto">
         {/* 헤더 텍스트 */}
         <div className="px-[18px] pt-5">
-          <p className="text-h3-sb text-black">기본 정보를 입력해 주세요</p>
+          <p className="text-h3-sb text-black">선물 정보를 입력해 주세요</p>
           <p className="mt-2 text-caption1-r text-[#797378]">친구들에게 보여질 선물 페이지 정보를 작성해 주세요</p>
         </div>
 
