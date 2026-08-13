@@ -39,7 +39,7 @@ export default function StepComplete({ fundingId, onViewFunding, onGoHome }: Pro
       <div
         className="absolute inset-x-0 top-0 h-96 pointer-events-none"
         style={{
-          background: `radial-gradient(circle at 50% 62%, color-mix(in srgb, ${glowColor} 28%, transparent) 0%, color-mix(in srgb, ${glowColor} 16%, transparent) 38%, transparent 68%)`,
+          background: `radial-gradient(circle at 50% 62%, color-mix(in srgb, ${glowColor} 48%, transparent) 0%, color-mix(in srgb, ${glowColor} 36%, transparent) 38%, transparent 68%)`,
         }}
       />
       <button
@@ -57,7 +57,7 @@ export default function StepComplete({ fundingId, onViewFunding, onGoHome }: Pro
           <div
             className="absolute inset-0 rounded-full blur-2xl pointer-events-none"
             style={{
-              background: `radial-gradient(circle, color-mix(in srgb, ${glowColor} 30%, transparent) 0%, transparent 70%)`,
+              background: `radial-gradient(circle, color-mix(in srgb, ${glowColor} 50%, transparent) 0%, transparent 70%)`,
               opacity: 0.55,
             }}
           />

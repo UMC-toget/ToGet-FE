@@ -4,6 +4,7 @@ import { useTogetherCreateStore } from '../../store/togetherCreateStore';
 import { getCharacterImageSrc, getInvitationAccent, useInvitationMeta } from './Mascot';
 import { TogetLogoMark, InviteSparkles } from './Step5Invite';
 import { useMyProfile } from '../../hooks/useMyProfile';
+import InvitationPreviewCard from './InvitationPreviewCard';
 
 export interface TogetherInviteInitialValue {
   title: string;
@@ -104,8 +105,9 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
         {/* 미리보기 - 탭하면 확대 모달 */}
         <button
           onClick={() => setShowPreviewModal(true)}
-          className="relative block w-full h-64 rounded-2xl overflow-hidden border border-gray-200 text-left bg-white"
+          className="relative block w-full text-left"
         >
+          <div className="hidden">
           <div
             className="absolute inset-x-0 top-0 h-40 pointer-events-none"
             style={{
@@ -126,6 +128,16 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
             <span className="block text-right text-[10px] font-normal mt-2" style={{ color: accentColor }}>from. {previewName}</span>
           </div>
           <Expand size={14} className="absolute right-3 bottom-3 text-gray-300 z-20" />
+          </div>
+          <InvitationPreviewCard
+            characterId={currentCharacter?.id}
+            backgroundId={inviteBackgroundId}
+            title={displayTitle}
+            content={displayContent}
+            fromName={previewName}
+            compact
+            overlay={<span className="absolute bottom-3 right-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-700"><Expand size={16} /></span>}
+          />
         </button>
 
         {/* 탭 */}
@@ -260,16 +272,15 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
       </button>
 
       {/* 확대 미리보기 모달 */}
-      {showPreviewModal && (
-        <div
-          className="fixed inset-0 bg-black/30 flex items-start justify-center z-50 px-6 pt-24"
+      <div
+          className={`${showPreviewModal ? 'flex' : 'hidden'} fixed inset-0 z-50 items-start justify-center bg-black/30 px-6 pt-24`}
           onClick={() => setShowPreviewModal(false)}
         >
           <div
-            className="rounded-3xl p-7 w-full max-w-md text-center relative shadow-xl overflow-visible bg-white"
+            className="relative w-full max-w-[350px] overflow-visible text-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative rounded-2xl overflow-hidden border border-black/5 shadow-[0_6px_24px_rgba(0,0,0,0.12)] bg-white">
+            <div className="hidden">
               <div
                 className="absolute inset-x-0 top-0 h-96 pointer-events-none"
                 style={{
@@ -289,6 +300,13 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
                 </div>
               </div>
             </div>
+            <InvitationPreviewCard
+              characterId={currentCharacter?.id}
+              backgroundId={inviteBackgroundId}
+              title={displayTitle}
+              content={displayContent}
+              fromName={previewName}
+            />
 
             <button
               onClick={() => setShowPreviewModal(false)}
@@ -299,7 +317,6 @@ export default function TogetherStep3Invite({ onNext, submitLabel = '저장', di
             </button>
           </div>
         </div>
-      )}
     </div>
   );
 }

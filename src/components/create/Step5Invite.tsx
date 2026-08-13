@@ -4,6 +4,7 @@ import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import { getCharacterImageSrc, getInvitationAccent, useInvitationMeta } from './Mascot';
 import { useMyProfile } from '../../hooks/useMyProfile';
 import inviteSparklesSvg from '../../assets/invite-sparkles.svg';
+import InvitationPreviewCard from './InvitationPreviewCard';
 
 interface Props {
   onNext: () => void;
@@ -120,10 +121,11 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
         {/* 미리보기 - 탭하면 확대 모달 */}
         <button
           onClick={() => setShowPreviewModal(true)}
-          className="relative block w-full h-64 rounded-2xl overflow-hidden border border-gray-200 text-left bg-white"
+          className="relative block w-full text-left"
         >
           {/* 그라데이션은 초대장(로고+캐릭터) 영역까지만, 나머지 바탕은 순백색으로 남도록
               흰색이 아니라 '투명'으로 빠지게 해서 카드 하단부는 아예 그라데이션 영향이 없게 함 */}
+          <div className="hidden">
           <div
             className="absolute inset-x-0 top-0 h-40 pointer-events-none"
             style={{
@@ -144,6 +146,16 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
             <span className="block text-right text-[10px] font-normal mt-2" style={{ color: accentColor }}>from. {previewName}</span>
           </div>
           <Expand size={14} className="absolute right-3 bottom-3 text-gray-300 z-20" />
+          </div>
+          <InvitationPreviewCard
+            characterId={currentCharacter?.id}
+            backgroundId={inviteBackgroundId}
+            title={displayTitle}
+            content={displayContent}
+            fromName={previewName}
+            compact
+            overlay={<span className="absolute bottom-3 right-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-700"><Expand size={16} /></span>}
+          />
         </button>
 
         {/* 탭 */}
@@ -278,16 +290,15 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
       </button>
 
       {/* 확대 미리보기 모달 - 피그마 시안처럼 상단에 붙고, 배경이 옅게 비치고, 닫기 버튼은 하단 중앙에 */}
-      {showPreviewModal && (
-        <div
-          className="fixed inset-0 bg-black/30 flex items-start justify-center z-50 px-6 pt-24"
+      <div
+          className={`${showPreviewModal ? 'flex' : 'hidden'} fixed inset-0 z-50 items-start justify-center bg-black/30 px-6 pt-24`}
           onClick={() => setShowPreviewModal(false)}
         >
           <div
-            className="rounded-3xl p-7 w-full max-w-md text-center relative shadow-xl overflow-visible bg-white"
+            className="relative w-full max-w-[350px] overflow-visible text-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative rounded-2xl overflow-hidden border border-black/5 shadow-[0_6px_24px_rgba(0,0,0,0.12)] bg-white">
+            <div className="hidden">
               {/* 캐릭터를 중심으로 진하게 시작해서 바깥으로 갈수록 옅어지는 글로우 - 작은 미리보기 카드와 동일한 톤 */}
               <div
                 className="absolute inset-x-0 top-0 h-96 pointer-events-none"
@@ -308,6 +319,13 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
                 </div>
               </div>
             </div>
+            <InvitationPreviewCard
+              characterId={currentCharacter?.id}
+              backgroundId={inviteBackgroundId}
+              title={displayTitle}
+              content={displayContent}
+              fromName={previewName}
+            />
 
             <button
               onClick={() => setShowPreviewModal(false)}
@@ -318,7 +336,6 @@ export default function Step5Invite({ onNext, submitLabel = '저장', disabled =
             </button>
           </div>
         </div>
-      )}
     </div>
   );
 }

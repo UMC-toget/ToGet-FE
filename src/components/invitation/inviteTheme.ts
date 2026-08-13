@@ -28,10 +28,11 @@ export const WHITE_THEME_BACKGROUND_ID = 8
 export const isWhiteInviteTheme = (backgroundId?: number | null): boolean => backgroundId === WHITE_THEME_BACKGROUND_ID
 
 /**
- * 초대장 글로우 배경 style. 절대 위치(top)와 크기 포함.
- * 피그마 글로우(node 1714-68297)는 286 원 + blur가 686로 퍼진 방사형인데, 686 방사형은 화면에서 너무 넓어
- * 색 50% 단색 원(360)에 blur로 눈에 맞게 근사한다.
- * 화이트 테마(id8)는 어두운 #1E1D1E라 blur가 크면 배경이 더럽게 차서, 크기를 줄이고 또렷한 원형 글로우로 낸다.
+ * 초대장 글로우 배경 style.
+ * 중심에 테마 색 70% → 가장자리 투명 원형 그라데이션. 절대 위치(top)와 크기 포함.
+ * 컬러 테마는 피그마 스펙(286, blur100)으로 은은한 색 wash.
+ * 화이트 테마(id8)는 어두운 #1E1D1E라 blur100이면 배경이 더럽게 차서, blur를 줄이고 원을 키워
+ * 또렷한 원형 글로우로 낸다. (그라데이션이 falloff를 담당, blur는 경계만 살짝 부드럽게)
  */
 export const getInviteGlowStyle = (themeColor: string, whiteTheme: boolean): CSSProperties =>
   whiteTheme
@@ -43,9 +44,9 @@ export const getInviteGlowStyle = (themeColor: string, whiteTheme: boolean): CSS
         filter: 'blur(14px)',
       }
     : {
-        top: 255,
-        width: 360,
-        height: 360,
-        background: `${themeColor}80`,
-        filter: 'blur(70px)',
+        top: 292,
+        width: 286,
+        height: 286,
+        background: `radial-gradient(circle, ${themeColor}B3 0%, transparent 100%)`,
+        filter: 'blur(100px)',
       }
