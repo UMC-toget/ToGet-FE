@@ -460,8 +460,8 @@ export default function GroupPage() {
         )}
 
         {/* 축하 메세지 섹션 — 함께 선물 홈에선 전달 완료(ENDED) 상태에서만 노출.
-            헤더 액션: '더보기'(전체 축하 메세지 보기) */}
-        {contributions.length > 0 && group.status === 'ENDED' && (
+            메세지가 0개여도 헤더·더보기는 유지(더보기 → 빈 전체보기), 봉투만 데이터 없으면 안 나옴 */}
+        {group.status === 'ENDED' && (
           <div className="flex flex-col gap-[9px]">
             <div className="flex flex-col gap-[9px]">
               <div className="flex items-center justify-between">
@@ -494,16 +494,26 @@ export default function GroupPage() {
       {/* 하단 고정 CTA */}
       <StickyBottomBar>
         {!effectiveLoggedIn ? (
-          // 비로그인 참여자: H는 조회만 비로그인 OK → 참여하려면 로그인. 로그인 후 이 펀딩으로 복귀
-          <Button
-            className="pointer-events-auto"
-            onClick={() => {
-              setReturnUrl(`/group/${id}`)
-              navigate('/login')
-            }}
-          >
-            함께 선물 참여하기
-          </Button>
+          // 비로그인 참여자: H는 조회만 비로그인 OK. 전달 완료(ENDED)면 참여가 끝났으니 소식 보기(로그인 불필요),
+          // 그 외엔 참여하려면 로그인 → 로그인 후 이 펀딩으로 복귀
+          group.status === 'ENDED' ? (
+            <Button
+              className="pointer-events-auto !bg-[#1E1D1E]"
+              onClick={() => navigate(`/gift/review/${id}/${id}?type=news`)}
+            >
+              전달 완료 소식보기
+            </Button>
+          ) : (
+            <Button
+              className="pointer-events-auto"
+              onClick={() => {
+                setReturnUrl(`/group/${id}`)
+                navigate('/login')
+              }}
+            >
+              함께 선물 참여하기
+            </Button>
+          )
         ) : (
           <>
         {/* 선물 고르는 중 */}
