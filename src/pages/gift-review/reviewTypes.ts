@@ -46,7 +46,7 @@ interface ReviewWriteTypeConfig {
   imageLabel: string
   /** 등록 가능한 최대 이미지 개수 (gift만 여러 장, news/message는 대표 이미지 1장) */
   maxImages: number
-  /** 초대장 카드 상단 히어로 헤딩 (2줄, \n으로 줄바꿈) */
+  /** 초대장 카드 상단 히어로 헤딩 (유형별 고정 문구, 1줄) */
   heroHeading: string
   /** 작성 완료 후 이동 경로 (캐릭터 선택·완료 화면은 별도 이슈라 임시 경로) */
   completePath: string
@@ -71,7 +71,7 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
     showFrom: true,
     imageLabel: '선물 이미지',
     maxImages: 5,
-    heroHeading: '따뜻한 축하와 선물\n감사합니다!',
+    heroHeading: '선물 후기가 도착했어요!',
     completePath: '/gift/review/complete/gift',
   },
   news: {
@@ -86,7 +86,7 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
     showFrom: true,
     imageLabel: '선물 이미지',
     maxImages: 1,
-    heroHeading: '함께 준비한\n소중한 선물을 전달했어요!',
+    heroHeading: '함께 준비한 소중한 선물을 전달했어요!',
     completePath: '/gift/review/complete/news',
   },
   message: {
@@ -101,7 +101,7 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
     showFrom: false,
     imageLabel: '대표 이미지',
     maxImages: 1,
-    heroHeading: '함께 마음을 담아\n준비했어요',
+    heroHeading: '친구들이 마음을 모아 선물을 준비했어요!',
     completePath: '/gift/review/complete/message',
   },
 }
