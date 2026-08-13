@@ -661,10 +661,10 @@ export default function GroupPage() {
         open={leaveOpen}
         title="함께 선물 페이지를 나가시겠습니까?"
         titleClassName="whitespace-nowrap text-h3-sb"
-        description={'지금 나가면 투표한 내역이 사라지며\n참여자에서 제외돼요.'}
+        description={'지금 나가시면 투표한 내역이 사라지며\n참여자에서 제외돼요.'}
         buttons={[
-          { label: '나가기', onClick: handleLeave, variant: 'secondary' },
-          { label: '함께선물 계속하기', onClick: () => setLeaveOpen(false), variant: 'primary' },
+          { label: '취소하기', onClick: () => setLeaveOpen(false), variant: 'secondary' },
+          { label: '나가기', onClick: handleLeave, variant: 'primary' },
         ]}
         onDimClick={() => setLeaveOpen(false)}
       />

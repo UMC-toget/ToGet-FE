@@ -95,8 +95,11 @@ export default function CandidatesPage() {
     )
 
     try {
-      await ensureJoined()
-      await toggleGiftVote(id!, fundingGiftId)
+      // DEV(mock)에선 실제 펀딩이 아니라 투표 API가 응답 없이 멈출 수 있어, 네트워크 호출을 건너뛰고 로컬 토글만 한다
+      if (!import.meta.env.DEV) {
+        await ensureJoined()
+        await toggleGiftVote(id!, fundingGiftId)
+      }
     } catch (e) {
       console.error('투표 실패', e)
       if (!import.meta.env.DEV) {
