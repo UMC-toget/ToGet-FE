@@ -44,6 +44,7 @@ import GroupEditAccountPage from './pages/group/GroupEditAccountPage'
 import GroupEditInvitationPage from './pages/group/GroupEditInvitationPage'
 import PurchaseUploadPage from './pages/group/PurchaseUploadPage'
 import GroupMessagesPage from './pages/group/GroupMessagesPage'
+import ReviewContentWritePage from './pages/gift-review/ReviewContentWritePage'
 import ReviewWritePage from './pages/gift-review/ReviewWritePage'
 import ReviewCompletePage from './pages/gift-review/ReviewCompletePage'
 import GiftReviewDetailPage from './pages/gift-review/GiftReviewDetailPage'
@@ -111,6 +112,10 @@ function App() {
       <Route path="/group/:id/settle/host" element={<HostSettlePage />} />
       <Route
         path="/gift/review/write/:type/:fundingId?"
+        element={<ReviewContentWritePage />}
+      />
+      <Route
+        path="/gift/review/write/:type/:fundingId?/invitation"
         element={<ReviewWritePage />}
       />
       <Route path="/group/:id/confirm" element={<ConfirmPage />} />

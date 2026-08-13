@@ -25,16 +25,21 @@ export default function InvitationPage() {
       />
 
       <div className="relative flex flex-1 flex-col items-center gap-5 px-[18px]">
-        {/* 초대장 카드 (피그마: w366, padding 20, radius 20, shadow 0 4px 20px 15%) */}
-        <article className="flex w-full flex-col items-start gap-2.5 rounded-[20px] bg-white p-5 shadow-[0px_4px_20px_0px_rgba(0,0,0,0.15)]">
-          <h2 className="text-h3-sb text-black">{invitation.title}</h2>
-          {invitation.content && (
-            <p className="whitespace-pre-line text-b2-r leading-relaxed text-gray-700">
-              {invitation.content}
-            </p>
-          )}
+        {/* 초대장 카드 (피그마 1714:68158: w366, padding 20, radius 20, shadow 0 4px 20px 15%, min-h 185) */}
+        <article className="flex min-h-[185px] w-full flex-col gap-2 rounded-[20px] bg-white p-5 shadow-[0px_4px_20px_0px_rgba(0,0,0,0.15)]">
+          {/* 제목+본문: 피그마 gap 24 */}
+          <div className="flex w-full flex-col gap-6">
+            <h2 className="text-h1-sb font-bold leading-[30px] text-black">{invitation.title}</h2>
+            {invitation.content && (
+              <p className="whitespace-pre-line text-b2-m leading-[20px] text-gray-700">
+                {invitation.content}
+              </p>
+            )}
+          </div>
           {invitation.creatorName && (
-            <p className="self-end text-b2-m text-pink-500">from. {invitation.creatorName}</p>
+            <p className="self-end text-b1-m font-semibold text-pink-500">
+              from. {invitation.creatorName}
+            </p>
           )}
         </article>
 
