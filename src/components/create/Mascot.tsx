@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchCharacters, fetchInvitationBackgrounds, type BackgroundMeta, type CharacterMeta } from '../../api/metaApi';
+import { blendColor, unblendColor } from '../../utils/colorOpacity';
 import char1 from '../../assets/invite-character1.svg';
 import char2 from '../../assets/invite-character2.svg';
 import char3 from '../../assets/invite-character3.svg';
@@ -85,6 +86,78 @@ export function getInvitationAccent(hexCode?: string) {
     if (hue < 0) hue += 360;
   }
   return `hsl(${hue} 78% 48%)`;
+}
+
+/**
+ * 초대장 작성 화면(D Step5Invite·G TogetherStep3Invite) 미리보기용 글로우/포인트 색.
+ * 화이트일 때만 `getInvitationAccent`로 대체하고, 그 외에는 inviteColor를 그대로 씁니다.
+ */
+export function getInvitePreviewAccent(inviteColor: string) {
+  const isWhite = inviteColor === '#FFFFFF';
+  const accentColor = isWhite ? getInvitationAccent(inviteColor) : inviteColor;
+  const glowColor = isWhite ? '#D1D5DB' : inviteColor;
+  return { isWhite, accentColor, glowColor };
+}
+
+/**
+ * 선물 페이지 생성 완료 화면(D StepComplete·G TogetherStepComplete)의 글로우/포인트/장식 색.
+ * `getInvitationAccent`를 항상 적용한다는 점이 `getInvitePreviewAccent`와 다릅니다 —
+ * 두 화면의 실제 렌더링 색이 이미 다르므로, 화면 변화 없이 합치려면 이 둘을 하나로 묶으면 안 됩니다.
+ */
+export function getInvitationCompletionColors(
+  inviteColor: string,
+  inviteBackgroundId: number | null | undefined,
+  backgrounds: Pick<BackgroundMeta, 'id' | 'hexCode'>[],
+) {
+  const selectedColor = backgrounds.find((item) => item.id === inviteBackgroundId)?.hexCode ?? inviteColor;
+  const isWhite = selectedColor === '#FFFFFF';
+  const glowColor = isWhite ? '#D1D5DB' : selectedColor;
+  const accentColor = getInvitationAccent(selectedColor);
+  const decorationColor = isWhite ? accentColor : selectedColor;
+  return { selectedColor, glowColor, accentColor, decorationColor };
+}
+
+/** 화이트(#FFFFFF) 칩은 채우기만으론 흰 배경 위에서 안 보여, 선택 여부와 무관하게 이 회색 테두리를 둡니다 */
+const WHITE_CHIP_BORDER_COLOR = '#ACA6AB';
+
+interface InviteColorSwatchGridProps {
+  backgrounds: Pick<BackgroundMeta, 'id' | 'name' | 'hexCode'>[];
+  selectedBackgroundId: number | null;
+  onSelect: (background: Pick<BackgroundMeta, 'id' | 'hexCode'>) => void;
+}
+
+/**
+ * 초대장 색상 선택 스와치 그리드(D Step5Invite·G TogetherStep3Invite 공용).
+ * 선택 칩은 원색 채우기 + 원색(unblendColor) 테두리, 미선택 칩은 흰색과 50% 블렌드(blendColor)한 채우기.
+ * 화이트만 선택 여부와 무관하게 항상 회색 테두리를 표시합니다(피그마 기준).
+ */
+export function InviteColorSwatchGrid({ backgrounds, selectedBackgroundId, onSelect }: InviteColorSwatchGridProps) {
+  return (
+    <div className="grid grid-cols-8 gap-3">
+      {backgrounds.map((background) => {
+        const isWhiteChip = background.hexCode.toUpperCase() === '#FFFFFF';
+        const isSelected = selectedBackgroundId === background.id;
+        const chipBorderColor = isWhiteChip ? WHITE_CHIP_BORDER_COLOR : unblendColor(background.hexCode, 0.5);
+        const showBorder = isSelected || isWhiteChip;
+        return (
+          <button
+            key={background.id}
+            type="button"
+            onClick={() => onSelect(background)}
+            className={`relative aspect-square rounded-[4px] transition-colors ${
+              isSelected ? 'z-10 border-2' : 'border border-transparent'
+            }`}
+            style={{
+              background: isSelected ? background.hexCode : blendColor(background.hexCode, 0.5),
+              ...(showBorder && { borderColor: chipBorderColor }),
+            }}
+            aria-label={`${background.name} 색상 선택`}
+            aria-pressed={isSelected}
+          />
+        );
+      })}
+    </div>
+  );
 }
 
 export default function Mascot({ character = 1, color = '#F5DCE6', size = 120 }: MascotProps) {
