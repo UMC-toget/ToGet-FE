@@ -50,7 +50,7 @@ export default function DeliveryShareSheet({ open, onClose }: DeliveryShareSheet
   return (
     <BottomSheet open={open} onClose={onClose}>
       <div className="flex w-full flex-col gap-5">
-        <p className="text-h3-sb text-[#121212]">전달 완료 소식남기기</p>
+        <p className="text-h3-sb text-[#121212]">선물 후기 남기기</p>
         <div className="flex w-full flex-col gap-4">
           {SHARE_CARDS.map((card) => (
             <button

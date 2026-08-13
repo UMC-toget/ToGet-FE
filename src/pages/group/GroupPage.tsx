@@ -629,7 +629,7 @@ export default function GroupPage() {
               className="pointer-events-auto !bg-[#1E1D1E]"
               onClick={() => setShareSheetOpen(true)}
             >
-              선물 후기 남기기
+              전달 완료 소식 남기기
             </Button>
           ) : (
             // 공동관리자·참여자: 개설자가 남긴 전달 완료 소식(news) 보기
