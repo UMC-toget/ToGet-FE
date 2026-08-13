@@ -67,7 +67,7 @@ export default function LetterCard({
     }
     return (
       <div className={`rounded-xl border px-4 py-3 ${className}`} style={cardStyle}>
-        <p className="flex h-6 items-center text-b1-m text-black">{title}</p>
+        {title && <p className="flex h-6 items-center text-b1-m text-black">{title}</p>}
         <textarea
           value={content}
           onChange={handleChange}
@@ -75,7 +75,7 @@ export default function LetterCard({
           placeholder={contentPlaceholder}
           maxLength={maxLength}
           rows={rows}
-          className="mt-[13px] w-full resize-none bg-transparent p-0 text-b2-r leading-[28px] text-gray-800 outline-none placeholder:text-[var(--ph-color)]"
+          className={`w-full resize-none bg-transparent p-0 text-b2-r leading-[28px] text-gray-800 outline-none placeholder:text-[var(--ph-color)] ${title ? 'mt-[13px]' : ''}`}
           style={{
             height: `${rows * 28}px`,
             '--ph-color': color.placeholder,

@@ -2,19 +2,25 @@ import { useEffect, useMemo, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
-import TextField from '../../components/common/TextField'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import Toast from '../../components/common/Toast'
 import PhotoActionSheet from '../../components/common/PhotoActionSheet'
+import LetterCard from '../../components/common/LetterCard'
+import LetterColorPicker from '../../components/common/LetterColorPicker'
+import { LETTER_COLORS } from '../../components/common/letterPalette'
 import { useRequireAuth } from '../../hooks/useRequireAuth'
 import CloseIcon from '../../components/icons/CloseIcon'
 import PlusIcon from '../../components/icons/PlusIcon'
 import { uploadImage } from '../../utils/uploadImage'
-import { REVIEW_WRITE_TYPES, REVIEW_TITLE_MAX_LENGTH, REVIEW_CONTENT_MAX_LENGTH } from './reviewTypes'
+import { getSharedFunding } from '../../api/fundings'
+import { formatDateDots } from '../../utils/formatDate'
+import GiftPagePreviewCard from './GiftPagePreviewCard'
+import { REVIEW_WRITE_TYPES, REVIEW_CONTENT_MAX_LENGTH } from './reviewTypes'
 import type { ReviewWriteType, ReviewContentState } from './reviewTypes'
 
 const REVIEW_IMAGE_PREFIX = 'reviews'
 const TOAST_DURATION_MS = 2000
+const LETTER_CONTENT_PLACEHOLDER = '내용을 입력해 주세요'
 
 // TODO: E·H 진입점(펀딩 상세/함께 참여)에서 fundingId를 넘겨주기 전까지, 라우트 직접 접근 시 사용할 임시값
 const FALLBACK_FUNDING_ID = '1'
@@ -27,19 +33,34 @@ export default function ReviewContentWritePage() {
   const resolvedFundingId = fundingId ?? FALLBACK_FUNDING_ID
   const navigate = useNavigate()
 
-  const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [colorId, setColorId] = useState(LETTER_COLORS[7].id) // 기본 화이트
   const [images, setImages] = useState<File[]>([])
   const [showPhotoSheet, setShowPhotoSheet] = useState(false)
   const [showExitModal, setShowExitModal] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [fundingPreview, setFundingPreview] = useState<{ title: string; date: string; thumbnailUrl: string | null } | null>(null)
 
   useEffect(() => {
     if (toastMessage === null) return
     const timer = setTimeout(() => setToastMessage(null), TOAST_DURATION_MS)
     return () => clearTimeout(timer)
   }, [toastMessage])
+
+  useEffect(() => {
+    getSharedFunding(resolvedFundingId)
+      .then((funding) =>
+        setFundingPreview({
+          title: funding.title,
+          date: formatDateDots(new Date(funding.anniversaryDate)),
+          thumbnailUrl: funding.thumbnailImageUrl,
+        }),
+      )
+      .catch(() => {})
+  }, [resolvedFundingId])
+
+  const letterColor = LETTER_COLORS.find((c) => c.id === colorId) ?? LETTER_COLORS[7]
 
   // images가 바뀔 때만 새로 생성하고, 이전 URL은 해제해서 blob 메모리가 쌓이지 않게 함
   const imageUrls = useMemo(() => images.map((file) => URL.createObjectURL(file)), [images])
@@ -50,7 +71,7 @@ export default function ReviewContentWritePage() {
   const config = type && type in REVIEW_WRITE_TYPES ? REVIEW_WRITE_TYPES[type as ReviewWriteType] : null
   if (!config) return <Navigate to="/home" replace />
 
-  const canSubmit = (!config.showFrom || title.trim() !== '') && content.trim() !== '' && !uploading
+  const canSubmit = content.trim() !== '' && !uploading
 
   const removeImage = (index: number) => setImages((prev) => prev.filter((_, i) => i !== index))
 
@@ -62,9 +83,10 @@ export default function ReviewContentWritePage() {
     try {
       const uploadedImageUrls = await Promise.all(images.map((file) => uploadImage(REVIEW_IMAGE_PREFIX, file)))
       const contentState: ReviewContentState = {
-        title: config.showFrom ? title : '',
+        title: '',
         content,
         images: uploadedImageUrls,
+        colorId,
       }
       navigate(`/gift/review/write/${config.key}/${resolvedFundingId}/invitation`, { state: contentState })
     } catch {
@@ -92,23 +114,16 @@ export default function ReviewContentWritePage() {
           <p className="text-caption1-r text-gray-600">{config.guideDescription}</p>
         </div>
 
-        {config.showFrom && (
-          <TextField
-            label={config.titleLabel}
-            placeholder={config.titlePlaceholder}
-            value={title}
-            maxLength={REVIEW_TITLE_MAX_LENGTH}
-            onChange={(e) => setTitle(e.target.value)}
-          />
+        {fundingPreview && (
+          <div className="flex flex-col gap-3">
+            <p className="text-b1-m text-black">선물 페이지</p>
+            <GiftPagePreviewCard
+              title={fundingPreview.title}
+              date={fundingPreview.date}
+              thumbnailUrl={fundingPreview.thumbnailUrl}
+            />
+          </div>
         )}
-
-        <TextField
-          label={config.contentLabel}
-          placeholder={config.contentPlaceholder}
-          value={content}
-          maxLength={REVIEW_CONTENT_MAX_LENGTH}
-          onChange={(e) => setContent(e.target.value)}
-        />
 
         <div className="flex flex-col gap-3">
           <p className="text-b1-m text-black">{config.imageLabel}</p>
@@ -139,6 +154,20 @@ export default function ReviewContentWritePage() {
               </button>
             )}
           </div>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <p className="text-b1-m text-black">{config.contentLabel}</p>
+          <LetterColorPicker selectedId={colorId} onSelect={(color) => setColorId(color.id)} showLabel={false} />
+          <LetterCard
+            color={letterColor}
+            state="preInput"
+            title=""
+            content={content}
+            contentPlaceholder={LETTER_CONTENT_PLACEHOLDER}
+            onContentChange={setContent}
+            maxLength={REVIEW_CONTENT_MAX_LENGTH}
+          />
         </div>
       </div>
 
