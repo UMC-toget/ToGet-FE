@@ -48,9 +48,7 @@ function InvitationCardFrame({
   logoColor,
   whiteLogo,
   heroTitle,
-  title,
   content,
-  isTitlePlaceholder,
   isContentPlaceholder,
   fromName,
   accentColor,
@@ -61,9 +59,7 @@ function InvitationCardFrame({
   logoColor?: string
   whiteLogo?: boolean
   heroTitle: string
-  title: string
   content: string
-  isTitlePlaceholder: boolean
   isContentPlaceholder: boolean
   fromName?: string | null
   accentColor: string
@@ -110,14 +106,14 @@ function InvitationCardFrame({
             whiteLogo={whiteLogo}
             title={heroTitle}
           />
-          {/* 편지 박스 (피그마: left 4.5%, top 61.3%, width 91%, height는 내용따라 auto) — 캐릭터 배경원 위에 겹쳐 앉는다 */}
+          {/* 편지 박스 (피그마: left 4.5%, top 61.3%, width 91%, height는 내용따라 auto) — 캐릭터 배경원 위에 겹쳐 앉는다.
+              받는사람 자리는 1단계에서 이미 제거됐으므로 여기도 후기 내용부터 바로 시작한다 */}
           <div
             className="absolute rounded-2xl bg-white p-5 text-left shadow-sm"
             style={{ left: '4.5%', top: '72%', width: '91%' }}
           >
-            <p className={`truncate text-h3-sb ${isTitlePlaceholder ? 'text-gray-400' : 'text-black'}`}>{title}</p>
             <p
-              className={`mt-2 line-clamp-3 whitespace-pre-line text-b2-r ${isContentPlaceholder ? 'text-gray-400' : 'text-gray-600'}`}
+              className={`line-clamp-3 whitespace-pre-line text-b2-r ${isContentPlaceholder ? 'text-gray-400' : 'text-gray-600'}`}
             >
               {content}
             </p>
@@ -148,9 +144,11 @@ export default function ReviewWritePage() {
   const bodyTitle = contentState?.title ?? ''
   const bodyContent = contentState?.content ?? ''
   const bodyImages = contentState?.images ?? []
+  // 1단계에서 고른 편지지(후기 본문) 색상 — 이 화면의 색상 탭(초대장 색상)과 별개
+  const bodyColorId = contentState?.colorId ?? LETTER_COLORS[7].id
 
   const [tab, setTab] = useState<ReviewTab>('color')
-  const [colorId, setColorId] = useState(LETTER_COLORS[7].id) // 기본 화이트
+  const [colorId, setColorId] = useState(LETTER_COLORS[0].id) // 기본값: 색상 목록 첫 번째(핑크)
   const [characterIndex, setCharacterIndex] = useState(0) // 기본 No.01
   const [showExitModal, setShowExitModal] = useState(false)
   const [showExpandModal, setShowExpandModal] = useState(false)
@@ -173,12 +171,12 @@ export default function ReviewWritePage() {
   if (!config) return <Navigate to="/home" replace />
 
   const letterColor = LETTER_COLORS.find((c) => c.id === colorId) ?? LETTER_COLORS[7]
+  const bodyLetterColor = LETTER_COLORS.find((c) => c.id === bodyColorId) ?? LETTER_COLORS[7]
   // characters 로딩이 늦거나 목록이 줄어들어도 characterIndex가 범위를 벗어나지 않도록 매번 렌더 시점에 보정
   const safeCharacterIndex = characters.length > 0 ? characterIndex % characters.length : 0
   const currentCharacter = characters[safeCharacterIndex]
   const characterImage = currentCharacter?.imageUrl ?? FALLBACK_CHARACTER_IMAGE
-  // 받는사람/후기내용은 1단계(ReviewContentWritePage)에서 입력받아 여기선 미리보기에만 반영한다
-  const displayTitle = bodyTitle || config.titlePlaceholder
+  // 후기내용은 1단계(ReviewContentWritePage)에서 입력받아 여기선 미리보기에만 반영한다. 받는사람 자리는 1단계에서 이미 제거됨
   const displayContent = bodyContent || config.contentPlaceholder
   const canSubmit = !submitting
 
@@ -202,7 +200,9 @@ export default function ReviewWritePage() {
     if (submitting) return
     setSubmitting(true)
     try {
-      const backgroundId = previewBackgroundId
+      // 후기 본문(편지지) 색상은 1단계에서 고른 색, 초대장 색상은 이 화면의 색상 탭에서 고른 색으로 서로 별개다
+      const backgroundId = colorIdToBackgroundId(bodyColorId, backgrounds) ?? bodyLetterColor.backgroundId
+      const invitationBackgroundId = previewBackgroundId
       const characterId = currentCharacter?.id ?? characters[0]?.id ?? 1
 
       let fundingReviewId: number
@@ -216,7 +216,7 @@ export default function ReviewWritePage() {
           invitationTitle: '',
           invitationContent: '',
           invitationCharacterId: characterId,
-          invitationBackgroundId: backgroundId,
+          invitationBackgroundId,
         })
         fundingReviewId = result.fundingReviewId
       } else {
@@ -227,7 +227,7 @@ export default function ReviewWritePage() {
           invitationTitle: '',
           invitationContent: '',
           invitationCharacterId: characterId,
-          invitationBackgroundId: backgroundId,
+          invitationBackgroundId,
         }
         const mutation = config.key === 'news' ? createNewsMutation : createHeartfeltMutation
         const result = await mutation.mutateAsync(payload)
@@ -238,7 +238,7 @@ export default function ReviewWritePage() {
         authorName: config.showFrom ? profile?.nickname ?? '' : null,
         title: bodyTitle,
         content: bodyContent,
-        colorId,
+        colorId: bodyColorId,
         images: bodyImages,
         fundingReviewId,
       }
@@ -254,7 +254,6 @@ export default function ReviewWritePage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white pb-[140px]">
       <Header
         title={config.headerTitle}
-        onBack={handleExit}
         right={
           <button type="button" onClick={handleExit} className="text-b2-m text-black">
             나가기
@@ -280,9 +279,7 @@ export default function ReviewWritePage() {
             logoColor={invitationThemeColor}
             whiteLogo={invitationWhiteLogo}
             heroTitle={config.heroHeading}
-            title={displayTitle}
             content={displayContent}
-            isTitlePlaceholder={!bodyTitle}
             isContentPlaceholder={!bodyContent}
             fromName={config.showFrom ? profile?.nickname ?? '' : null}
             accentColor={invitationThemeColor}
@@ -398,9 +395,7 @@ export default function ReviewWritePage() {
                 logoColor={invitationThemeColor}
                 whiteLogo={invitationWhiteLogo}
                 heroTitle={config.heroHeading}
-                title={displayTitle}
                 content={displayContent}
-                isTitlePlaceholder={!bodyTitle}
                 isContentPlaceholder={!bodyContent}
                 fromName={config.showFrom ? profile?.nickname ?? '' : null}
                 accentColor={invitationThemeColor}

@@ -15,6 +15,8 @@ export interface ReviewContentState {
   title: string
   content: string
   images: string[]
+  /** 1단계에서 고른 편지지(LetterCard) 색상. LETTER_COLORS의 id (초대장 색상과 별개) */
+  colorId: string
 }
 
 /**
@@ -72,8 +74,8 @@ export const REVIEW_WRITE_TYPES: Record<ReviewWriteType, ReviewWriteTypeConfig> 
   gift: {
     key: 'gift',
     headerTitle: '후기 남기기',
-    guideTitle: '선물 후기 남기기',
-    guideDescription: '투겟을 통해 선물을 받고, 선물을 전달한 후기를 남겨보세요.',
+    guideTitle: '선물 후기를 작성해 주세요',
+    guideDescription: '친구들에게 고마운 마음을 표현해 보세요',
     titleLabel: '받는 사람',
     titlePlaceholder: '받는사람을 입력해 주세요',
     contentLabel: '후기 내용',

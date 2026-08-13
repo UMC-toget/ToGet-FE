@@ -7,6 +7,8 @@ interface LetterColorPickerProps {
   onSelect: (color: LetterColor) => void
   colors?: LetterColor[]
   className?: string
+  /** '편지지 색상' 라벨 노출 여부 (기본 노출, 스와치만 필요한 화면에서 false로 숨김) */
+  showLabel?: boolean
 }
 
 /**
@@ -18,10 +20,11 @@ export default function LetterColorPicker({
   onSelect,
   colors = LETTER_COLORS,
   className = '',
+  showLabel = true,
 }: LetterColorPickerProps) {
   return (
     <div className={`flex flex-col gap-3 ${className}`}>
-      <p className="text-b1-m leading-normal text-black">편지지 색상</p>
+      {showLabel && <p className="text-b1-m leading-normal text-black">편지지 색상</p>}
       <div className="flex items-center justify-between">
         {colors.map((color) => {
           const selected = selectedId === color.id
