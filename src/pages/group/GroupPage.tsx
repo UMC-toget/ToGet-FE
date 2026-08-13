@@ -384,7 +384,7 @@ export default function GroupPage() {
                             className="size-[26px] rounded-full object-cover"
                           />
                         ) : (
-                          <DefaultAvatar className="size-[26px] shrink-0" />
+                          <DefaultAvatar plain className="size-[26px] shrink-0" />
                         )}
                         <RoleRibbon
                           role={m.role}

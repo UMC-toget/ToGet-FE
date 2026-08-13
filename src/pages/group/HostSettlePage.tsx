@@ -181,7 +181,7 @@ function SettlementCard({ member, menuOpen, onToggleMenu, onCloseMenu, onAction 
         <div className="shrink-0">
           {member.profileImageUrl
             ? <img src={member.profileImageUrl} alt={member.name} className="size-10 rounded-full object-cover" />
-            : <DefaultAvatar className="size-10 shrink-0" />
+            : <DefaultAvatar plain className="size-10 shrink-0" />
           }
         </div>
         <div className="flex flex-col gap-1">
