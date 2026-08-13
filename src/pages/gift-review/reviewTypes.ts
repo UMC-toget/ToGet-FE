@@ -34,6 +34,8 @@ export interface ReviewPreviewData {
   images: string[]
   /** 작성 API 응답으로 받은 실제 후기 id (BE 연동 전 접근 시엔 없음) */
   fundingReviewId?: number
+  /** 후기 조회·공유 경로에 사용하는 실제 펀딩 id */
+  fundingId?: number | string
 }
 
 interface ReviewWriteTypeConfig {
