@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
 import StickyBottomBar from '../../components/common/StickyBottomBar'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
-import { getTogetherGiftDashboard } from '../../api/groupFundings'
+import { getTogetherGiftDashboard, updateGroupFundingStatus } from '../../api/groupFundings'
 import type { GroupFundingStatus } from '../../api/groupFundings'
 import { getFundingAccount, getInvitationCard } from '../../api/fundings'
 import { BANK_NAME_LABELS } from '../../api/userAccounts'
@@ -25,7 +25,12 @@ export default function GroupEditPage() {
   const navigate = useNavigate()
   const editState = useTogetherCreateStore()
   const { editFundingId, loadForEdit, commitAsFunding } = editState
-  const [status, setStatus] = useState<GroupFundingStatus | null>(null)
+  // DEV 프리뷰: ?status로 진입 상태를 지정해 테스트 (프로덕션은 대시보드 data.status가 디폴트). GroupPage 별칭과 동일 취지
+  const [searchParams] = useSearchParams()
+  const devStatus = import.meta.env.DEV ? (searchParams.get('status') as GroupFundingStatus | null) : null
+  const [status, setStatus] = useState<GroupFundingStatus | null>(devStatus)
+  // 진입 시점의 실제 상태 — 수정 완료 시 변경 여부 판단용 (선택값 status와 비교)
+  const [originalStatus, setOriginalStatus] = useState<GroupFundingStatus | null>(devStatus)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -37,7 +42,9 @@ export default function GroupEditPage() {
       fetchInvitationBackgrounds(),
     ])
       .then(([data, account, invitation, backgrounds]) => {
-        setStatus(data.status)
+        // 단계 이동 후 돌아왔을 때 사용자가 고른 상태를 덮어쓰지 않도록 최초 로드에서만 세팅
+        setStatus(prev => prev ?? data.status)
+        setOriginalStatus(prev => prev ?? data.status)
         // 세부 단계에서 돌아온 경우 최초 스냅샷을 유지해야 변경 단계가 계속 표시됩니다.
         if (editFundingId === id) return
         const accountId = account.userAccountId != null ? String(account.userAccountId) : null
@@ -62,15 +69,28 @@ export default function GroupEditPage() {
           inviteCharacter: invitation.characterId,
         })
       })
-      .catch(() => { if (import.meta.env.DEV) setStatus(MOCK_DASHBOARD.status) })
+      .catch(() => {
+        if (import.meta.env.DEV) {
+          setStatus(prev => prev ?? MOCK_DASHBOARD.status)
+          setOriginalStatus(prev => prev ?? MOCK_DASHBOARD.status)
+        }
+      })
       .finally(() => setLoading(false))
   }, [id, editFundingId, loadForEdit])
 
   const dirtySteps = new Set(EDIT_STEPS.filter(item => isTogetherStepDirty(editState, item.step)).map(item => item.step))
   const hasChanges = dirtySteps.size > 0
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (id && hasChanges) commitAsFunding(id)
+    // 선택한 상태가 진입 시점과 다르면 상태 변경 반영 (DEV는 실제 호출 없이 넘어감)
+    if (id && status && status !== originalStatus && !import.meta.env.DEV) {
+      try {
+        await updateGroupFundingStatus(id, status)
+      } catch (e) {
+        console.error('상태 수정 실패', e)
+      }
+    }
     navigate(-1)
   }
 
@@ -92,8 +112,10 @@ export default function GroupEditPage() {
             </div>
             <div className="-mx-[18px] flex items-center gap-2 overflow-x-auto px-[18px] pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {STATUS_ORDER.map(s => (
-                <span
+                <button
+                  type="button"
                   key={s}
+                  onClick={() => setStatus(s)}
                   className={`shrink-0 rounded-full border px-4 py-2 text-b2-m ${
                     status === s
                       ? 'border-[#5B565A] bg-[#5B565A] text-white'
@@ -101,7 +123,7 @@ export default function GroupEditPage() {
                   }`}
                 >
                   {STATUS_LABELS[s]}
-                </span>
+                </button>
               ))}
             </div>
           </div>
