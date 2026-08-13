@@ -35,17 +35,17 @@ export default function CandidatesPage() {
       getGiftCandidates(id),
       getTogetherGiftDashboard(id),
     ]).then(([candidatesRes, dashboardRes]) => {
-      if (import.meta.env.DEV) {
-        setCandidates(MOCK_CANDIDATES.candidates)
-        setVotedIds(new Set(MOCK_CANDIDATES.votedGiftIds))
-      } else if (candidatesRes.status === 'fulfilled') {
+      if (candidatesRes.status === 'fulfilled') {
         setCandidates(candidatesRes.value.candidates)
         setVotedIds(new Set(candidatesRes.value.votedGiftIds))
+      } else if (import.meta.env.DEV) {
+        setCandidates(MOCK_CANDIDATES.candidates)
+        setVotedIds(new Set(MOCK_CANDIDATES.votedGiftIds))
       }
-      if (import.meta.env.DEV) {
-        setMyRole(MOCK_DASHBOARD.myRole)
-      } else if (dashboardRes.status === 'fulfilled') {
+      if (dashboardRes.status === 'fulfilled') {
         setMyRole(dashboardRes.value.myRole)
+      } else if (import.meta.env.DEV) {
+        setMyRole(MOCK_DASHBOARD.myRole)
       }
     }).catch(console.error)
       .finally(() => setLoading(false))
