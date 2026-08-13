@@ -47,6 +47,7 @@ import GroupMessagesPage from './pages/group/GroupMessagesPage'
 import ReviewContentWritePage from './pages/gift-review/ReviewContentWritePage'
 import ReviewWritePage from './pages/gift-review/ReviewWritePage'
 import ReviewCompletePage from './pages/gift-review/ReviewCompletePage'
+import ReviewInvitationPreviewPage from './pages/gift-review/ReviewInvitationPreviewPage'
 import GiftReviewDetailPage from './pages/gift-review/GiftReviewDetailPage'
 import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage'
 import TermsOfServicePage from './pages/legal/TermsOfServicePage'
@@ -136,8 +137,12 @@ function App() {
       />
       <Route path="/group/:id/messages" element={<GroupMessagesPage />} />
       <Route
-        path="/gift/review/complete/:type"
+        path="/gift/review/complete/:type/:fundingId?"
         element={<ReviewCompletePage />}
+      />
+      <Route
+        path="/gift/review/complete/:type/:fundingId/invitation-preview"
+        element={<ReviewInvitationPreviewPage />}
       />
       <Route
         path="/gift/review/:id/:fundingId?"

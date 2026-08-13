@@ -15,7 +15,7 @@ const TOAST_DURATION_MS = 2000
 export default function ReviewCompletePage() {
   useRequireAuth()
 
-  const { type } = useParams<{ type: string }>()
+  const { type, fundingId } = useParams<{ type: string; fundingId?: string }>()
   const navigate = useNavigate()
   const location = useLocation()
   const previewData = location.state as ReviewPreviewData | null
@@ -61,9 +61,15 @@ export default function ReviewCompletePage() {
     await copyLink()
   }
 
-  // TODO: BE 연동 후 실제 발급된 id로 교체. 작성 데이터(previewData)가 있으면 그대로 들고 가고,
-  // 없으면(새로고침 등으로 유실된 경우) 조회 화면이 빈 상태를 보여준다.
-  const handlePreview = () => navigate(`/gift/review/${config.key}-mock`, { state: previewData })
+  // news: 초대장 미리보기 화면(저장된 캐릭터·배경색을 실제 API로 조회)을 거쳐 대시보드 조회로 이어진다.
+  // gift/message: 아직 BE 연동 전이라 TODO대로 mock id를 그대로 사용한다.
+  const handlePreview = () => {
+    if (config.key === 'news' && fundingId) {
+      navigate(`/gift/review/complete/news/${fundingId}/invitation-preview`)
+      return
+    }
+    navigate(`/gift/review/${config.key}-mock`, { state: previewData })
+  }
 
   return (
     <div className="relative mx-auto flex min-h-dvh w-full max-w-[402px] flex-col overflow-hidden bg-white antialiased">
