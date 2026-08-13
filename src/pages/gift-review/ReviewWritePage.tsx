@@ -1,38 +1,32 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
-import TextField from '../../components/common/TextField'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import Toast from '../../components/common/Toast'
-import PhotoActionSheet from '../../components/common/PhotoActionSheet'
 import { useRequireAuth } from '../../hooks/useRequireAuth'
 import ChevronLeftIcon from '../../components/icons/ChevronLeftIcon'
 import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
 import CloseIcon from '../../components/icons/CloseIcon'
 import ZoomOutIcon from '../../components/icons/ZoomOutIcon'
-import PlusIcon from '../../components/icons/PlusIcon'
 import { LETTER_COLORS } from '../../components/common/letterPalette'
 import InvitationHero from '../../components/invitation/InvitationHero'
 import { getInviteThemeColor, isWhiteInviteTheme } from '../../components/invitation/inviteTheme'
-import { uploadImage } from '../../utils/uploadImage'
 import { FALLBACK_CHARACTER_IMAGE } from './reviewCharacters'
-import { REVIEW_WRITE_TYPES, REVIEW_TITLE_MAX_LENGTH, REVIEW_CONTENT_MAX_LENGTH } from './reviewTypes'
-import type { ReviewWriteType, ReviewPreviewData } from './reviewTypes'
+import { REVIEW_WRITE_TYPES } from './reviewTypes'
+import type { ReviewWriteType, ReviewPreviewData, ReviewContentState } from './reviewTypes'
 import { useContributionBackgrounds, useCharacters, colorIdToBackgroundId } from './useDecorations'
 import { useCreateReview, useCreateNews, useCreateHeartfelt, getReviewSubmitErrorMessage } from './useReviews'
 import { useMyProfile } from '../../hooks/useMyProfile'
 
-const REVIEW_IMAGE_PREFIX = 'reviews'
 const TOAST_DURATION_MS = 2000
 
 // TODO: E·H 진입점(펀딩 상세/함께 참여)에서 fundingId를 넘겨주기 전까지, 라우트 직접 접근 시 사용할 임시값
 const FALLBACK_FUNDING_ID = '1'
 
-type ReviewTab = 'message' | 'color' | 'character'
+type ReviewTab = 'color' | 'character'
 
 const REVIEW_TABS: { key: ReviewTab; label: string }[] = [
-  { key: 'message', label: '메시지' },
   { key: 'color', label: '색상' },
   { key: 'character', label: '캐릭터' },
 ]
@@ -40,13 +34,6 @@ const REVIEW_TABS: { key: ReviewTab; label: string }[] = [
 /** 초대장 카드 네이티브 프레임(피그마 E01 초대장 카드 실측값 — InvitationHero가 402px 프레임 기준으로 설계돼 있어 폭을 맞춘다). 미리보기/확대 모달은 이 한 덩어리를 폭만 다르게 scale한다 */
 const CARD_NATIVE_WIDTH = 402
 const CARD_NATIVE_HEIGHT = 624
-
-/**
- * 히어로+편지를 카드 프레임 안에서 위로 당기는 오프셋(네이티브 402px 기준 px).
- * InvitationHero 내부 좌표(제목 top:100 등)는 그대로 두고, 이 프레임 레벨에서만 통째로 끌어올린다.
- * 제목(top:100) 위 여백이 비어 있어 이 정도까지는 아무 것도 잘리지 않는다.
- */
-const HERO_VERTICAL_PULL_UP = 28
 
 /**
  * 초대장 카드(히어로 + 편지 박스)를 컨테이너 실측 폭에 맞춰 통째로 축소 렌더.
@@ -111,9 +98,7 @@ function InvitationCardFrame({
             position: 'relative',
             width: CARD_NATIVE_WIDTH,
             height: CARD_NATIVE_HEIGHT,
-            // scale 다음에 translateY를 붙여 네이티브 px(HERO_VERTICAL_PULL_UP)로 끌어올린 뒤 함께 축소되게 한다
-            // (translateY를 scale보다 앞에 두면 스케일과 무관한 고정 px 이동이 되어 프레임 크기별로 비율이 어긋난다)
-            transform: `scale(${scale}) translateY(-${HERO_VERTICAL_PULL_UP}px)`,
+            transform: `scale(${scale})`,
             transformOrigin: 'top left',
           }}
         >
@@ -148,7 +133,7 @@ function InvitationCardFrame({
   )
 }
 
-/** J파트 작성물 3종 공용 작성 화면 (/gift/review/write/:type, 피그마 "J01-1) 후기: 초대장 만들기" 외) */
+/** J파트 작성물 3종 공용 초대장 작성 화면 (2단계, /gift/review/write/:type/:fundingId?/invitation, 피그마 "J01-1) 후기: 초대장 만들기" 외) */
 export default function ReviewWritePage() {
   useRequireAuth()
   const { data: profile } = useMyProfile()
@@ -156,14 +141,17 @@ export default function ReviewWritePage() {
   const { type, fundingId } = useParams<{ type: string; fundingId?: string }>()
   const resolvedFundingId = fundingId ?? FALLBACK_FUNDING_ID
   const navigate = useNavigate()
+  const location = useLocation()
+  // 1단계(ReviewContentWritePage)에서 navigate state로 받는사람/후기내용/이미지를 전달받는다.
+  // 직접 URL 접근 등으로 state가 없으면 빈 값으로 취급한다.
+  const contentState = (location.state as ReviewContentState | null) ?? null
+  const bodyTitle = contentState?.title ?? ''
+  const bodyContent = contentState?.content ?? ''
+  const bodyImages = contentState?.images ?? []
 
-  const [tab, setTab] = useState<ReviewTab>('message')
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
+  const [tab, setTab] = useState<ReviewTab>('color')
   const [colorId, setColorId] = useState(LETTER_COLORS[7].id) // 기본 화이트
   const [characterIndex, setCharacterIndex] = useState(0) // 기본 No.01
-  const [images, setImages] = useState<File[]>([])
-  const [showPhotoSheet, setShowPhotoSheet] = useState(false)
   const [showExitModal, setShowExitModal] = useState(false)
   const [showExpandModal, setShowExpandModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -181,12 +169,6 @@ export default function ReviewWritePage() {
     return () => clearTimeout(timer)
   }, [toastMessage])
 
-  // images가 바뀔 때만 새로 생성하고, 이전 URL은 해제해서 blob 메모리가 쌓이지 않게 함
-  const imageUrls = useMemo(() => images.map((file) => URL.createObjectURL(file)), [images])
-  useEffect(() => {
-    return () => imageUrls.forEach((url) => URL.revokeObjectURL(url))
-  }, [imageUrls])
-
   const config = type && type in REVIEW_WRITE_TYPES ? REVIEW_WRITE_TYPES[type as ReviewWriteType] : null
   if (!config) return <Navigate to="/home" replace />
 
@@ -195,9 +177,10 @@ export default function ReviewWritePage() {
   const safeCharacterIndex = characters.length > 0 ? characterIndex % characters.length : 0
   const currentCharacter = characters[safeCharacterIndex]
   const characterImage = currentCharacter?.imageUrl ?? FALLBACK_CHARACTER_IMAGE
-  const displayTitle = title || config.titlePlaceholder
-  const displayContent = content || config.contentPlaceholder
-  const canSubmit = title.trim() !== '' && content.trim() !== '' && !submitting
+  // 받는사람/후기내용은 1단계(ReviewContentWritePage)에서 입력받아 여기선 미리보기에만 반영한다
+  const displayTitle = bodyTitle || config.titlePlaceholder
+  const displayContent = bodyContent || config.contentPlaceholder
+  const canSubmit = !submitting
 
   // 조회 화면(InvitationVisual/useInvitationCard)과 동일한 backgroundId→테마색 규칙을 작성 미리보기에도 그대로 적용.
   // BE contribution-backgrounds의 hexCode/name은 로컬 LETTER_COLORS와 체계가 달라(파스텔 vs 비비드,
@@ -213,38 +196,36 @@ export default function ReviewWritePage() {
     setCharacterIndex((prev) => (prev + delta + count) % count)
   }
 
-  const removeImage = (index: number) => setImages((prev) => prev.filter((_, i) => i !== index))
-
   const handleExit = () => setShowExitModal(true)
 
   const handleSubmit = async () => {
     if (submitting) return
     setSubmitting(true)
     try {
-      const imageUrls = await Promise.all(images.map((file) => uploadImage(REVIEW_IMAGE_PREFIX, file)))
       const backgroundId = previewBackgroundId
       const characterId = currentCharacter?.id ?? characters[0]?.id ?? 1
 
       let fundingReviewId: number
-      // 작성 화면엔 메시지 입력(제목·내용)이 하나뿐이라, 후기 본문과 초대장 문구를 동일한 값으로 채운다
+      // 후기 본문(title/content/이미지)은 1단계(ReviewContentWritePage)에서 받은 값을 그대로 전송한다.
+      // 초대장 문구 입력은 이 화면에서 제거됐고 히어로 문구는 유형별 고정값을 쓰므로 invitationTitle/invitationContent는 빈 값으로 전달한다
       if (config.key === 'gift') {
         const result = await createReviewMutation.mutateAsync({
-          content,
+          content: bodyContent,
           backgroundId,
-          images: imageUrls,
-          invitationTitle: title,
-          invitationContent: content,
+          images: bodyImages,
+          invitationTitle: '',
+          invitationContent: '',
           invitationCharacterId: characterId,
           invitationBackgroundId: backgroundId,
         })
         fundingReviewId = result.fundingReviewId
       } else {
         const payload = {
-          title,
-          content,
-          images: imageUrls,
-          invitationTitle: title,
-          invitationContent: content,
+          title: bodyTitle,
+          content: bodyContent,
+          images: bodyImages,
+          invitationTitle: '',
+          invitationContent: '',
           invitationCharacterId: characterId,
           invitationBackgroundId: backgroundId,
         }
@@ -255,10 +236,10 @@ export default function ReviewWritePage() {
 
       const previewData: ReviewPreviewData = {
         authorName: config.showFrom ? profile?.nickname ?? '' : null,
-        title,
-        content,
+        title: bodyTitle,
+        content: bodyContent,
         colorId,
-        images: imageUrls,
+        images: bodyImages,
         fundingReviewId,
       }
       navigate(config.completePath, { state: previewData })
@@ -301,8 +282,8 @@ export default function ReviewWritePage() {
             heroTitle={config.heroHeading}
             title={displayTitle}
             content={displayContent}
-            isTitlePlaceholder={!title}
-            isContentPlaceholder={!content}
+            isTitlePlaceholder={!bodyTitle}
+            isContentPlaceholder={!bodyContent}
             fromName={config.showFrom ? profile?.nickname ?? '' : null}
             accentColor={invitationThemeColor}
           />
@@ -328,57 +309,6 @@ export default function ReviewWritePage() {
             </button>
           ))}
         </div>
-
-        {tab === 'message' && (
-          <div className="flex flex-col gap-6">
-            <TextField
-              label={config.titleLabel}
-              placeholder={config.titlePlaceholder}
-              value={title}
-              maxLength={REVIEW_TITLE_MAX_LENGTH}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-
-            <TextField
-              label={config.contentLabel}
-              placeholder={config.contentPlaceholder}
-              value={content}
-              maxLength={REVIEW_CONTENT_MAX_LENGTH}
-              onChange={(e) => setContent(e.target.value)}
-            />
-
-            <div className="flex flex-col gap-3">
-              <p className="text-b1-m text-black">{config.imageLabel}</p>
-              <div className="flex items-center gap-3 overflow-x-auto pb-1">
-                {images.map((_, i) => (
-                  <div key={i} className="relative size-[123px] shrink-0 overflow-hidden rounded-2xl">
-                    <img src={imageUrls[i]} alt={`${config.imageLabel} ${i + 1}`} className="size-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(i)}
-                      aria-label={`${config.imageLabel} 삭제`}
-                      className="absolute right-1.5 top-1.5 flex size-6 items-center justify-center rounded-full bg-black/50 text-white"
-                    >
-                      <CloseIcon className="size-3.5" />
-                    </button>
-                  </div>
-                ))}
-                {images.length < config.maxImages && (
-                  <button
-                    type="button"
-                    onClick={() => setShowPhotoSheet(true)}
-                    aria-label={`${config.imageLabel} 추가`}
-                    className="flex size-[123px] shrink-0 items-center justify-center rounded-2xl bg-background"
-                  >
-                    <span className="flex size-8 items-center justify-center rounded-full bg-gray-100">
-                      <PlusIcon className="size-5 text-gray-600" />
-                    </span>
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {tab === 'color' && (
           <div className="flex flex-col gap-3">
@@ -442,14 +372,6 @@ export default function ReviewWritePage() {
         </Button>
       </div>
 
-      {showPhotoSheet && (
-        <PhotoActionSheet
-          aspectRatio={1}
-          onClose={() => setShowPhotoSheet(false)}
-          onSelect={(file) => setImages((prev) => [...prev, file])}
-        />
-      )}
-
       {/* 피그마 상 좌측이 나가기, 우측이 이어서 작성하기라 cancel/confirm이 평소와 반대로 매핑됨 (참여 흐름과 동일한 관례) */}
       <ConfirmModal
         open={showExitModal}
@@ -478,8 +400,8 @@ export default function ReviewWritePage() {
                 heroTitle={config.heroHeading}
                 title={displayTitle}
                 content={displayContent}
-                isTitlePlaceholder={!title}
-                isContentPlaceholder={!content}
+                isTitlePlaceholder={!bodyTitle}
+                isContentPlaceholder={!bodyContent}
                 fromName={config.showFrom ? profile?.nickname ?? '' : null}
                 accentColor={invitationThemeColor}
               />

@@ -6,6 +6,7 @@ import PlusIcon from '../../components/icons/PlusIcon'
 import PhotoActionSheet from '../../components/common/PhotoActionSheet'
 import { getTogetherGiftDashboard, postGiftPurchase } from '../../api/groupFundings'
 import { uploadImage } from '../../utils/uploadImage'
+import { sanitizePurchaseUrl } from '../../utils/sanitizePurchaseUrl'
 import { MOCK_DASHBOARD } from './groupMock'
 
 const PURCHASE_IMAGE_PREFIX = 'purchases'
@@ -63,7 +64,7 @@ export default function PurchaseUploadPage() {
 
       <div className="flex flex-1 flex-col gap-6 px-[18px] pt-7">
         {/* 타이틀 */}
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           <h2 className="text-h3-sb text-black">구매내역 업로드</h2>
           <p className="text-caption1-r text-gray-600">펀딩금액으로 구매한 선물내역을 공유해주세요.</p>
         </div>
@@ -75,7 +76,7 @@ export default function PurchaseUploadPage() {
             <input
               type="url"
               value={link}
-              onChange={e => setLink(e.target.value)}
+              onChange={e => setLink(sanitizePurchaseUrl(e.target.value))}
               placeholder="상품을 구매한 구매처의 링크를 적어주세요."
               className="flex-1 bg-transparent text-b1-r text-black placeholder:text-gray-400 focus:outline-none"
             />

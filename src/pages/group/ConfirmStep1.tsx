@@ -1,10 +1,10 @@
 import type { GiftCandidateItem } from '../../api/groupFundings'
 
-// ConfirmPage 서브 컴포넌트 (개설자 전용) | 1단계 선물 확정하기 — 투표 결과 보고 최종 선물 선택
+// ConfirmPage 서브 컴포넌트 (개설자 전용) | 1단계 선물 확정하기 — 투표 결과 보고 최종 선물 선택(다중 가능)
 interface Props {
   candidates: GiftCandidateItem[]
-  selectedGiftId: number | null
-  onSelect: (id: number) => void
+  selectedGiftIds: number[]
+  onToggle: (id: number) => void
 }
 
 function RankBadge({ rank }: { rank: number }) {
@@ -20,7 +20,7 @@ function RankBadge({ rank }: { rank: number }) {
   )
 }
 
-export default function ConfirmStep1({ candidates, selectedGiftId, onSelect }: Props) {
+export default function ConfirmStep1({ candidates, selectedGiftIds, onToggle }: Props) {
   const sorted = [...candidates].sort((a, b) => b.voteCount - a.voteCount)
 
   return (
@@ -31,13 +31,15 @@ export default function ConfirmStep1({ candidates, selectedGiftId, onSelect }: P
       <div className="mt-3 flex flex-col gap-3">
         {sorted.map((candidate, index) => {
           const rank = index + 1
-          const isSelected = selectedGiftId === candidate.fundingGiftId
+          const isSelected = selectedGiftIds.includes(candidate.fundingGiftId)
           return (
             <button
               key={candidate.fundingGiftId}
               type="button"
-              onClick={() => onSelect(candidate.fundingGiftId)}
-              className="relative flex items-center gap-3 rounded-xl border border-gray-100 py-3 pl-3 pr-[52px]"
+              onClick={() => onToggle(candidate.fundingGiftId)}
+              className={`relative flex items-center gap-3 rounded-xl border py-3 pl-3 pr-[52px] ${
+                isSelected ? 'border-pink-500' : 'border-gray-100'
+              }`}
             >
               <div className="size-[63px] shrink-0 overflow-hidden rounded-md bg-background">
                 {candidate.giftImageUrl ? (

@@ -5,6 +5,7 @@ import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import { useWishedProducts } from '../../pages/wish/hooks/useWishedProducts';
 import type { WishType } from '../../store/wishStore';
 import PhotoActionSheet from '../common/PhotoActionSheet';
+import { sanitizePurchaseUrl } from '../../utils/sanitizePurchaseUrl';
 
 interface Props {
   onNext: () => void;
@@ -182,7 +183,7 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
               type="url"
               placeholder="구매 가능한 링크를 입력해 주세요"
               value={form.link}
-              onChange={(e) => setForm({ ...form, link: e.target.value })}
+              onChange={(e) => setForm({ ...form, link: sanitizePurchaseUrl(e.target.value) })}
               className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
             />
           </div>

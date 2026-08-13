@@ -21,8 +21,10 @@ export default function HomePage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const handleShareInvite = async (funding: MyFundingSummary) => {
-    // TODO: 초대장 링크는 BE 연동 후 실제 응답 값으로 교체
-    const inviteUrl = `${window.location.origin}/funding/${funding.id}/invitation`;
+    const invitePath = funding.fundingType === 'TOGETHER_GIFT'
+      ? `/group/${funding.id}`
+      : `/funding/${funding.id}/invitation`;
+    const inviteUrl = `${window.location.origin}${invitePath}`;
     try {
       if (navigator.share) {
         await navigator.share({ title: funding.title, url: inviteUrl });

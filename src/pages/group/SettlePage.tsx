@@ -4,9 +4,14 @@ import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
 import StickyBottomBar from '../../components/common/StickyBottomBar'
 import Toast from '../../components/common/Toast'
+import EmojiPopup from '../../components/common/EmojiPopup'
+import PlusIcon from '../../components/icons/PlusIcon'
+import ChevronRightIcon from '../../components/icons/ChevronRightIcon'
+import { LETTER_COLORS } from '../../components/common/letterPalette'
 import {
   getFundingSettlements,
   getTogetherGiftDashboard,
+  postSettlementContribution,
   type ConfirmedGift,
 } from '../../api/groupFundings'
 import { getFundingAccount, type FundingAccount } from '../../api/fundings'
@@ -14,6 +19,7 @@ import { BANK_NAME_LABELS } from '../../api/userAccounts'
 import { formatAccountNumber } from '../../utils/accountNumber'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import { MOCK_SETTLEMENTS, MOCK_ACCOUNT, MOCK_DASHBOARD } from './groupMock'
+import { readLetterDraft, clearLetterDraft } from './letterDraft'
 import { copyToClipboard } from '../../utils/clipboard'
 
 // 접근: 로그인한 모든 역할 | 정산하기 — 계좌 조회 및 입금 확인 요청 (참여자 뷰)
@@ -46,6 +52,36 @@ export default function SettlePage() {
   const [myShare, setMyShare] = useState(0)
   const [toastOpen, setToastOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  // 입금 완료 확인/완료 팝업 (편지 없이 바로 입금완료 신고). 편지까지 남기려면 '편지 남기기' 카드로 LetterPage 이동
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [doneOpen, setDoneOpen] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+
+  // 입금 완료 신고(POST /members/me/contributions). '편지 남기기'에서 로컬 저장한 draft가 있으면 함께 보낸다(선택).
+  const submitContribution = async () => {
+    if (submitting) return
+    setSubmitting(true)
+    setConfirmOpen(false)
+    if (!import.meta.env.DEV && id) {
+      try {
+        const draft = readLetterDraft(id)
+        const backgroundId =
+          LETTER_COLORS.find(c => c.id === (draft?.colorId ?? 'white'))?.backgroundId ?? 1
+        await postSettlementContribution(id, {
+          backgroundId,
+          content: draft?.content ?? '',
+          isPrivate: draft?.isPrivate ?? false,
+        })
+      } catch (e) {
+        // 이미 입금 완료(409)면 결과적으로 PAID라 정상 취급, 그 외만 로그
+        const status = (e as { response?: { status?: number } }).response?.status
+        if (status !== 409) console.error('입금 완료 신고 실패', e)
+      }
+    }
+    clearLetterDraft(id)
+    setSubmitting(false)
+    setDoneOpen(true)
+  }
 
   useEffect(() => {
     if (!id) return
@@ -187,24 +223,60 @@ export default function SettlePage() {
           )}
         </section>
 
-        {recipientName && (
-          <p className="text-caption1-r text-gray-600">
-            아래 &lsquo;입금 완료&rsquo;에서 {recipientName}님에게 보낼 편지도 함께 남길 수 있어요
-          </p>
-        )}
+        {/* 편지 남기기 — 카드 탭 시 LetterPage로 이동해 편지 작성(+입금완료 신고) */}
+        <section className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-h3-sb text-black">편지 남기기</h2>
+            <p className="text-caption1-r text-gray-600">
+              편지를 남기면 {recipientName || '받는 분'}님에게 함께 전달해요
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate(`/group/${id}/letter`, { state: { recipientName } })}
+            className="flex w-full items-center gap-3 rounded-xl border border-gray-100 bg-white px-[14px] py-3"
+          >
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-md bg-background">
+              <PlusIcon className="size-5 text-black" />
+            </span>
+            <span className="flex-1 text-left text-b2-m text-black">편지 남기기</span>
+            <ChevronRightIcon className="size-6 shrink-0 text-black" />
+          </button>
+        </section>
       </div>
 
-      {/* 하단 고정 CTA — 입금 완료 신고(+편지)는 LetterPage 한 곳에서만 제출해 중복 호출(409) 방지 */}
+      {/* 하단 고정 CTA — 편지 없이 바로 입금완료. 편지까지 남기려면 위 '편지 남기기' 카드로 진입 */}
       <StickyBottomBar>
         <Button
           className="pointer-events-auto"
-          onClick={() => navigate(`/group/${id}/letter`, { state: { recipientName } })}
+          disabled={submitting}
+          onClick={() => setConfirmOpen(true)}
         >
           입금 완료
         </Button>
       </StickyBottomBar>
 
-      <Toast open={toastOpen} message="계좌번호 복사되었습니다" variant="pink" bottomClass="bottom-[102px]" />
+      <Toast open={toastOpen} message="계좌번호 복사되었습니다" bottomClass="bottom-[102px]" />
+
+      {/* 입금 완료 확인 — 제출 시 PAID로 확정되고 변경 불가 */}
+      <EmojiPopup
+        open={confirmOpen}
+        title="입금을 완료하셨나요?"
+        description="완료하기 버튼을 누르면, 변경이 불가해요."
+        buttons={[
+          { label: '변경하기', variant: 'secondary', onClick: () => setConfirmOpen(false) },
+          { label: '완료하기', variant: 'primary', onClick: submitContribution },
+        ]}
+        onDimClick={() => setConfirmOpen(false)}
+      />
+
+      {/* 입금 완료 완료 — 체크 아이콘 + 함께 선물 페이지로 */}
+      <EmojiPopup
+        open={doneOpen}
+        icon="success"
+        title="입금 완료되었습니다"
+        buttons={[{ label: '홈으로 돌아가기', variant: 'primary', onClick: () => navigate(`/group/${id}`) }]}
+      />
     </div>
   )
 }
