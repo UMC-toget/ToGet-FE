@@ -36,12 +36,15 @@ export default function ParticipatePage() {
       .catch(() => {})
   }, [id])
 
-  const funding =
-    realFunding ??
-    (locationState?.anniversaryDate
-      ? { ...mockFunding, anniversaryDate: locationState.anniversaryDate }
-      : mockFunding)
-  const hostName = realFunding?.hostName ?? locationState?.hostName ?? mockFunding.hostName
+  // 목 데이터는 개발 환경에서만 fallback으로 사용합니다.
+  // API 실패 시 다른 사용자의 목 정보(호스트명·추천 금액 기준일 등)가 실제 데이터처럼 노출되면 안 됩니다.
+  const funding = realFunding ??
+    (import.meta.env.DEV
+      ? locationState?.anniversaryDate
+        ? { ...mockFunding, anniversaryDate: locationState.anniversaryDate }
+        : mockFunding
+      : null)
+  const hostName = realFunding?.hostName ?? locationState?.hostName ?? (import.meta.env.DEV ? mockFunding.hostName : '')
 
   const [step, setStep] = useState(1)
   const [name, setName] = useState('')
@@ -131,7 +134,16 @@ export default function ParticipatePage() {
             onPrivateChange={setIsPrivate}
           />
         )}
-        {step === 3 && <AmountStep funding={funding} amount={amount} onAmountChange={setAmount} />}
+        {step === 3 && (
+          funding ? (
+            <AmountStep funding={funding} amount={amount} onAmountChange={setAmount} />
+          ) : (
+            <div className="flex flex-col items-center gap-2 py-10 text-center">
+              <p className="text-b1-m text-black">펀딩 정보를 불러오지 못했어요</p>
+              <p className="text-caption1-r text-gray-500">잠시 후 다시 시도해 주세요</p>
+            </div>
+          )
+        )}
         {step === 4 && (
           <DepositStep hostName={hostName} letter={letter} letterColor={letterColor} amount={amount ?? 0} fundingId={id} />
         )}

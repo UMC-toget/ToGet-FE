@@ -41,16 +41,27 @@ export default function MessagesPage() {
         const shared = await getSharedFunding(id)
         setRealFunding(sharedFundingToFundingDetail(shared, messages))
       } catch {
-        // shared-fundings 실패 시 messages가 있으면 mock visibility로 fallback
-        if (messages.length > 0) {
-          setRealFunding({ ...mockFunding, messages })
-        }
+        // 실제 API 조회가 모두 실패하면 아래에서 오류 안내를 표시합니다.
       }
     }).finally(() => setIsLoading(false))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
-  const funding = realFunding ?? mockFunding
+  // 목 데이터는 개발 환경에서만 fallback으로 사용합니다.
+  // API 실패 시 다른 사용자의 목 정보가 실제 데이터처럼 노출되면 안 됩니다.
+  const funding = realFunding ?? (import.meta.env.DEV ? mockFunding : null)
+
+  if (!isLoading && !funding) {
+    return (
+      <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
+        <Header title="축하메세지 더보기" />
+        <div className="flex flex-1 flex-col items-center justify-center gap-5 px-[18px] text-center">
+          <p className="text-h3-sb text-black">메세지를 불러오지 못했어요</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!funding) return null
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
