@@ -20,6 +20,7 @@ import { MOCK_DASHBOARD, MOCK_CONTRIBUTIONS } from './groupMock'
 import EnvelopeButton from '../funding/EnvelopeButton'
 import LetterModal from '../funding/LetterModal'
 import DeliveryShareSheet from './DeliveryShareSheet'
+import { hasSelfSettled } from './settlementFlag'
 import { useAuth } from '../../hooks/useAuth'
 import { useMyProfile } from '../../hooks/useMyProfile'
 import EmojiPopup from '../../components/common/EmojiPopup'
@@ -55,6 +56,8 @@ export default function GroupPage() {
   const [selectedLetter, setSelectedLetter] = useState<ContributionItem | null>(null)
   const [leaveOpen, setLeaveOpen] = useState(false)
   const [shareSheetOpen, setShareSheetOpen] = useState(false)
+  // 정산 완료 여부(로컬 플래그) — SettlePage에서 돌아오며 재마운트될 때 다시 읽힌다
+  const [hostSettled] = useState(() => hasSelfSettled(id))
 
   useEffect(() => {
     if (!id) return
@@ -550,12 +553,17 @@ export default function GroupPage() {
         {group.status === 'SETTLING' && (
           isHost ? (
             <div className="pointer-events-auto flex items-center gap-3">
+              {/* 개설자도 참여자처럼 정산(/settle)을 먼저 거치고, 정산 완료 후에만 금액 모으기 마감 가능 */}
               <button
                 type="button"
-                onClick={() => handleStatusTransition('PURCHASING')}
+                onClick={() =>
+                  hostSettled
+                    ? handleStatusTransition('PURCHASING')
+                    : navigate(`/group/${id}/settle`)
+                }
                 className="flex h-[52px] flex-1 items-center justify-center rounded-xl border border-gray-500 bg-white text-b2-m text-black"
               >
-                금액 모으기 마감하기
+                {hostSettled ? '금액 모으기 마감하기' : '정산하기'}
               </button>
               <button
                 type="button"
