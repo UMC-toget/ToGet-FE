@@ -8,6 +8,16 @@ export const REVIEW_API_TYPE: Record<ReviewWriteType, 'review' | 'news' | 'heart
 }
 
 /**
+ * 후기 작성 1단계(ReviewContentWritePage) → 2단계(ReviewWritePage, 초대장) navigate state.
+ * images는 1단계에서 이미 S3 업로드까지 끝낸 최종 imageUrl 목록이다.
+ */
+export interface ReviewContentState {
+  title: string
+  content: string
+  images: string[]
+}
+
+/**
  * 작성 화면 → 완료 화면 → 조회 화면으로 넘기는 임시 데이터 (서버 연동 전, navigate state로 전달)
  * 조회 화면(GiftReviewDetailPage)은 이 값이 없으면(직접 URL 접근 등) 실제 조회 API로 대체한다.
  */

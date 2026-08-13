@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import Header from '../../components/common/Header'
 import Button from '../../components/common/Button'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -14,7 +14,7 @@ import InvitationHero from '../../components/invitation/InvitationHero'
 import { getInviteThemeColor, isWhiteInviteTheme } from '../../components/invitation/inviteTheme'
 import { FALLBACK_CHARACTER_IMAGE } from './reviewCharacters'
 import { REVIEW_WRITE_TYPES } from './reviewTypes'
-import type { ReviewWriteType, ReviewPreviewData } from './reviewTypes'
+import type { ReviewWriteType, ReviewPreviewData, ReviewContentState } from './reviewTypes'
 import { useContributionBackgrounds, useCharacters, colorIdToBackgroundId } from './useDecorations'
 import { useCreateReview, useCreateNews, useCreateHeartfelt, getReviewSubmitErrorMessage } from './useReviews'
 import { useMyProfile } from '../../hooks/useMyProfile'
@@ -133,7 +133,7 @@ function InvitationCardFrame({
   )
 }
 
-/** J파트 작성물 3종 공용 작성 화면 (/gift/review/write/:type, 피그마 "J01-1) 후기: 초대장 만들기" 외) */
+/** J파트 작성물 3종 공용 초대장 작성 화면 (2단계, /gift/review/write/:type/:fundingId?/invitation, 피그마 "J01-1) 후기: 초대장 만들기" 외) */
 export default function ReviewWritePage() {
   useRequireAuth()
   const { data: profile } = useMyProfile()
@@ -141,6 +141,13 @@ export default function ReviewWritePage() {
   const { type, fundingId } = useParams<{ type: string; fundingId?: string }>()
   const resolvedFundingId = fundingId ?? FALLBACK_FUNDING_ID
   const navigate = useNavigate()
+  const location = useLocation()
+  // 1단계(ReviewContentWritePage)에서 navigate state로 받는사람/후기내용/이미지를 전달받는다.
+  // 직접 URL 접근 등으로 state가 없으면 빈 값으로 취급한다.
+  const contentState = (location.state as ReviewContentState | null) ?? null
+  const bodyTitle = contentState?.title ?? ''
+  const bodyContent = contentState?.content ?? ''
+  const bodyImages = contentState?.images ?? []
 
   const [tab, setTab] = useState<ReviewTab>('color')
   const [colorId, setColorId] = useState(LETTER_COLORS[7].id) // 기본 화이트
@@ -170,9 +177,9 @@ export default function ReviewWritePage() {
   const safeCharacterIndex = characters.length > 0 ? characterIndex % characters.length : 0
   const currentCharacter = characters[safeCharacterIndex]
   const characterImage = currentCharacter?.imageUrl ?? FALLBACK_CHARACTER_IMAGE
-  // 이 화면은 초대장 색상·캐릭터만 꾸미는 화면이라 받는사람/후기내용 입력이 없다 — 미리보기는 항상 안내 placeholder를 보여준다
-  const displayTitle = config.titlePlaceholder
-  const displayContent = config.contentPlaceholder
+  // 받는사람/후기내용은 1단계(ReviewContentWritePage)에서 입력받아 여기선 미리보기에만 반영한다
+  const displayTitle = bodyTitle || config.titlePlaceholder
+  const displayContent = bodyContent || config.contentPlaceholder
   const canSubmit = !submitting
 
   // 조회 화면(InvitationVisual/useInvitationCard)과 동일한 backgroundId→테마색 규칙을 작성 미리보기에도 그대로 적용.
@@ -199,13 +206,13 @@ export default function ReviewWritePage() {
       const characterId = currentCharacter?.id ?? characters[0]?.id ?? 1
 
       let fundingReviewId: number
-      // 이 화면은 초대장 색상·캐릭터만 꾸미는 화면이라 후기 본문(title/content/이미지)은 다루지 않고 빈 값으로 전달한다.
-      // 초대장 문구 입력도 화면에서 제거됐고 히어로 문구는 유형별 고정값을 쓰므로 초대장 제목·내용도 빈 값으로 전달한다
+      // 후기 본문(title/content/이미지)은 1단계(ReviewContentWritePage)에서 받은 값을 그대로 전송한다.
+      // 초대장 문구 입력은 이 화면에서 제거됐고 히어로 문구는 유형별 고정값을 쓰므로 invitationTitle/invitationContent는 빈 값으로 전달한다
       if (config.key === 'gift') {
         const result = await createReviewMutation.mutateAsync({
-          content: '',
+          content: bodyContent,
           backgroundId,
-          images: [],
+          images: bodyImages,
           invitationTitle: '',
           invitationContent: '',
           invitationCharacterId: characterId,
@@ -214,9 +221,9 @@ export default function ReviewWritePage() {
         fundingReviewId = result.fundingReviewId
       } else {
         const payload = {
-          title: '',
-          content: '',
-          images: [],
+          title: bodyTitle,
+          content: bodyContent,
+          images: bodyImages,
           invitationTitle: '',
           invitationContent: '',
           invitationCharacterId: characterId,
@@ -229,10 +236,10 @@ export default function ReviewWritePage() {
 
       const previewData: ReviewPreviewData = {
         authorName: config.showFrom ? profile?.nickname ?? '' : null,
-        title: '',
-        content: '',
+        title: bodyTitle,
+        content: bodyContent,
         colorId,
-        images: [],
+        images: bodyImages,
         fundingReviewId,
       }
       navigate(config.completePath, { state: previewData })
@@ -275,8 +282,8 @@ export default function ReviewWritePage() {
             heroTitle={config.heroHeading}
             title={displayTitle}
             content={displayContent}
-            isTitlePlaceholder
-            isContentPlaceholder
+            isTitlePlaceholder={!bodyTitle}
+            isContentPlaceholder={!bodyContent}
             fromName={config.showFrom ? profile?.nickname ?? '' : null}
             accentColor={invitationThemeColor}
           />
@@ -393,8 +400,8 @@ export default function ReviewWritePage() {
                 heroTitle={config.heroHeading}
                 title={displayTitle}
                 content={displayContent}
-                isTitlePlaceholder
-                isContentPlaceholder
+                isTitlePlaceholder={!bodyTitle}
+                isContentPlaceholder={!bodyContent}
                 fromName={config.showFrom ? profile?.nickname ?? '' : null}
                 accentColor={invitationThemeColor}
               />
