@@ -17,6 +17,7 @@ import type { SocialLoginProvider } from '../../api/auth'
 import { setTokens, getLastLoginProvider, setLastLoginProvider } from '../../lib/tokenStorage'
 import { kakaoAuthorize, exchangeKakaoCode } from '../../lib/kakao'
 import { consumeReturnUrl } from '../../utils/returnUrl'
+import { trackEvent } from '../../lib/analytics'
 
 const LOGIN_FAIL_MESSAGE = '로그인에 실패했어요. 다시 시도해 주세요.'
 /** 카카오 authorize()가 로그인 완료 후 돌아오는 주소. 카카오 디벨로퍼스에 등록된 Redirect URI와 정확히 일치해야 함 */
@@ -54,6 +55,7 @@ export default function LoginPage() {
       setTokens(result.accessToken, result.refreshToken)
       setLastLoginProvider(provider)
       login()
+      trackEvent('login', { method: provider })
       // 로그인 전에 저장해둔 복귀 경로(H 참여 등)가 있으면 그리로, 없으면 홈
       navigate(consumeReturnUrl() ?? '/home', { replace: true })
     } catch {

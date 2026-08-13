@@ -16,6 +16,7 @@ import { getMyFundings } from '../../api/users'
 import { useAuth } from '../../hooks/useAuth'
 import { uploadImage } from '../../utils/uploadImage'
 import { deleteTogetherDraft, getTogetherDraft, saveTogetherDraft } from '../../api/togetherDraft'
+import { trackEvent } from '../../lib/analytics'
 
 const STEPS = ['기본 정보', '계좌 정보', '초대장 만들기']
 const TOTAL_STEPS = STEPS.length
@@ -232,6 +233,7 @@ export default function GiftCreateTogetherPage() {
 
   const completeCreation = (fundingId: number) => {
     setCreatedFundingId(fundingId)
+    trackEvent('funding_create_complete', { funding_type: 'together' })
     setStep(TOTAL_STEPS + 1)
   }
 

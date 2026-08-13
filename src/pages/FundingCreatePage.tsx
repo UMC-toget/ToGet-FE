@@ -18,6 +18,7 @@ import { uploadImage } from '../utils/uploadImage';
 import Toast from '../components/common/Toast';
 import { getMyFundings, getMyProfile } from '../api/users';
 import { deleteIndividualDraft, getIndividualDraft, saveIndividualDraft } from '../api/individualDraft';
+import { trackEvent } from '../lib/analytics';
 
 const TOTAL_STEPS = 5;
 const INDIVIDUAL_DRAFT_META_KEY = 'toget:individual-draft-meta';
@@ -307,6 +308,7 @@ export default function FundingCreatePage() {
         localStorage.removeItem(INDIVIDUAL_DRAFT_META_KEY);
         commitAsFunding(String(recentMatchingFunding.fundingId));
         setCreatedFundingId(recentMatchingFunding.fundingId);
+        trackEvent('funding_create_complete', { funding_type: 'my' });
         setStep(TOTAL_STEPS + 1);
         return;
       }
@@ -385,6 +387,7 @@ export default function FundingCreatePage() {
       if (draftId != null) await deleteIndividualDraft(draftId).catch(() => undefined);
       localStorage.removeItem(INDIVIDUAL_DRAFT_META_KEY);
       setCreatedFundingId(fundingId);
+      trackEvent('funding_create_complete', { funding_type: 'my' });
       setStep(TOTAL_STEPS + 1);
     } catch (error) {
       setCreateError(error instanceof Error ? error.message : '선물 페이지 생성에 실패했어요.');

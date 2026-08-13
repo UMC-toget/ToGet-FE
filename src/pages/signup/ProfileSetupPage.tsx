@@ -13,6 +13,7 @@ import { completeSignup } from '../../api/auth'
 import { uploadImage } from '../../utils/uploadImage'
 import { ApiError } from '../../lib/apiClient'
 import { setTokens } from '../../lib/tokenStorage'
+import { trackEvent } from '../../lib/analytics'
 
 const NICKNAME_MAX_LENGTH = 6
 const PROFILE_IMAGE_PREFIX = 'profiles'
@@ -110,6 +111,7 @@ export default function ProfileSetupPage() {
     onSuccess: (result) => {
       setTokens(result.accessToken, result.refreshToken)
       login()
+      trackEvent('sign_up')
       closeTerms()
       if (nicknameStorageKey) sessionStorage.removeItem(nicknameStorageKey)
       if (photoStorageKey) sessionStorage.removeItem(photoStorageKey)
