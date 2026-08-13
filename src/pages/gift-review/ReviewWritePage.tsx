@@ -253,7 +253,7 @@ export default function ReviewWritePage() {
         images: bodyImages,
         fundingReviewId,
       }
-      navigate(config.completePath, { state: previewData })
+      navigate(`${config.completePath}/${resolvedFundingId}`, { state: previewData })
     } catch (error) {
       setToastMessage(getReviewSubmitErrorMessage(error))
     } finally {

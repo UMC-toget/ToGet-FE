@@ -51,7 +51,7 @@ export default function TogetherStepComplete({ fundingId, onViewFunding, onGoHom
       {/* 페이지 전체 배경 그라데이션 - 캐릭터를 중심으로 진하게 시작해서 아래로 갈수록 옅어짐 */}
       <div
         className="absolute inset-x-0 top-0 h-96 pointer-events-none"
-        style={{ background: `radial-gradient(circle at 50% 38%, color-mix(in srgb, ${glowColor} 26%, transparent) 0%, color-mix(in srgb, ${glowColor} 14%, transparent) 38%, transparent 68%)` }}
+        style={{ background: `radial-gradient(circle at 50% 38%, color-mix(in srgb, ${glowColor} 48%, transparent) 0%, color-mix(in srgb, ${glowColor} 36%, transparent) 38%, transparent 68%)` }}
       />
       <button
         onClick={onGoHome}
@@ -66,7 +66,7 @@ export default function TogetherStepComplete({ fundingId, onViewFunding, onGoHom
         <div className="relative flex items-center justify-center w-64 h-64 shrink-0">
           <div
             className="absolute inset-0 rounded-full blur-2xl pointer-events-none"
-            style={{ background: `radial-gradient(circle, color-mix(in srgb, ${glowColor} 28%, transparent) 0%, transparent 70%)`, opacity: 0.55 }}
+            style={{ background: `radial-gradient(circle, color-mix(in srgb, ${glowColor} 50%, transparent) 0%, transparent 70%)`, opacity: 0.55 }}
           />
           <img
             src={heroStars}
