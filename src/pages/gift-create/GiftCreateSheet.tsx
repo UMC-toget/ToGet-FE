@@ -53,10 +53,10 @@ export default function GiftCreateSheet({
   const { isLoggedIn } = useAuth()
   const [draftModalType, setDraftModalType] = useState<GiftPageType | null>(null)
   
-  // '내 선물 페이지'(individual)는 실제 임시저장 API로 draft 여부를 확인
-  const individualDraftQuery = useIndividualDraft()
-  // '함께 선물 페이지'(together)도 실제 임시저장 API로 draft 여부를 확인
-  const togetherDraftQuery = useTogetherDraft()
+  // '내 선물 페이지'(individual)는 실제 임시저장 API로 draft 여부를 확인 — 시트가 열렸을 때만 조회
+  const individualDraftQuery = useIndividualDraft(open)
+  // '함께 선물 페이지'(together)도 실제 임시저장 API로 draft 여부를 확인 — 시트가 열렸을 때만 조회
+  const togetherDraftQuery = useTogetherDraft(open)
   const deleteIndividualDraft = useDeleteIndividualDraft()
   const deleteTogetherDraft = useDeleteTogetherDraft()
 

@@ -116,9 +116,9 @@ export default function GiftAboutPage() {
           ))}
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2.5">
           <h2 className="text-h3-sb text-black">{content.title}</h2>
-          <p className="text-caption1-r whitespace-pre-line text-gray-600">{content.subtitle}</p>
+          <p className="leading-normal text-caption1-r whitespace-pre-line text-gray-600">{content.subtitle}</p>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -130,9 +130,9 @@ export default function GiftAboutPage() {
               <div className="flex size-[58px] shrink-0 items-center justify-center rounded-md bg-background">
                 <item.Icon className="size-8 text-gray-900" />
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-2">
                 <p className="text-b2-m text-black">{item.title}</p>
-                <p className="text-caption1-r whitespace-pre-line text-gray-700">{item.description}</p>
+                <p className="leading-normal text-caption1-r whitespace-pre-line text-gray-700">{item.description}</p>
               </div>
             </div>
           ))}

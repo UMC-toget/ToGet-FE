@@ -57,24 +57,27 @@ export default function BankSelectSheet({ open, onClose, onSelect }: BankSelectS
 
   return (
     <BottomSheet open={open} onClose={onClose} drag={{ peekOffsetPx: 460, expandedOffsetPx: 320 }}>
-      <div className="flex w-full flex-col items-start gap-5">
-        <p className="text-h3-sb text-black">은행명</p>
-        <div className="grid w-full grid-cols-3 gap-3">
-          {sortedBanks.map((bank) => (
-            <button
-              key={bank.bankId}
-              type="button"
-              onClick={() => onSelect(bank.code)}
-              className="flex flex-col items-center justify-center gap-1.5 rounded-lg bg-background pb-3 pt-3"
-            >
-              {bank.iconUrl ? (
-                <img src={bank.iconUrl} alt="" className="size-[60px] object-contain" />
-              ) : (
-                <BankIcon className="size-[60px] p-4 text-gray-400" />
-              )}
-              <span className="text-b2-r text-black">{shortBankLabel(bank.displayName)}</span>
-            </button>
-          ))}
+      <div className="flex w-full min-h-0 flex-1 flex-col items-start">
+        <p className="w-full shrink-0 pb-5 text-h3-sb text-black">은행명</p>
+        {/* 아이콘 그리드만 자체 스크롤되도록 분리 — 위 라벨(및 BottomSheet 그래버)은 스크롤 영역 밖이라 항상 고정된다 */}
+        <div className="no-scrollbar min-h-0 w-full flex-1 overflow-y-auto">
+          <div className="grid w-full grid-cols-3 gap-3 pb-1">
+            {sortedBanks.map((bank) => (
+              <button
+                key={bank.bankId}
+                type="button"
+                onClick={() => onSelect(bank.code)}
+                className="flex flex-col items-center justify-center gap-1.5 rounded-lg bg-background pb-3 pt-3"
+              >
+                {bank.iconUrl ? (
+                  <img src={bank.iconUrl} alt="" className="size-[60px] object-contain" />
+                ) : (
+                  <BankIcon className="size-[60px] p-4 text-gray-400" />
+                )}
+                <span className="text-b2-r text-black">{shortBankLabel(bank.displayName)}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </BottomSheet>
