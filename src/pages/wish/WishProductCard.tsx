@@ -4,6 +4,7 @@ import PlusIcon from '../../components/icons/PlusIcon'
 import MoreVerticalIcon from '../../components/icons/MoreVerticalIcon'
 import CheckIcon from '../../components/icons/CheckIcon'
 import GiftIcon from '../../components/icons/GiftIcon'
+import ConfirmModal from '../../components/common/ConfirmModal'
 import WishEditModeSheet from './WishEditModeSheet'
 import { useImageHasBackground } from '../../hooks/useImageHasBackground'
 import type { Product } from '../home/products'
@@ -54,6 +55,7 @@ const WishProductCard = memo(function WishProductCard({
 }: WishProductCardProps) {
   const navigate = useNavigate()
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [linkConfirmOpen, setLinkConfirmOpen] = useState(false)
   const [imageBroken, setImageBroken] = useState(false)
   const imgRef = useRef<HTMLImageElement>(null)
   const hasBackground = useImageHasBackground(imgRef, product.image || null)
@@ -63,7 +65,7 @@ const WishProductCard = memo(function WishProductCard({
       onToggleSelect?.()
       return
     }
-    if (product.link) window.open(product.link, '_blank', 'noopener,noreferrer')
+    if (product.link) setLinkConfirmOpen(true)
   }, [isEditMode, onToggleSelect, product.link])
 
   const handleMoreClick = useCallback(
@@ -183,6 +185,19 @@ const WishProductCard = memo(function WishProductCard({
         onClose={() => setSheetOpen(false)}
         onSelectEdit={handleSelectEdit}
         onSelectDelete={handleSelectDelete}
+      />
+
+      <ConfirmModal
+        open={linkConfirmOpen}
+        title="외부 사이트로 이동할까요?"
+        description={'상품 정보를 확인하기 위해\n외부 사이트로 이동해요.'}
+        cancelText="돌아가기"
+        confirmText="이동하기"
+        onCancel={() => setLinkConfirmOpen(false)}
+        onConfirm={() => {
+          setLinkConfirmOpen(false)
+          if (product.link) window.open(product.link, '_blank', 'noopener,noreferrer')
+        }}
       />
     </div>
   )
