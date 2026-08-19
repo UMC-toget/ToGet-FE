@@ -9,10 +9,8 @@ import AuthProvider from './contexts/AuthProvider.tsx'
 import { queryClient } from './lib/queryClient.ts'
 import { GOOGLE_CLIENT_ID, KAKAO_JS_KEY } from './lib/oauthConfig.ts'
 import { initKakao } from './lib/kakao.ts'
-import { initGA } from './lib/analytics.ts'
 
 initKakao(KAKAO_JS_KEY)
-initGA()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
