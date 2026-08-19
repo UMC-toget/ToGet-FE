@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { detectBanks, getBanks, getUserAccounts } from '../api/userAccounts'
+import { getBanks, getUserAccounts } from '../api/userAccounts'
 import { useAuth } from './useAuth'
 import { useDebouncedValue } from './useDebouncedValue'
+import { detectBanksLocally } from '../utils/koreanAccountDetector'
 
 export const USER_ACCOUNTS_QUERY_KEY = ['userAccounts']
 export const BANKS_QUERY_KEY = ['banks']
@@ -34,16 +35,20 @@ export function useBanks() {
 const MAX_SUGGESTED_BANKS = 3
 
 /**
- * 계좌번호로 추론되는 은행 목록 (POST /api/v1/banks/detections 연동).
- * 타이핑 중 매 자리마다 호출되지 않도록 300ms 디바운스하고, 은행을 이미 골랐거나
- * 계좌번호가 너무 짧으면(3자리 미만) 호출하지 않습니다.
+ * [임시 로컬 실험] 계좌번호로 추론되는 은행 목록.
+ * 원래는 POST /api/v1/banks/detections(백엔드)를 호출했으나, korean-account 라이브러리로
+ * 클라이언트에서 직접 탐지하도록 임시로 바꿔서 체감을 비교해보는 중입니다. 은행 표시 정보(이름/아이콘)는
+ * 그대로 우리 백엔드의 /api/v1/banks 목록에서 가져옵니다.
+ * 타이핑 중 매 자리마다 재계산되지 않도록 300ms 디바운스하고, 은행을 이미 골랐거나
+ * 계좌번호가 너무 짧으면(3자리 미만) 계산하지 않습니다.
  */
 export function useBankDetection(accountNumber: string, enabled: boolean) {
   const debouncedAccountNumber = useDebouncedValue(accountNumber, 300)
+  const { data: banks } = useBanks()
   return useQuery({
-    queryKey: ['bankDetection', debouncedAccountNumber],
-    queryFn: () => detectBanks(debouncedAccountNumber),
-    enabled: enabled && debouncedAccountNumber.length >= 3,
+    queryKey: ['bankDetection', 'local', debouncedAccountNumber],
+    queryFn: () => detectBanksLocally(debouncedAccountNumber, banks ?? []),
+    enabled: enabled && debouncedAccountNumber.length >= 3 && !!banks,
     staleTime: 5 * 60 * 1000,
     select: (banks) => banks.slice(0, MAX_SUGGESTED_BANKS),
   })
