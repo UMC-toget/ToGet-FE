@@ -4,6 +4,7 @@ import { createWishlistItem, deleteWishlistItem, getWishlist } from '../../api/w
 import type { WishlistType } from '../../api/wishlists'
 import type { Product } from './products'
 import type { WishType } from '../../store/wishStore'
+import { trackEvent } from '../../lib/analytics'
 
 const WISHLIST_QUERY_KEY = ['wishlists', 'all']
 
@@ -47,7 +48,10 @@ export function useWishToggle(enabled: boolean) {
         imageUrl: product.image || undefined,
         type: toApiType(type),
       }),
-    onSuccess: invalidate,
+    onSuccess: (_data, variables) => {
+      trackEvent('wish_create', { wish_type: variables.type })
+      invalidate()
+    },
   })
 
   const removeMutation = useMutation({

@@ -27,6 +27,7 @@ import EmojiPopup from '../../components/common/EmojiPopup'
 import { formatDateDots, getDdayLabel } from '../../utils/formatDate'
 import { copyToClipboard } from '../../utils/clipboard'
 import { setReturnUrl } from '../../utils/returnUrl'
+import { trackEvent } from '../../lib/analytics'
 
 // 접근: 전체 (비로그인 조회 OK, 투표·편지 등 액션은 로그인 필요) | H01 함께 선물 메인 — 역할(CREATOR·ADMIN·PARTICIPANT)·상태(SELECTING→ENDED)별 분기
 export default function GroupPage() {
@@ -154,6 +155,7 @@ export default function GroupPage() {
 
   const copyInviteLink = async () => {
     await copyToClipboard(window.location.href)
+    trackEvent('invitation_share', { method: 'copy', funding_type: 'together' })
     setToastOpen(true)
     setTimeout(() => setToastOpen(false), 2000)
   }
