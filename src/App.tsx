@@ -1,5 +1,4 @@
 import { Routes, Route } from 'react-router-dom'
-import PageViewTracker from './components/common/PageViewTracker'
 import SplashPage from './pages/splash/SplashPage' // TEMP: GIF 스플래시 확인용, 확인 후 되돌릴 것
 import LoginPage from './pages/login/LoginPage'
 import ProfileSetupPage from './pages/signup/ProfileSetupPage'
@@ -56,7 +55,6 @@ import TermsOfServicePage from './pages/legal/TermsOfServicePage'
 function App() {
   return (
     <>
-      <PageViewTracker />
       <Routes>
       <Route path="/" element={<SplashPage />} /> {/* TEMP: GIF 스플래시 확인용, 확인 후 HomePage로 되돌릴 것 */}
       <Route path="/login" element={<LoginPage />} />
