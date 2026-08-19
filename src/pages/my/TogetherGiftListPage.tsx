@@ -4,6 +4,7 @@ import FundingListPage from './FundingListPage'
 import TogetherGiftListCard from './TogetherGiftListCard'
 import Toast from '../../components/common/Toast'
 import type { MyFunding } from '../../api/users'
+import { trackEvent } from '../../lib/analytics'
 
 const TOAST_DURATION_MS = 2500
 
@@ -17,9 +18,11 @@ export default function TogetherGiftListPage() {
     try {
       if (navigator.share) {
         await navigator.share({ title: funding.title, url: inviteUrl })
+        trackEvent('invitation_share', { method: 'share', funding_type: 'together' })
         return
       }
       await navigator.clipboard.writeText(inviteUrl)
+      trackEvent('invitation_share', { method: 'copy', funding_type: 'together' })
       setToastMessage('초대장 링크가 복사되었어요')
       setTimeout(() => setToastMessage(null), TOAST_DURATION_MS)
     } catch {

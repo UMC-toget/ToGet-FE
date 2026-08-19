@@ -29,6 +29,36 @@
       rel="stylesheet"
     />
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js" crossorigin="anonymous"></script>
+    <!--
+      GA4 초기화는 반드시 이 순수 인라인 스크립트에서 해야 한다 — Vite가 처리하는 파일
+      (src/lib/analytics.ts 등)에서 동일한 로직으로 gtag.js를 초기화하면 스크립트 로드와
+      내부 엔진 처리(Processing GTAG command 로그 등)까지는 정상인데, 실제 네트워크 전송
+      (collect 요청)만 영구적으로 발생하지 않는 문제를 확인했다. 원인은 특정하지 못했으나
+      Vite가 처리하지 않는 순수 인라인 스크립트로 초기화하면 정상 동작한다.
+      초기화 이후 Vite로 번들된 코드(analytics.ts의 trackEvent 등)에서 window.gtag(...)를
+      호출하는 것은 정상 동작하므로, 초기화 부분만 이 자리에 남겨둔다.
+    -->
+    <script>
+      (function () {
+        var GA_ID = '%VITE_GA_MEASUREMENT_ID%';
+        if (!GA_ID || GA_ID.charAt(0) !== 'G') return;
+        var script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+        document.head.appendChild(script);
+
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        window.gtag('consent', 'default', {
+          ad_storage: 'granted',
+          ad_user_data: 'granted',
+          ad_personalization: 'granted',
+          analytics_storage: 'granted',
+        });
+        window.gtag('js', new Date());
+        window.gtag('config', GA_ID, { send_page_view: false });
+      })();
+    </script>
     <title>To Get</title>
   </head>
   <body>

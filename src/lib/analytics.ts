@@ -8,42 +8,30 @@ declare global {
   }
 }
 
-let initialized = false
-
-/** GA4 스크립트를 동적으로 로드하고 gtag를 초기화합니다. 앱 시작 시 한 번만 호출하세요 */
-export function initGA(): void {
-  if (initialized || !GA_MEASUREMENT_ID) return
-  initialized = true
-
-  const script = document.createElement('script')
-  script.async = true
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`
-  document.head.appendChild(script)
-
-  window.dataLayer = window.dataLayer || []
-  window.gtag = function gtag(...args: unknown[]) {
-    window.dataLayer.push(args)
-  }
-  // 동의 상태를 명시하지 않으면 GA4가 "동의 미구성"으로 보고 수집 데이터를 보고서에서
-  // 제외할 수 있다. 별도 쿠키 동의 배너가 없는 서비스라 기본값을 granted로 명시한다.
-  window.gtag('consent', 'default', {
-    ad_storage: 'granted',
-    ad_user_data: 'granted',
-    ad_personalization: 'granted',
-    analytics_storage: 'granted',
-  })
-  // send_page_view는 기본값(true)을 그대로 둔다 — false로 두면 gtag.js가 'page_view'라는
-  // 예약된 이벤트명 자체를 전송 대상에서 제외해버려서, SPA 라우트 변경마다 직접 보내던
-  // gtag('event','page_view', ...) 호출이 매번 Processing 단계에서 조용히 버려지고 있었다.
-  // SPA 라우트 변경은 GA4 Enhanced Measurement의 "브라우저 기록 이벤트 기반 페이지 변경"
-  // 기능이 history.pushState/popstate을 직접 감지해 자동으로 page_view를 보내주므로,
-  // 최초 로드는 이 config 호출의 기본 page_view로, 이후 라우트 이동은 Enhanced Measurement로
-  // 커버된다 — 별도로 페이지뷰를 수동 전송할 필요가 없다.
-  window.gtag('config', GA_MEASUREMENT_ID)
-}
-
-/** 버튼 클릭 등 커스텀 이벤트를 기록합니다. 측정 ID가 설정되지 않은 로컬 환경에서는 무시됩니다 */
+/**
+ * 버튼 클릭 등 커스텀 이벤트를 기록합니다. 측정 ID가 설정되지 않은 로컬 환경에서는 무시됩니다.
+ *
+ * GA4 초기화(gtag.js 로드, dataLayer/gtag 설정, consent/config)는 이 파일이 아니라
+ * index.html의 순수 인라인 스크립트에서 합니다 — Vite가 처리하는 파일에서 초기화하면
+ * gtag.js 내부 처리(로그)까지는 정상인데 실제 네트워크 전송만 안 되는 문제가 있었습니다.
+ * 초기화 이후 이 함수처럼 Vite로 번들된 코드에서 window.gtag(...)를 호출하는 것은 정상 동작합니다.
+ */
 export function trackEvent(action: string, params?: Record<string, unknown>): void {
   if (!GA_MEASUREMENT_ID || !window.gtag) return
   window.gtag('event', action, params)
+}
+
+/**
+ * 라우트 변경 시 페이지뷰를 기록합니다.
+ *
+ * GA4 속성의 Enhanced Measurement "브라우저 방문 기록 이벤트를 토대로 한 페이지 변경사항"을
+ * 껐다는 전제로 동작합니다 — 그 자동 추적을 켠 채로 이 함수도 같이 쓰면 라우트 변경마다
+ * page_view가 두 번씩(자동 + 수동) 잡힙니다.
+ */
+export function trackPageView(path: string): void {
+  if (!GA_MEASUREMENT_ID || !window.gtag) return
+  window.gtag('event', 'page_view', {
+    page_location: window.location.origin + path,
+    page_title: document.title,
+  })
 }
