@@ -5,13 +5,17 @@ import type { TogetherDraftSaveRequest } from '../../api/togetherDraft'
 
 export const TOGETHER_DRAFT_QUERY_KEY = ['togetherDraft']
 
-/** 작성 중인 함께 펀딩 임시저장 조회 (GET /api/v1/together-drafts 연동) */
-export function useTogetherDraft() {
+/**
+ * 작성 중인 함께 펀딩 임시저장 조회 (GET /api/v1/together-drafts 연동)
+ * @param enabled 이 조회가 실제로 필요한 시점(예: 선물 만들기 시트가 열렸을 때)에만 true로 넘겨서,
+ *   필요 없는 페이지에서까지 매번 호출되지 않도록 한다.
+ */
+export function useTogetherDraft(enabled = true) {
   const { isLoggedIn } = useAuth()
   return useQuery({
     queryKey: TOGETHER_DRAFT_QUERY_KEY,
     queryFn: getTogetherDraft,
-    enabled: isLoggedIn,
+    enabled: isLoggedIn && enabled,
   })
 }
 
