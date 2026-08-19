@@ -20,3 +20,18 @@ export function trackEvent(action: string, params?: Record<string, unknown>): vo
   if (!GA_MEASUREMENT_ID || !window.gtag) return
   window.gtag('event', action, params)
 }
+
+/**
+ * 라우트 변경 시 페이지뷰를 기록합니다.
+ *
+ * GA4 속성의 Enhanced Measurement "브라우저 방문 기록 이벤트를 토대로 한 페이지 변경사항"을
+ * 껐다는 전제로 동작합니다 — 그 자동 추적을 켠 채로 이 함수도 같이 쓰면 라우트 변경마다
+ * page_view가 두 번씩(자동 + 수동) 잡힙니다.
+ */
+export function trackPageView(path: string): void {
+  if (!GA_MEASUREMENT_ID || !window.gtag) return
+  window.gtag('event', 'page_view', {
+    page_location: window.location.origin + path,
+    page_title: document.title,
+  })
+}
