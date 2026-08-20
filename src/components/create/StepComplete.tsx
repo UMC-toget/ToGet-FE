@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Heart, X } from 'lucide-react';
+import { Check, Heart, Link, X } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import { getCharacterImageSrc, getInvitationCompletionColors, useInvitationMeta } from './Mascot';
 import { trackEvent } from '../../lib/analytics';
@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default function StepComplete({ fundingId, onViewFunding, onGoHome }: Props) {
-  const { inviteCharacter, inviteBackgroundId, inviteColor } = useFundingCreateStore();
+  const { title, inviteCharacter, inviteBackgroundId, inviteColor } = useFundingCreateStore();
   const [copied, setCopied] = useState(false);
   const { backgrounds, characters } = useInvitationMeta();
   const characterImageUrl = getCharacterImageSrc(characters.find((item) => item.id === inviteCharacter));
@@ -32,13 +32,28 @@ export default function StepComplete({ fundingId, onViewFunding, onGoHome }: Pro
     }
   };
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url: shareUrl });
+        trackEvent('invitation_share', { method: 'share', funding_type: 'my' });
+      } catch {
+        // 사용자가 공유 시트를 취소한 경우 등
+      }
+    } else {
+      handleCopy();
+    }
+  };
+
   return (
     <div className="flex-1 min-h-0 flex flex-col items-center relative">
-      {/* 페이지 전체 배경 그라데이션 - 캐릭터를 중심으로 진하게 시작해서 아래로 갈수록 옅어짐 */}
+      {/* 페이지 전체 배경 그라데이션 - 캐릭터를 중심으로 진하게 시작해서 아래로 갈수록 옅어짐.
+          박스를 화면보다 넓게(-inset-x-24) 잡아서, 그라데이션이 박스 경계에 닿기 전에 완전히 투명해지도록 여백을 둡니다
+          (경계에 딱 맞춰두면 옅게 남은 색이 박스 테두리에서 뚝 끊겨 사각형처럼 보입니다). */}
       <div
-        className="absolute inset-x-0 top-0 h-96 pointer-events-none"
+        className="absolute -inset-x-24 top-0 h-[28rem] pointer-events-none"
         style={{
-          background: `radial-gradient(circle at 50% 62%, color-mix(in srgb, ${glowColor} 48%, transparent) 0%, color-mix(in srgb, ${glowColor} 36%, transparent) 38%, transparent 68%)`,
+          background: `radial-gradient(ellipse at 50% 55%, color-mix(in srgb, ${glowColor} 40%, transparent) 0%, color-mix(in srgb, ${glowColor} 15%, transparent) 40%, transparent 70%)`,
         }}
       />
       <button
@@ -82,7 +97,7 @@ export default function StepComplete({ fundingId, onViewFunding, onGoHome }: Pro
 
         <div className="w-full space-y-2 mt-5">
           <p className="text-sm font-semibold text-gray-700">초대장 링크</p>
-          <div className="border border-gray-200 rounded-xl p-3 bg-white">
+          <div className="border border-gray-200 rounded-xl p-3 bg-white space-y-2">
             <div className="flex h-14 items-center gap-2 rounded-lg bg-gray-100 px-4">
               <div className="flex-1 text-sm text-gray-400 truncate">{shareLink}</div>
               <button
@@ -93,11 +108,17 @@ export default function StepComplete({ fundingId, onViewFunding, onGoHome }: Pro
                 {copied ? '복사 완료' : '링크 복사'}
               </button>
             </div>
+            <button
+              onClick={handleShare}
+              className="w-full h-10 bg-gray-100 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+            >
+              <Link size={16} /> 초대장 공유
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="w-full mt-24 pb-2">
+      <div className="w-full mt-auto pt-8 pb-2">
         <button
           onClick={onViewFunding}
           className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-colors"
