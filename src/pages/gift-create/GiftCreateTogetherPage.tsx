@@ -87,6 +87,7 @@ export default function GiftCreateTogetherPage() {
   const togetherForm = useTogetherCreateStore()
   const resetTogetherForm = useTogetherCreateStore((s) => s.reset)
   const [step, setStep] = useState(1)
+  const [accountSubView, setAccountSubView] = useState(false)
   const [showExitModal, setShowExitModal] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [createError, setCreateError] = useState('')
@@ -341,7 +342,7 @@ export default function GiftCreateTogetherPage() {
 
   return (
     <div className="mx-auto flex h-dvh w-full max-w-[402px] flex-col overflow-hidden bg-white">
-      {!isComplete && (
+      {!isComplete && !(step === 2 && accountSubView) && (
         <>
           <Header
             title="함께 선물 페이지 만들기"
@@ -364,7 +365,7 @@ export default function GiftCreateTogetherPage() {
         {!isRestoringDraft && (
           <>
         {step === 1 && <TogetherStep1BasicInfo onNext={handleNext} />}
-        {step === 2 && <TogetherStep2Account onNext={handleNext} />}
+        {step === 2 && <TogetherStep2Account onNext={handleNext} onSubViewChange={setAccountSubView} />}
         {step === 3 && (
           <TogetherStep3Invite
             onNext={handleCreateFunding}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
+import { ChevronRight, Pencil } from 'lucide-react';
+import Header from '../common/Header';
 import AccountFormFields from '../common/AccountFormFields';
 import AccountCard from '../common/AccountCard';
 import AccountConfirmModal from '../common/AccountConfirmModal';
@@ -12,6 +13,8 @@ import { useUserAccounts } from '../../hooks/useUserAccounts';
 interface Props {
   onNext: () => void;
   initialSelectedAccountId?: string | number | null;
+  /** "새로운 계좌 등록하기" 같은 서브 화면으로 전환됐는지 알려줌 — 부모가 자기 Header/StepIndicator를 숨길 때 씀 */
+  onSubViewChange?: (isSubView: boolean) => void;
 }
 
 type View = 'list' | 'add' | 'edit';
@@ -38,7 +41,7 @@ function resolveBankCode(displayName: string): BankName | undefined {
     )?.[0];
 }
 
-export default function TogetherStep2Account({ onNext, initialSelectedAccountId }: Props) {
+export default function TogetherStep2Account({ onNext, initialSelectedAccountId, onSubViewChange }: Props) {
   const { accounts, selectedAccountId, addAccount, hydrateAccounts, updateAccount, selectAccount } = useTogetherCreateStore();
   const { data: registeredAccounts, isLoading: isAccountsLoading } = useUserAccounts();
 
@@ -46,6 +49,11 @@ export default function TogetherStep2Account({ onNext, initialSelectedAccountId 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<AccountFormState>(emptyForm);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  useEffect(() => {
+    onSubViewChange?.(view !== 'list');
+    return () => onSubViewChange?.(false);
+  }, [view, onSubViewChange]);
 
   useEffect(() => {
     if (!registeredAccounts) return;
@@ -115,12 +123,14 @@ export default function TogetherStep2Account({ onNext, initialSelectedAccountId 
 
             <button
               onClick={openAdd}
-              className="w-full flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center justify-between gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-lg text-gray-500 shrink-0">
-                +
+              <span className="flex items-center gap-3">
+                <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-lg text-gray-500 shrink-0">
+                  +
+                </span>
+                <span className="text-left">새로운 계좌 등록하기</span>
               </span>
-              <span className="flex-1 text-left">새로운 계좌 등록하기</span>
               <ChevronRight size={16} className="text-gray-400 shrink-0" />
             </button>
             {isAccountsLoading && (
@@ -157,15 +167,15 @@ export default function TogetherStep2Account({ onNext, initialSelectedAccountId 
               </div>
             </div>
           )}
-        </div>
 
-        <button
-          onClick={onNext}
-          disabled={!selectedAccountId}
-          className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-        >
-          다음
-        </button>
+          <button
+            onClick={onNext}
+            disabled={!selectedAccountId}
+            className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            다음
+          </button>
+        </div>
       </div>
     );
   }
@@ -175,14 +185,11 @@ export default function TogetherStep2Account({ onNext, initialSelectedAccountId 
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <div className="flex items-center gap-2 mb-4">
-        <button onClick={() => setView('list')} className="p-1 text-gray-600 hover:text-gray-900 transition-colors">
-          <ChevronLeft size={20} />
-        </button>
-        <h2 className="text-base font-bold text-gray-900">{isEdit ? '계좌 수정하기' : '새로운 계좌 등록하기'}</h2>
+      <div className="-mx-[18px]">
+        <Header title={isEdit ? '계좌 수정하기' : '새로운 계좌 등록하기'} onBack={() => setView('list')} />
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-4">
+      <div className="flex-1 overflow-y-auto space-y-4 pt-4">
         <p className="text-xs text-gray-400">
           선물 준비에 사용할 계좌를 {isEdit ? '수정해' : '등록해'} 주세요<br />
           친구들이 선물에 함께할 때 이 계좌 정보를 확인할 수 있어요
