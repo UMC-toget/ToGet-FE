@@ -1,11 +1,11 @@
 name: Dev to Main Release PR
 
-# dev에 병합됐지만 아직 main에는 반영되지 않은 PR이 5개 이상 쌓이면
+# dev에 병합됐지만 아직 main에는 반영되지 않은 PR이 1개 이상 쌓이면
 # release PR(dev → main)을 자동으로 열고 PR 템플릿에 대상 PR 목록을 채워 넣습니다.
 # main은 브랜치 보호 규칙상 HongYeonLee 계정만 push할 수 있어(main-merge-guard.yml 참고),
 # 실제 병합 버튼은 자동화하지 않고 사람이 직접 누릅니다.
 #
-# "5개 쌓임" 여부는 별도 카운터 파일 없이, 매번 git ancestry(merge-base --is-ancestor)로
+# "1개 쌓임" 여부는 별도 카운터 파일 없이, 매번 git ancestry(merge-base --is-ancestor)로
 # main에 아직 없는 dev 병합 PR을 다시 계산합니다 — 항상 정확하고 상태 파일이 어긋날 일이 없습니다.
 on:
   pull_request:
@@ -58,7 +58,7 @@ jobs:
           echo "number=$number" >> "$GITHUB_OUTPUT"
 
       - name: PR 본문 생성
-        if: steps.existing.outputs.number != '' || fromJSON(steps.diff.outputs.count) >= 5
+        if: steps.existing.outputs.number != '' || fromJSON(steps.diff.outputs.count) >= 1
         run: |
           count=$(wc -l < pending.tsv | tr -d ' ')
           {
@@ -82,7 +82,7 @@ jobs:
             echo '## 📷 스크린샷 (선택)'
             echo
             echo '## 💬 리뷰어에게'
-            echo 'dev에 병합된 PR이 5개 이상 쌓여 자동으로 생성/갱신된 release PR입니다. main 브랜치 보호 정책상 병합은 사람이 직접 진행해야 합니다.'
+            echo 'dev에 병합된 PR이 1개 이상 쌓여 자동으로 생성/갱신된 release PR입니다. main 브랜치 보호 정책상 병합은 사람이 직접 진행해야 합니다.'
             echo
             echo '---'
             echo
@@ -97,7 +97,7 @@ jobs:
           } > body.md
 
       - name: release PR 생성 또는 갱신
-        if: steps.existing.outputs.number != '' || fromJSON(steps.diff.outputs.count) >= 5
+        if: steps.existing.outputs.number != '' || fromJSON(steps.diff.outputs.count) >= 1
         run: |
           count=$(wc -l < pending.tsv | tr -d ' ')
           first=$(head -n 1 pending.tsv | cut -f1)

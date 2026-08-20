@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import calendarIcon from '../../assets/calendar.svg';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import DateSheet, { formatDisplay } from './DateSheet';
 import PhotoActionSheet from '../common/PhotoActionSheet';
@@ -51,7 +52,7 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <div className="flex-1 overflow-y-auto space-y-5">
+      <div className="flex-1 overflow-y-auto space-y-3">
         <div>
           <h2 className="text-lg font-bold text-gray-900">기본 정보를 입력해 주세요</h2>
           <p className="text-xs text-gray-400 mt-1">친구들에게 보여질 선물 페이지 정보를 작성해주세요</p>
@@ -71,8 +72,8 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
             placeholder="선물 페이지 제목을 입력해주세요"
             value={title}
             onChange={(e) => setStep1({ title: e.target.value.slice(0, FUNDING_TITLE_MAX_LENGTH) })}
-            className={`w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none transition-colors border
-              ${errors.title ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-100/70 focus:border-gray-800 focus:bg-white'}`}
+            className={`h-12 w-full rounded-xl border px-4 text-b1-m text-black outline-none transition-colors placeholder:text-b1-r placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-200
+              ${errors.title ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-100/70'}`}
           />
           {errors.title && (
             <p className="text-xs text-red-400 mt-1">▲ 아직 채워지지 않은 항목이 있어요</p>
@@ -87,13 +88,13 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
           <button
             type="button"
             onClick={() => setOpenSheet('date')}
-            className={`w-full flex items-center justify-between rounded-xl px-4 py-3 text-sm text-left border transition-colors
+            className={`h-12 w-full flex items-center justify-between rounded-xl px-4 text-left border transition-colors
               ${errors.anniversaryDate ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-100/70'}`}
           >
-            <span className={anniversaryDate ? 'text-gray-800' : 'text-gray-400'}>
+            <span className={anniversaryDate ? 'text-b1-m text-black' : 'text-b1-r text-gray-400'}>
               {anniversaryDate ? formatDisplay(anniversaryDate) : '선물이 필요한 날짜를 선택해주세요'}
             </span>
-            <span className="text-gray-400" aria-hidden>📅</span>
+            <img src={calendarIcon} alt="" className="h-[19px] w-[18px] shrink-0" aria-hidden />
           </button>
           {errors.anniversaryDate && (
             <p className="text-xs text-red-400 mt-1">▲ 아직 채워지지 않은 항목이 있어요</p>
@@ -108,15 +109,15 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
           <button
             type="button"
             onClick={() => setOpenSheet('range')}
-            className={`w-full flex items-center justify-between rounded-xl px-4 py-3 text-sm text-left border transition-colors
+            className={`h-12 w-full flex items-center justify-between rounded-xl px-4 text-left border transition-colors
               ${errors.preparation ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-100/70'}`}
           >
-            <span className={preparationStartDate && preparationEndDate ? 'text-gray-800' : 'text-gray-400'}>
+            <span className={preparationStartDate && preparationEndDate ? 'text-b1-m text-black' : 'text-b1-r text-gray-400'}>
               {preparationStartDate && preparationEndDate
                 ? `${formatDisplay(preparationStartDate)} ~ ${formatDisplay(preparationEndDate)}`
                 : '선물 준비 기간을 설정해주세요'}
             </span>
-            <span className="text-gray-400" aria-hidden>📅</span>
+            <img src={calendarIcon} alt="" className="h-[19px] w-[18px] shrink-0" aria-hidden />
           </button>
           {errors.preparation && (
             <p className="text-xs text-red-400 mt-1">▲ 아직 채워지지 않은 항목이 있어요</p>
@@ -135,18 +136,18 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
             value={greeting}
             onChange={(e) => setStep1({ greeting: e.target.value.slice(0, FUNDING_INTRODUCTION_MAX_LENGTH) })}
             rows={3}
-            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white resize-none transition-colors"
+            className="h-[72px] w-full resize-none rounded-xl border border-transparent bg-gray-100/70 px-4 py-3 text-b1-m text-black outline-none transition-colors placeholder:text-b1-r placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-200"
           />
         </div>
 
         {/* 대표 이미지 */}
-        <div className="border border-dashed border-gray-300 rounded-2xl p-6">
+        <div className="h-[156px] rounded-2xl border border-dashed border-gray-300 p-3">
           {thumbnailImage ? (
-            <div className="relative">
+            <div className="relative h-full">
               <img
                 src={typeof thumbnailImage === 'string' ? thumbnailImage : URL.createObjectURL(thumbnailImage)}
                 alt="대표 이미지"
-                className="w-full h-36 object-cover rounded-lg"
+                className="h-full w-full rounded-lg object-cover"
               />
               <button
                 onClick={() => setShowDeleteConfirm(true)}
@@ -159,7 +160,7 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
           ) : (
             <button
               onClick={() => setShowPhotoSheet(true)}
-              className="w-full flex flex-col items-center justify-center gap-2 text-gray-400"
+              className="flex h-full w-full flex-col items-center justify-center gap-2 text-gray-400"
             >
               <span className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl leading-none">
                 +
@@ -168,15 +169,15 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
             </button>
           )}
         </div>
-      </div>
 
-      <button
-        onClick={handleNext}
-        disabled={!isValid || disabled}
-        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-      >
-        {submitLabel}
-      </button>
+        <button
+          onClick={handleNext}
+          disabled={!isValid || disabled}
+          className="h-14 w-full rounded-xl bg-gray-900 font-semibold text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+        >
+          {submitLabel}
+        </button>
+      </div>
 
       {openSheet === 'date' && (
         <DateSheet

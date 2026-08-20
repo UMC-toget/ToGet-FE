@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import calendarIcon from '../../assets/calendar.svg';
 import { useTogetherCreateStore } from '../../store/togetherCreateStore';
 import DateSheet, { formatDisplay } from './DateSheet';
 import PhotoActionSheet from '../common/PhotoActionSheet';
@@ -26,7 +27,7 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <div className="flex-1 overflow-y-auto space-y-5">
+      <div className="flex-1 overflow-y-auto space-y-3">
         <div>
           <h2 className="text-lg font-bold text-gray-900">준비방 기본 정보를 입력해 주세요</h2>
           <p className="text-xs text-gray-400 mt-1">선물 받을 사람의 기념일 정보를 입력해요</p>
@@ -46,7 +47,7 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
             placeholder="준비방 이름을 입력해주세요"
             value={roomName}
             onChange={(e) => setStep1({ roomName: e.target.value.slice(0, FUNDING_TITLE_MAX_LENGTH) })}
-            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
+            className="h-12 w-full rounded-xl border border-transparent bg-gray-100/70 px-4 text-b1-m text-black outline-none transition-colors placeholder:text-b1-r placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-200"
           />
         </div>
 
@@ -60,7 +61,7 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
             placeholder="선물 받을 사람의 이름을 입력해주세요"
             value={recipientName}
             onChange={(e) => setStep1({ recipientName: e.target.value })}
-            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
+            className="h-12 w-full rounded-xl border border-transparent bg-gray-100/70 px-4 text-b1-m text-black outline-none transition-colors placeholder:text-b1-r placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-200"
           />
         </div>
 
@@ -72,14 +73,12 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
           <button
             type="button"
             onClick={() => setOpenDateSheet(true)}
-            className="w-full flex items-center justify-between rounded-xl px-4 py-3 text-sm text-left bg-gray-100/70 border border-transparent"
+            className="h-12 w-full flex items-center justify-between rounded-xl border border-transparent bg-gray-100/70 px-4 text-left"
           >
-            <span className={giftDate ? 'text-gray-800' : 'text-gray-400'}>
+            <span className={giftDate ? 'text-b1-m text-black' : 'text-b1-r text-gray-400'}>
               {giftDate ? formatDisplay(giftDate) : '선물을 받고 싶은 날을 선택해주세요'}
             </span>
-            <span className="text-gray-400" aria-hidden>
-              📅
-            </span>
+            <img src={calendarIcon} alt="" className="h-[19px] w-[18px] shrink-0" aria-hidden />
           </button>
         </div>
 
@@ -89,30 +88,29 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
             <label className="text-sm font-medium text-gray-700">준비방 소개글 또는 메모</label>
             <span className="text-[11px] text-gray-400">{memo.length}/{FUNDING_INTRODUCTION_MAX_LENGTH}</span>
           </div>
-          <input
-            type="text"
+          <textarea
             maxLength={FUNDING_INTRODUCTION_MAX_LENGTH}
             placeholder="선물 준비에 대해 간단히 소개 해주세요"
             value={memo}
             onChange={(e) => setStep1({ memo: e.target.value.slice(0, FUNDING_INTRODUCTION_MAX_LENGTH) })}
-            className="w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none bg-gray-100/70 border border-transparent focus:border-gray-800 focus:bg-white transition-colors"
+            rows={3}
+            className="h-[72px] w-full resize-none rounded-xl border border-transparent bg-gray-100/70 px-4 py-3 text-b1-m text-black outline-none transition-colors placeholder:text-b1-r placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-200"
           />
         </div>
 
         {/* 준비방 대표 이미지 */}
-        <div>
-          <label className="text-sm font-medium text-gray-700 mb-2 block">준비방 대표 이미지</label>
+        <div className="h-[156px] rounded-2xl border border-dashed border-gray-300 p-3">
           {thumbnailImage ? (
-            <div className="relative w-24 h-24">
+            <div className="relative h-full">
               <img
                 src={typeof thumbnailImage === 'string' ? thumbnailImage : URL.createObjectURL(thumbnailImage)}
                 alt="준비방 대표 이미지"
-                className="w-24 h-24 object-cover rounded-xl"
+                className="h-full w-full rounded-lg object-cover"
               />
               <button
                 onClick={() => setShowDeleteConfirm(true)}
                 aria-label="대표 이미지 삭제하기"
-                className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
               >
                 <X size={14} />
               </button>
@@ -121,23 +119,24 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
             <button
               onClick={() => setShowPhotoSheet(true)}
               aria-label="준비방 대표 이미지 업로드"
-              className="w-24 h-24 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-gray-200 transition-colors"
+              className="flex h-full w-full flex-col items-center justify-center gap-2 text-gray-400"
             >
-              <span className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-lg leading-none">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-xl leading-none">
                 +
               </span>
+              <span className="text-xs">페이지 이미지 업로드</span>
             </button>
           )}
         </div>
-      </div>
 
-      <button
-        onClick={onNext}
-        disabled={!isValid}
-        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-      >
-        다음
-      </button>
+        <button
+          onClick={onNext}
+          disabled={!isValid}
+          className="h-14 w-full rounded-xl bg-gray-900 font-semibold text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+        >
+          다음
+        </button>
+      </div>
 
       {openDateSheet && (
         <DateSheet

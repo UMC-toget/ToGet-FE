@@ -58,6 +58,8 @@ export default function FundingCreatePage() {
   const resetFundingForm = useFundingCreateStore((s) => s.reset);
   const didInitialize = useRef(false);
   const [step, setStep] = useState(1);
+  const [wishlistSubView, setWishlistSubView] = useState(false);
+  const [accountSubView, setAccountSubView] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState('');
@@ -409,8 +411,8 @@ export default function FundingCreatePage() {
   if (!wasLoggedInOnEntry) return <Navigate to="/login" replace />;
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
-      {!isComplete && (
+    <div className="mx-auto flex h-dvh w-full max-w-[402px] flex-col overflow-hidden bg-white">
+      {!isComplete && !(step === 2 && wishlistSubView) && !(step === 4 && accountSubView) && (
         <>
           <Header
             title="내 선물 페이지 만들기"
@@ -434,9 +436,9 @@ export default function FundingCreatePage() {
         {!isRestoringDraft && (
           <>
         {step === 1 && <Step1BasicInfo onNext={handleNext} />}
-        {step === 2 && <Step2Wishlist onNext={handleNext} />}
+        {step === 2 && <Step2Wishlist onNext={handleNext} onSubViewChange={setWishlistSubView} />}
         {step === 3 && <Step3Visibility onNext={handleNext} />}
-        {step === 4 && <Step4Account onNext={handleNext} />}
+        {step === 4 && <Step4Account onNext={handleNext} onSubViewChange={setAccountSubView} />}
         {step === 5 && <Step5Invite onNext={handleCreateFunding} submitLabel={isCreating ? '생성 중...' : '저장'} disabled={isCreating} />}
         {isComplete && createdFundingId != null && (
           <StepComplete fundingId={createdFundingId} onViewFunding={handleViewFunding} onGoHome={handleGoHome} />

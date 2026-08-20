@@ -48,10 +48,12 @@ export default function TogetherStepComplete({ fundingId, onViewFunding, onGoHom
 
   return (
     <div className="flex-1 min-h-0 w-full max-w-87.5 mx-auto flex flex-col items-center relative">
-      {/* 페이지 전체 배경 그라데이션 - 캐릭터를 중심으로 진하게 시작해서 아래로 갈수록 옅어짐 */}
+      {/* 페이지 전체 배경 그라데이션 - 캐릭터를 중심으로 진하게 시작해서 아래로 갈수록 옅어짐.
+          박스를 화면보다 넓게(-inset-x-24) 잡아서, 그라데이션이 박스 경계에 닿기 전에 완전히 투명해지도록 여백을 둡니다
+          (경계에 딱 맞춰두면 옅게 남은 색이 박스 테두리에서 뚝 끊겨 사각형처럼 보입니다). */}
       <div
-        className="absolute inset-x-0 top-0 h-96 pointer-events-none"
-        style={{ background: `radial-gradient(circle at 50% 38%, color-mix(in srgb, ${glowColor} 48%, transparent) 0%, color-mix(in srgb, ${glowColor} 36%, transparent) 38%, transparent 68%)` }}
+        className="absolute -inset-x-24 top-0 h-[28rem] pointer-events-none"
+        style={{ background: `radial-gradient(ellipse at 50% 32%, color-mix(in srgb, ${glowColor} 40%, transparent) 0%, color-mix(in srgb, ${glowColor} 15%, transparent) 40%, transparent 70%)` }}
       />
       <button
         onClick={onGoHome}
@@ -114,7 +116,7 @@ export default function TogetherStepComplete({ fundingId, onViewFunding, onGoHom
         </div>
       </div>
 
-      <div className="w-full mt-8 pb-2">
+      <div className="w-full mt-auto pt-8 pb-2">
         <button
           onClick={onViewFunding}
           className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-colors"

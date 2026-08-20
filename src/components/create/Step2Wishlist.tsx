@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ChevronDown, Search, X, Gift } from 'lucide-react';
+import { ChevronRight, ChevronDown, Search, X, Gift } from 'lucide-react';
 import { useFundingCreateStore } from '../../store/fundingCreateStore';
 import { useWishedProducts } from '../../pages/wish/hooks/useWishedProducts';
 import type { WishType } from '../../store/wishStore';
 import PhotoActionSheet from '../common/PhotoActionSheet';
+import Header from '../common/Header';
 import { sanitizePurchaseUrl } from '../../utils/sanitizePurchaseUrl';
 
 interface Props {
   onNext: () => void;
   submitLabel?: string;
   disabled?: boolean;
+  /** "새로운 선물 등록하기" 같은 서브 화면으로 전환됐는지 알려줌 — 부모가 자기 Header/StepIndicator를 숨길 때 씀 */
+  onSubViewChange?: (isSubView: boolean) => void;
 }
 
 type View = 'list' | 'add';
@@ -31,10 +34,15 @@ interface AddFormState {
 const emptyForm: AddFormState = { name: '', price: '', link: '' };
 const NAME_MAX = 20;
 
-export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled = false }: Props) {
+export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled = false, onSubViewChange }: Props) {
   const navigate = useNavigate();
   const { wishlist, addWishlistItem, updateWishlistItem, removeWishlistItem } = useFundingCreateStore();
   const [view, setView] = useState<View>('list');
+
+  useEffect(() => {
+    onSubViewChange?.(view === 'add');
+    return () => onSubViewChange?.(false);
+  }, [view, onSubViewChange]);
 
   // 새 선물 등록 폼
   const [form, setForm] = useState<AddFormState>(emptyForm);
@@ -125,36 +133,35 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
     closeWishSheet();
   };
 
-  // ── 새 선물 등록 화면 ──────────────────────────────────────
+  // ── 새 선물 등록 화면 (독립된 페이지처럼 랜딩) ──────────────────
   if (view === 'add') {
     return (
       <div className="flex-1 min-h-0 flex flex-col">
-        <div className="flex items-center gap-2 mb-4">
-          <button onClick={() => setView('list')} className="p-1 text-gray-600 hover:text-gray-900 transition-colors">
-            <ChevronLeft size={20} />
-          </button>
-          <h2 className="text-base font-bold text-gray-900">새로운 선물 등록하기</h2>
+        <div className="-mx-4">
+          <Header title="새로운 선물 등록하기" onBack={() => setView('list')} />
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-4">
+        <div className="flex-1 overflow-y-auto space-y-4 pt-4">
           <p className="text-xs text-gray-400">선물을 등록하면, 입력한 금액으로 총액이 계산돼요.</p>
 
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs text-gray-500">
-                선물 이름 <span className="text-pink-400">*</span>
-              </label>
-              <span className="text-[11px] text-gray-400">{form.name.length}/{NAME_MAX}</span>
+            <label className="text-xs text-gray-500 mb-2 block">
+              선물 이름 <span className="text-pink-400">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                maxLength={NAME_MAX}
+                placeholder="받고 싶은 선물 이름을 입력해 주세요"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value.slice(0, NAME_MAX) })}
+                className={`w-full rounded-xl px-4 py-3 pr-16 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none border transition-colors
+                  ${nameError ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-100/70 focus:border-gray-800 focus:bg-white'}`}
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                ({form.name.length}/{NAME_MAX})
+              </span>
             </div>
-            <input
-              type="text"
-              maxLength={NAME_MAX}
-              placeholder="받고 싶은 선물 이름을 입력해 주세요"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value.slice(0, NAME_MAX) })}
-              className={`w-full rounded-xl px-4 py-3 text-b1-m text-black placeholder:text-b1-r placeholder:text-gray-400 outline-none border transition-colors
-                ${nameError ? 'border-red-400 bg-red-50' : 'border-transparent bg-gray-100/70 focus:border-gray-800 focus:bg-white'}`}
-            />
             {nameError && <p className="text-xs text-red-400 mt-1">▲ 선물 이름을 입력해 주세요</p>}
           </div>
 
@@ -212,15 +219,15 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
               </button>
             )}
           </div>
-        </div>
 
-        <button
-          onClick={handleAdd}
-          disabled={!isFormValid}
-          className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-        >
-          등록하기
-        </button>
+          <button
+            onClick={handleAdd}
+            disabled={!isFormValid}
+            className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            등록하기
+          </button>
+        </div>
 
         {showPhotoSheet && (
           <PhotoActionSheet
@@ -248,31 +255,35 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
 
           <button
             onClick={() => setView('add')}
-            className="w-full flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            className="w-full flex items-center justify-between gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-lg text-gray-500 shrink-0">
-              +
+            <span className="flex items-center gap-3">
+              <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-lg text-gray-500 shrink-0">
+                +
+              </span>
+              <span className="text-left">새로운 선물 등록하기</span>
             </span>
-            <span className="flex-1 text-left">새로운 선물 등록하기</span>
             <ChevronRight size={16} className="text-gray-400 shrink-0" />
           </button>
 
           <button
             onClick={() => setShowWishSheet(true)}
-            className="w-full flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            className="w-full flex items-center justify-between gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
-              <Gift size={16} />
+            <span className="flex items-center gap-3">
+              <span className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+                <Gift size={16} />
+              </span>
+              <span className="text-left">위시 불러오기</span>
             </span>
-            <span className="flex-1 text-left">위시 불러오기</span>
             <ChevronRight size={16} className="text-gray-400 shrink-0" />
           </button>
         </div>
 
         {wishlist.length > 0 && (
-          <div className="flex-1 -mx-4.5 bg-gray-100 px-4.5 pb-6">
+          <div className="flex-1 -mx-4.5 bg-background px-4.5 pb-6">
             <div className="px-3">
-              <div className="sticky top-0 z-10 flex items-center justify-between bg-gray-100 pb-5 pt-5">
+              <div className="sticky top-0 z-10 flex items-center justify-between bg-background pb-5 pt-5">
                 <p className="text-sm font-medium text-black">등록된 {wishlist.length}개 상품</p>
                 <p className="text-sm font-semibold text-pink-500">총 {totalAmount.toLocaleString()}원</p>
               </div>
@@ -331,15 +342,15 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
             </div>
           </div>
         )}
-      </div>
 
-      <button
-        onClick={onNext}
-        disabled={wishlist.length === 0 || disabled}
-        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-      >
-        {submitLabel}
-      </button>
+        <button
+          onClick={onNext}
+          disabled={wishlist.length === 0 || disabled}
+          className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+        >
+          {submitLabel}
+        </button>
+      </div>
 
       {/* 위시 불러오기 바텀시트 */}
       {showWishSheet && (
