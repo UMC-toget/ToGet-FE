@@ -27,7 +27,7 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <div className="flex-1 overflow-y-auto space-y-3 pb-28">
+      <div className="flex-1 overflow-y-auto space-y-3">
         <div>
           <h2 className="text-lg font-bold text-gray-900">준비방 기본 정보를 입력해 주세요</h2>
           <p className="text-xs text-gray-400 mt-1">선물 받을 사람의 기념일 정보를 입력해요</p>
@@ -128,9 +128,7 @@ export default function TogetherStep1BasicInfo({ onNext }: Props) {
             </button>
           )}
         </div>
-      </div>
 
-      <div className="fixed inset-x-0 bottom-[112px] z-40 mx-auto w-full max-w-[402px] px-[18px]">
         <button
           onClick={onNext}
           disabled={!isValid}

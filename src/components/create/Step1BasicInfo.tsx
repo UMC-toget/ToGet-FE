@@ -52,7 +52,7 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <div className="flex-1 overflow-y-auto space-y-3 pb-28">
+      <div className="flex-1 overflow-y-auto space-y-3">
         <div>
           <h2 className="text-lg font-bold text-gray-900">기본 정보를 입력해 주세요</h2>
           <p className="text-xs text-gray-400 mt-1">친구들에게 보여질 선물 페이지 정보를 작성해주세요</p>
@@ -169,9 +169,7 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
             </button>
           )}
         </div>
-      </div>
 
-      <div className="fixed inset-x-0 bottom-[112px] z-40 mx-auto w-full max-w-[402px] px-4">
         <button
           onClick={handleNext}
           disabled={!isValid || disabled}
