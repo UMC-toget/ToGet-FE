@@ -340,7 +340,7 @@ export default function GiftCreateTogetherPage() {
   if (!wasLoggedInOnEntry) return <Navigate to="/login" replace />
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[402px] flex-col bg-white">
+    <div className="mx-auto flex h-dvh w-full max-w-[402px] flex-col overflow-hidden bg-white">
       {!isComplete && (
         <>
           <Header

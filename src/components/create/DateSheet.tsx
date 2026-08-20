@@ -1,14 +1,14 @@
-import { useState } from 'react';
-import { RotateCcw } from 'lucide-react';
+import { useState } from "react";
+import { RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface DateSheetSingleProps {
-  mode: 'single';
+  mode: "single";
   initialDate?: string;
   onClose: () => void;
   onConfirm: (date: string) => void;
 }
 interface DateSheetRangeProps {
-  mode: 'range';
+  mode: "range";
   initialStart?: string;
   initialEnd?: string;
   onClose: () => void;
@@ -16,12 +16,13 @@ interface DateSheetRangeProps {
 }
 type DateSheetProps = DateSheetSingleProps | DateSheetRangeProps;
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
-const pad = (n: number) => String(n).padStart(2, '0');
-const toKey = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`;
+const pad = (n: number) => String(n).padStart(2, "0");
+const toKey = (y: number, m: number, d: number) =>
+  `${y}-${pad(m + 1)}-${pad(d)}`;
 const parseKey = (key: string) => {
-  const [y, m, d] = key.split('-').map(Number);
+  const [y, m, d] = key.split("-").map(Number);
   return { y, m: m - 1, d };
 };
 
@@ -43,17 +44,24 @@ function buildMonthGrid(year: number, month: number) {
 
 export default function DateSheet(props: DateSheetProps) {
   const today = new Date();
-  const [viewYear, setViewYear] = useState(today.getFullYear());
-  const [viewMonth, setViewMonth] = useState(today.getMonth());
+  const initialViewDate =
+    props.mode === "single" ? props.initialDate : props.initialStart;
+  const initialView = initialViewDate ? parseKey(initialViewDate) : undefined;
+  const [viewYear, setViewYear] = useState(
+    initialView?.y ?? today.getFullYear(),
+  );
+  const [viewMonth, setViewMonth] = useState(
+    initialView?.m ?? today.getMonth(),
+  );
 
   const [single, setSingle] = useState<string | undefined>(
-    props.mode === 'single' ? props.initialDate : undefined
+    props.mode === "single" ? props.initialDate : undefined,
   );
   const [rangeStart, setRangeStart] = useState<string | undefined>(
-    props.mode === 'range' ? props.initialStart : undefined
+    props.mode === "range" ? props.initialStart : undefined,
   );
   const [rangeEnd, setRangeEnd] = useState<string | undefined>(
-    props.mode === 'range' ? props.initialEnd : undefined
+    props.mode === "range" ? props.initialEnd : undefined,
   );
 
   const cells = buildMonthGrid(viewYear, viewMonth);
@@ -77,7 +85,7 @@ export default function DateSheet(props: DateSheetProps) {
 
   const handlePick = (day: number) => {
     const key = toKey(viewYear, viewMonth, day);
-    if (props.mode === 'single') {
+    if (props.mode === "single") {
       setSingle(key);
       return;
     }
@@ -92,7 +100,7 @@ export default function DateSheet(props: DateSheetProps) {
   };
 
   const handleReset = () => {
-    if (props.mode === 'single') {
+    if (props.mode === "single") {
       setSingle(undefined);
     } else {
       setRangeStart(undefined);
@@ -102,51 +110,72 @@ export default function DateSheet(props: DateSheetProps) {
 
   const isSelected = (day: number) => {
     const key = toKey(viewYear, viewMonth, day);
-    if (props.mode === 'single') return key === single;
+    if (props.mode === "single") return key === single;
     return key === rangeStart || key === rangeEnd;
   };
-  const todayKey = toKey(today.getFullYear(), today.getMonth(), today.getDate());
+  const todayKey = toKey(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
   const isToday = (day: number) => toKey(viewYear, viewMonth, day) === todayKey;
   const isPast = (day: number) => toKey(viewYear, viewMonth, day) < todayKey;
-  const isRangeStart = (day: number) => props.mode === 'range' && toKey(viewYear, viewMonth, day) === rangeStart;
-  const isRangeEnd = (day: number) => props.mode === 'range' && toKey(viewYear, viewMonth, day) === rangeEnd;
+  const isRangeStart = (day: number) =>
+    props.mode === "range" && toKey(viewYear, viewMonth, day) === rangeStart;
+  const isRangeEnd = (day: number) =>
+    props.mode === "range" && toKey(viewYear, viewMonth, day) === rangeEnd;
   const isInRange = (day: number) => {
-    if (props.mode !== 'range' || !rangeStart || !rangeEnd) return false;
+    if (props.mode !== "range" || !rangeStart || !rangeEnd) return false;
     const key = toKey(viewYear, viewMonth, day);
     return key > rangeStart && key < rangeEnd;
   };
 
-  const canConfirm = props.mode === 'single' ? Boolean(single) : Boolean(rangeStart && rangeEnd);
-  const canReset = props.mode === 'single' ? Boolean(single) : Boolean(rangeStart || rangeEnd);
+  const canConfirm =
+    props.mode === "single" ? Boolean(single) : Boolean(rangeStart && rangeEnd);
+  const canReset =
+    props.mode === "single" ? Boolean(single) : Boolean(rangeStart || rangeEnd);
 
   const handleConfirm = () => {
-    if (props.mode === 'single' && single) {
+    if (props.mode === "single" && single) {
       props.onConfirm(single);
-    } else if (props.mode === 'range' && rangeStart && rangeEnd) {
+    } else if (props.mode === "range" && rangeStart && rangeEnd) {
       props.onConfirm(rangeStart, rangeEnd);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end z-50" onClick={props.onClose}>
+    <div
+      className="fixed inset-0 bg-black/40 flex items-end z-50"
+      onClick={props.onClose}
+    >
       <div
-        className="bg-white w-full max-w-sm mx-auto rounded-t-2xl p-4"
+        className="bg-white w-full max-w-sm mx-auto rounded-t-2xl px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)+24px)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-3" />
         <p className="text-sm font-semibold text-gray-700 mb-3">
-          {props.mode === 'single' ? '선물 필요 날짜' : '선물 준비 기간'}
+          {props.mode === "single" ? "선물 필요 날짜" : "선물 준비 기간"}
         </p>
 
         <div className="flex items-center justify-between mb-3">
-          <button type="button" onClick={goPrevMonth} aria-label="이전 달" className="text-gray-400 px-2 text-lg">
-            ‹
+          <button
+            type="button"
+            onClick={goPrevMonth}
+            aria-label="이전 달"
+            className="flex size-8 items-center justify-center text-gray-400"
+          >
+            <ChevronLeft size={20} />
           </button>
           <p className="text-sm font-semibold text-gray-800">
             {viewYear}년 {pad(viewMonth + 1)}월
           </p>
-          <button type="button" onClick={goNextMonth} aria-label="다음 달" className="text-gray-400 px-2 text-lg">
-            ›
+          <button
+            type="button"
+            onClick={goNextMonth}
+            aria-label="다음 달"
+            className="flex size-8 items-center justify-center text-gray-400"
+          >
+            <ChevronRight size={20} />
           </button>
         </div>
 
@@ -163,12 +192,16 @@ export default function DateSheet(props: DateSheetProps) {
             const end = isRangeEnd(day);
             const inRange = isInRange(day);
             // 시작~마감 사이를 끊김 없는 핑크 바로 이어주고, 시작/마감 칸만 좌우를 둥글게 마감
-            const barClass = start || end || inRange
-              ? `bg-pink-100 ${start ? 'rounded-l-full' : ''} ${end ? 'rounded-r-full' : ''}`
-              : '';
+            const barClass =
+              start || end || inRange
+                ? `bg-pink-100 ${start ? "rounded-l-full" : ""} ${end ? "rounded-r-full" : ""}`
+                : "";
 
             return (
-              <div key={idx} className={`relative flex flex-col items-center justify-center h-11 ${barClass}`}>
+              <div
+                key={idx}
+                className={`relative flex items-center justify-center h-10 ${barClass}`}
+              >
                 {isToday(day) && !isSelected(day) && (
                   <span className="absolute top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-pink-500" />
                 )}
@@ -176,38 +209,51 @@ export default function DateSheet(props: DateSheetProps) {
                   type="button"
                   onClick={() => handlePick(day)}
                   disabled={isPast(day)}
-                  className={`w-8 h-8 rounded-full text-xs flex items-center justify-center transition-colors
+                  className={`rounded-full text-xs flex items-center justify-center transition-colors
                     ${
                       isPast(day)
-                        ? 'text-gray-300 cursor-not-allowed'
+                        ? "text-gray-300 cursor-not-allowed"
                         : isSelected(day)
-                        ? 'bg-pink-400 text-white font-semibold'
-                        : inRange
-                        ? 'text-gray-700'
-                        : 'text-gray-700 hover:bg-gray-50'
+                          ? "w-10 h-10 bg-pink-500 text-white font-semibold flex-col leading-tight"
+                          : inRange
+                            ? "w-8 h-8 text-gray-600"
+                            : "w-8 h-8 text-gray-600 hover:bg-gray-50"
                     }`}
                 >
-                  {day}
+                  <span>{pad(day)}</span>
+                  {isSelected(day) && (
+                    <span className="text-[9px] font-medium leading-none mt-0.5">
+                      {start ? "시작" : end ? "마감" : "선택"}
+                    </span>
+                  )}
                 </button>
-                {(start || end || (props.mode === 'single' && isSelected(day))) && (
-                  <span className="text-[9px] leading-none text-pink-400 font-medium mt-0.5">
-                    {start ? '시작' : end ? '마감' : '선택'}
-                  </span>
-                )}
               </div>
             );
           })}
         </div>
 
-        {props.mode === 'range' && (
-          <div className="border-t border-gray-100 pt-3 mb-3 space-y-1">
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-400">시작일</span>
-              <span className="text-gray-700">{rangeStart ? formatDisplay(rangeStart) : '-'}</span>
+        {props.mode === "single" && (
+          <div className="-mx-4 mb-4 flex h-12 items-center justify-between bg-gray-50 px-4 text-xs">
+            <span className="text-gray-500">날짜</span>
+            <span className="font-medium text-gray-900">
+              {single ? formatDisplay(single) : ""}
+            </span>
+          </div>
+        )}
+
+        {props.mode === "range" && (
+          <div className="-mx-4 mb-4 flex flex-col gap-2 bg-gray-50 px-4 py-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-500">시작일</span>
+              <span className="font-medium text-gray-900">
+                {rangeStart ? formatDisplay(rangeStart) : "-"}
+              </span>
             </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-400">마감일</span>
-              <span className="text-gray-700">{rangeEnd ? formatDisplay(rangeEnd) : '-'}</span>
+            <div className="flex justify-between">
+              <span className="text-gray-500">마감일</span>
+              <span className="font-medium text-gray-900">
+                {rangeEnd ? formatDisplay(rangeEnd) : "-"}
+              </span>
             </div>
           </div>
         )}
@@ -228,7 +274,7 @@ export default function DateSheet(props: DateSheetProps) {
             disabled={!canConfirm}
             className="flex-1 py-3 rounded-xl bg-gray-900 text-white text-sm font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
-            {props.mode === 'single' ? '날짜 저장' : '기간 저장'}
+            {props.mode === "single" ? "날짜 저장" : "기간 저장"}
           </button>
         </div>
       </div>
