@@ -42,9 +42,9 @@ export default function PhotoActionSheet({ onClose, onSelect, aspectRatio = 364 
       <WebImageSearch
         onCancel={() => setWebSearchOpen(false)}
         onSelect={(file) => {
-          onSelect(file);
+          // 갤러리/카메라와 동일하게 크롭 화면을 거치도록 pendingFile로 넘김 (바로 onSelect하지 않음)
           setWebSearchOpen(false);
-          onClose();
+          setPendingFile(file);
         }}
       />
     );
