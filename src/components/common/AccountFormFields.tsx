@@ -46,7 +46,10 @@ export default function AccountFormFields({
   onBankCodeChange,
 }: AccountFormFieldsProps) {
   const [bankSheetOpen, setBankSheetOpen] = useState(false)
+  const [isComposingHolder, setIsComposingHolder] = useState(false)
   const { data: suggestedBanks } = useBankDetection(accountNumber, bankCode === '')
+
+  const sanitizeAccountHolder = (value: string) => value.replace(/[^가-힣ㄱ-ㅣa-zA-Z\s]/g, '')
 
   return (
     <>
@@ -65,7 +68,16 @@ export default function AccountFormFields({
             </>
           }
           value={accountHolder}
-          onChange={(e) => onAccountHolderChange(e.target.value.replace(/[^가-힣ㄱ-ㅣa-zA-Z\s]/g, ''))}
+          // 천지인 등 조합형 IME로 입력하는 동안 값을 강제로 고쳐서 다시 넣으면 조합 상태가 깨져
+          // 입력이 막히므로, 조합 중에는 원본 값을 그대로 두고 조합이 끝난 뒤에만 필터링합니다.
+          onCompositionStart={() => setIsComposingHolder(true)}
+          onCompositionEnd={(e) => {
+            setIsComposingHolder(false)
+            onAccountHolderChange(sanitizeAccountHolder(e.currentTarget.value))
+          }}
+          onChange={(e) =>
+            onAccountHolderChange(isComposingHolder ? e.target.value : sanitizeAccountHolder(e.target.value))
+          }
           placeholder="예금주 이름을 정확히 입력해 주세요"
           maxLength={25}
           hideCounter
