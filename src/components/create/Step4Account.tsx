@@ -133,7 +133,7 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
           {accounts.length > 0 && (
             <div className="flex-1 -mx-4.5 px-4.5 pt-5 pb-6 bg-background">
               <div className="px-3">
-                <p className="text-sm font-medium text-black mb-3">등록된 {accounts.length}개 계좌</p>
+                <p className="text-sm font-medium text-black mb-3 -mt-[5px]">등록된 {accounts.length}개 계좌</p>
                 <div className="space-y-2">
                   {accounts.map((acc) => {
                     const selected = acc.id === selectedAccountId;
