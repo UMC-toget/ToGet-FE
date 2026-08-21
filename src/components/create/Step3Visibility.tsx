@@ -45,7 +45,7 @@ export default function Step3Visibility({ onNext, submitLabel = '다음', disabl
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto no-scrollbar">
         <div className="mb-5">
           <h2 className="text-lg font-bold text-gray-900">친구들에게 보일 정보를 선택해 주세요</h2>
           <p className="text-xs text-gray-400 mt-1">공개범위는 마이페이지에서 언제든지 수정할 수 있어요</p>
