@@ -131,7 +131,7 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
           </div>
 
           {accounts.length > 0 && (
-            <div className="flex-1 -mx-4.5 px-4.5 pt-5 pb-6 bg-gray-100">
+            <div className="flex-1 -mx-4.5 px-4.5 pt-5 pb-6 bg-background">
               <div className="px-3">
                 <p className="text-sm font-medium text-black mb-3">등록된 {accounts.length}개 계좌</p>
                 <div className="space-y-2">
