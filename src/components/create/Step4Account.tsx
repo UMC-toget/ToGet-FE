@@ -106,7 +106,7 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
   if (view === 'list') {
     return (
       <div className="flex-1 min-h-0 flex flex-col">
-        <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar flex flex-col">
           <div className="space-y-5 pb-5">
             <div>
               <h2 className="text-lg font-bold text-gray-900">선물 준비에 사용할 계좌를 선택해 주세요</h2>
@@ -131,9 +131,9 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
           </div>
 
           {accounts.length > 0 && (
-            <div className="flex-1 -mx-4.5 px-4.5 pt-5 pb-6 bg-gray-100">
+            <div className="flex-1 -mx-4.5 px-4.5 pt-5 pb-6 bg-background">
               <div className="px-3">
-                <p className="text-sm font-medium text-black mb-3">등록된 {accounts.length}개 계좌</p>
+                <p className="text-sm font-medium text-black mb-3 -mt-[5px]">등록된 {accounts.length}개 계좌</p>
                 <div className="space-y-2">
                   {accounts.map((acc) => {
                     const selected = acc.id === selectedAccountId;
@@ -159,15 +159,15 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
               </div>
             </div>
           )}
-
-          <button
-            onClick={onNext}
-            disabled={!selectedAccountId || disabled}
-            className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-          >
-            {submitLabel}
-          </button>
         </div>
+
+        <button
+          onClick={onNext}
+          disabled={!selectedAccountId || disabled}
+          className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 shrink-0 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+        >
+          {submitLabel}
+        </button>
       </div>
     );
   }
@@ -181,7 +181,7 @@ export default function Step4Account({ onNext, submitLabel = '다음', disabled 
         <Header title={isEdit ? '계좌 수정하기' : '새로운 계좌 등록하기'} onBack={() => setView('list')} />
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-4 pt-4">
+      <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 pt-4">
         <p className="text-xs text-gray-400">
           선물 준비에 사용할 계좌를 {isEdit ? '수정해' : '등록해'} 주세요<br />
           친구들이 선물에 함께할 때 이 계좌 정보를 확인할 수 있어요

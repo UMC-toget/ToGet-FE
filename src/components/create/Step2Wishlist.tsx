@@ -141,7 +141,7 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
           <Header title="새로운 선물 등록하기" onBack={() => setView('list')} />
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-4 pt-4">
+        <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 pt-4">
           <p className="text-xs text-gray-400">선물을 등록하면, 입력한 금액으로 총액이 계산돼요.</p>
 
           <div>
@@ -246,7 +246,7 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
   // ── 목록 화면 ──────────────────────────────────────────────
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <div className="flex-1 overflow-y-auto flex flex-col">
+      <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col">
         <div className="space-y-5 pb-5">
           <div>
             <h2 className="text-lg font-bold text-gray-900">받고 싶은 선물을 등록해 주세요</h2>
@@ -342,15 +342,15 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
             </div>
           </div>
         )}
-
-        <button
-          onClick={onNext}
-          disabled={wishlist.length === 0 || disabled}
-          className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-        >
-          {submitLabel}
-        </button>
       </div>
+
+      <button
+        onClick={onNext}
+        disabled={wishlist.length === 0 || disabled}
+        className="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl mt-4 shrink-0 hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+      >
+        {submitLabel}
+      </button>
 
       {/* 위시 불러오기 바텀시트 */}
       {showWishSheet && (
@@ -435,7 +435,7 @@ export default function Step2Wishlist({ onNext, submitLabel = '다음', disabled
               )}
             </div>
 
-            <div className="flex-1 overflow-y-auto grid grid-cols-2 gap-3 pb-2">
+            <div className="flex-1 overflow-y-auto no-scrollbar grid grid-cols-2 gap-3 pb-2">
               {!isWishLoading && filteredWishItems.map((item) => {
                 const selected = selectedWishIds.has(item.id);
                 return (

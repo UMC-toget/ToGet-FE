@@ -23,7 +23,7 @@ export default function StepIndicator({ currentStep, steps = DEFAULT_STEPS }: St
           return (
             <div
               key={idx}
-              className={`absolute border-t border-dashed ${isDone ? 'border-gray-800' : 'border-gray-200'}`}
+              className={`absolute border-t ${isDone ? 'border-gray-800' : 'border-gray-200'}`}
               style={{
                 left: `calc(${leftPct}% + 14px)`,
                 width: `calc(${widthPct}% - 28px)`,
