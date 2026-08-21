@@ -52,7 +52,7 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <div className="flex-1 overflow-y-auto space-y-3">
+      <div className="flex-1 overflow-y-auto no-scrollbar space-y-3">
         <div>
           <h2 className="text-lg font-bold text-gray-900">기본 정보를 입력해 주세요</h2>
           <p className="text-xs text-gray-400 mt-1">친구들에게 보여질 선물 페이지 정보를 작성해주세요</p>
@@ -169,15 +169,15 @@ export default function Step1BasicInfo({ onNext, submitLabel = '다음', disable
             </button>
           )}
         </div>
-
-        <button
-          onClick={handleNext}
-          disabled={!isValid || disabled}
-          className="h-14 w-full rounded-xl bg-gray-900 font-semibold text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
-        >
-          {submitLabel}
-        </button>
       </div>
+
+      <button
+        onClick={handleNext}
+        disabled={!isValid || disabled}
+        className="h-14 w-full shrink-0 rounded-xl bg-gray-900 font-semibold text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 mt-4"
+      >
+        {submitLabel}
+      </button>
 
       {openSheet === 'date' && (
         <DateSheet
