@@ -7,6 +7,8 @@ import HomeFooter from "./HomeFooter";
 import MyFundingsSection from "./MyFundingsSection";
 import togetLogo from "../../assets/toget-logo.svg";
 import GiftCreateSheet from "../gift-create/GiftCreateSheet";
+import ServiceNoticePopup from "./ServiceNoticePopup";
+import { shouldShowServiceNotice } from "./serviceNotice";
 import { useAuth } from "../../hooks/useAuth";
 import { useMyFundings } from "./useMyFundings";
 import type { MyFundingSummary } from "../../types/funding";
@@ -20,6 +22,7 @@ export default function HomePage() {
   const myFundings = useMyFundings();
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [noticeOpen, setNoticeOpen] = useState(shouldShowServiceNotice);
 
   const handleShareInvite = async (funding: MyFundingSummary) => {
     const invitePath = funding.fundingType === 'TOGETHER_GIFT'
@@ -74,6 +77,7 @@ export default function HomePage() {
         onClose={() => setCreateSheetOpen(false)}
       />
       <Toast open={toastMessage !== null} message={toastMessage ?? ""} />
+      <ServiceNoticePopup open={noticeOpen} onConfirm={() => setNoticeOpen(false)} />
     </div>
   );
 }
