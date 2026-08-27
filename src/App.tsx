@@ -1,5 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import PageViewTracker from './components/common/PageViewTracker'
+import MaintenancePage from './pages/maintenance/MaintenancePage'
+import { isMaintenanceActive } from './pages/home/serviceNotice'
 import SplashPage from './pages/splash/SplashPage' // TEMP: GIF 스플래시 확인용, 확인 후 되돌릴 것
 import LoginPage from './pages/login/LoginPage'
 import ProfileSetupPage from './pages/signup/ProfileSetupPage'
@@ -54,6 +56,11 @@ import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage'
 import TermsOfServicePage from './pages/legal/TermsOfServicePage'
 
 function App() {
+  // 정비 기간(8/29~8/31)에는 어느 경로로 들어와도 앱 전체를 정비 안내 화면으로 대체
+  if (isMaintenanceActive()) {
+    return <MaintenancePage />;
+  }
+
   return (
     <>
       <PageViewTracker />
