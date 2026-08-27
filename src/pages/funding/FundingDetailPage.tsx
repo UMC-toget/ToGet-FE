@@ -16,6 +16,7 @@ import LetterModal from './LetterModal'
 import ParticipantList from './ParticipantList'
 import { getMyGiftDashboard, dashboardToFundingDetail, updateFundingStatus, getSharedFunding, sharedFundingToFundingDetail } from '../../api/fundings'
 import { getContributions, getContribution } from '../../api/contributions'
+import { useLetterColors } from '../gift-review/useDecorations'
 import individualFundingFallback from '../../assets/individual-funding-empty.svg'
 
 type OwnerTab = 'mine' | 'participants'
@@ -39,6 +40,7 @@ export default function FundingDetailPage() {
   const [thumbnailApiUrl, setThumbnailApiUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const store = useFundingCreateStore()
+  const letterColors = useLetterColors()
   const useDevelopmentMock = import.meta.env.DEV && new URLSearchParams(location.search).get('mock') === '1'
 
   // 개설자: my-gift 대시보드, 비개설자: shared-fundings + 메세지는 공통으로 contributions 사용
@@ -54,6 +56,7 @@ export default function FundingDetailPage() {
         content: c.content,
         isPrivate: c.isPrivate,
         isAnonymous: c.isAnonymous,
+        backgroundId: c.backgroundId,
       }))
 
       if (dashboard) {
@@ -128,7 +131,7 @@ export default function FundingDetailPage() {
     if (!id) return
     try {
       const detail = await getContribution(id, message.id)
-      setOpenedMessage({ ...message, content: detail.content })
+      setOpenedMessage({ ...message, content: detail.content, backgroundId: detail.backgroundId ?? message.backgroundId })
     } catch {
       setOpenedMessage(message)
     }
@@ -281,6 +284,7 @@ export default function FundingDetailPage() {
         hostName={displayFunding.hostName}
         content={openedMessage?.content ?? ''}
         senderLabel={openedMessage ? getMessageDisplayName(openedMessage, displayFunding) : null}
+        color={letterColors.find((c) => c.backgroundId === openedMessage?.backgroundId)}
         onClose={() => setOpenedMessage(null)}
       />
 

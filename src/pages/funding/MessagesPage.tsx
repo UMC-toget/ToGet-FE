@@ -8,6 +8,7 @@ import EnvelopeButton from './EnvelopeButton'
 import LetterModal from './LetterModal'
 import { getMyGiftDashboard, dashboardToFundingDetail, getSharedFunding, sharedFundingToFundingDetail } from '../../api/fundings'
 import { getContributions } from '../../api/contributions'
+import { useLetterColors } from '../gift-review/useDecorations'
 
 /**
  * E02) 축하메세지 더보기 (/funding/:id/messages)
@@ -15,6 +16,7 @@ import { getContributions } from '../../api/contributions'
  */
 export default function MessagesPage() {
   const { id } = useParams()
+  const letterColors = useLetterColors()
   const [openedMessage, setOpenedMessage] = useState<FundingMessage | null>(null)
   const mockFunding = useMockFunding()
   const [realFunding, setRealFunding] = useState<FundingDetail | null>(null)
@@ -32,6 +34,7 @@ export default function MessagesPage() {
         content: c.content,
         isPrivate: c.isPrivate,
         isAnonymous: c.isAnonymous,
+        backgroundId: c.backgroundId,
       }))
       if (dashboard) {
         setRealFunding(dashboardToFundingDetail(dashboard, messages))
@@ -93,6 +96,7 @@ export default function MessagesPage() {
         hostName={funding.hostName}
         content={openedMessage?.content ?? ''}
         senderLabel={openedMessage ? getMessageDisplayName(openedMessage, funding) : null}
+        color={letterColors.find((c) => c.backgroundId === openedMessage?.backgroundId)}
         onClose={() => setOpenedMessage(null)}
       />
     </div>

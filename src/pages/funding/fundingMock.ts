@@ -80,8 +80,10 @@ export function getMockFunding(isOwner: boolean, hidden: Set<string>, isOverAchi
       },
     ],
     // BE 계약: 봉투(발신자 목록)는 항상 내려오고, 내용 공개 OFF && 참여자면 content만 null
-    messages: messages.map((message) => ({
+    // backgroundId(1~8)는 편지지 색 확인용으로 순환 부여
+    messages: messages.map((message, i) => ({
       ...message,
+      backgroundId: (i % 8) + 1,
       content: visibility.showMessages || isOwner ? message.content : null,
     })),
   }
