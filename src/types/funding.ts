@@ -31,6 +31,8 @@ export interface FundingMessage {
   isPrivate: boolean
   /** 익명 편지 — 개설자에게도 이름 숨김 */
   isAnonymous: boolean
+  /** 참여자가 고른 편지지 색 (1~8). null이면 기본색으로 렌더 */
+  backgroundId: number | null
 }
 
 /** 홈 화면 '진행 중인 내 선물 모으기' 카드용 요약 정보 (D04 공개 범위 토글과 무관 — 개설자 본인만 보는 카드) */

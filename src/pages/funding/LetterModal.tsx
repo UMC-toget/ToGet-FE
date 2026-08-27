@@ -1,4 +1,6 @@
+import type { CSSProperties } from 'react'
 import CloseIcon from '../../components/icons/CloseIcon'
+import type { LetterColor } from '../../components/common/letterPalette'
 
 interface LetterModalProps {
   open: boolean
@@ -7,12 +9,25 @@ interface LetterModalProps {
   content: string
   /** 발신자 표시명 (익명/비공개 처리 반영된 값). null이면 from. 줄 미표시 (이름 공개 OFF) */
   senderLabel: string | null
+  /** 참여자가 고른 편지지 색. 없으면 기본 핑크로 렌더 */
+  color?: LetterColor
   onClose: () => void
 }
 
+/** 참여자가 색을 못 고른(구 데이터) 편지의 기본 핑크 */
+const FALLBACK_LINE = 'rgba(254,113,165,0.5)'
+
 /** 축하 메세지 편지 팝업 */
-export default function LetterModal({ open, hostName, content, senderLabel, onClose }: LetterModalProps) {
+export default function LetterModal({ open, hostName, content, senderLabel, color, onClose }: LetterModalProps) {
   if (!open) return null
+
+  const lineColor = color?.lineColor ?? FALLBACK_LINE
+  const cardStyle: CSSProperties | undefined = color
+    ? { backgroundColor: color.background, borderColor: color.border }
+    : undefined
+  const lineStyle: CSSProperties = {
+    backgroundImage: `repeating-linear-gradient(to bottom, transparent, transparent 27px, ${lineColor} 27px, ${lineColor} 28px)`,
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -23,10 +38,13 @@ export default function LetterModal({ open, hostName, content, senderLabel, onCl
         className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
       />
       <div className="relative flex w-[366px] max-w-[calc(100%-36px)] flex-col items-center gap-4">
-        <div className="w-full rounded-xl border border-pink-500 bg-pink-100 px-4 py-3">
+        <div
+          className={`w-full rounded-xl border px-4 py-3 ${color ? '' : 'border-pink-500 bg-pink-100'}`}
+          style={cardStyle}
+        >
           <p className="flex h-6 items-center text-b1-m text-black">{hostName}에게</p>
           {/* 28px 간격 편지지 밑줄 */}
-          <div className="mt-[13px] bg-[repeating-linear-gradient(to_bottom,transparent,transparent_27px,rgba(254,113,165,0.5)_27px,rgba(254,113,165,0.5)_28px)] pb-[28px]">
+          <div className="mt-[13px] pb-[28px]" style={lineStyle}>
             <p className="whitespace-pre-line text-b2-r leading-[28px] text-gray-800">{content}</p>
             {senderLabel != null && (
               <p className="text-right text-b2-r leading-[28px] text-gray-800">from. {senderLabel}</p>

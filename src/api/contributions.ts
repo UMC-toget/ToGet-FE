@@ -18,6 +18,8 @@ export interface ContributionItem {
   amount: number | null
   content: string | null
   isPrivate: boolean
+  /** 참여자가 고른 편지지 색 (1~8). 편지 조회 시 색 복원에 사용 */
+  backgroundId: number | null
   createdAt: string
 }
 
